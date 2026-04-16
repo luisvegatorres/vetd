@@ -6,7 +6,18 @@ import { useTheme } from "next-themes"
 
 import { cn } from "@/lib/utils"
 
-type HeroShaderProps = React.HTMLAttributes<HTMLDivElement>
+type HeroShaderProps = React.HTMLAttributes<HTMLDivElement> & {
+  /**
+   * Scales the base + hover dot alpha and halo glow. `1` matches the home
+   * hero defaults; drop to ~0.5 for a quieter texture behind dense content.
+   */
+  intensity?: number
+  /**
+   * Extra classes for the children wrapper (useful when the container has a
+   * fixed height and the content needs to fill it — e.g. `"h-full"`).
+   */
+  contentClassName?: string
+}
 
 const GRID_SPACING = 26
 const BASE_DOT_RADIUS = 0.9
@@ -20,7 +31,14 @@ const HOVER_ALPHA_LIGHT = 0.22
 const IDLE_INTENSITY = 0.001
 const INTENSITY_EPSILON = 0.0005
 
-export function HeroShader({ children, className, ...props }: HeroShaderProps) {
+export function HeroShader({
+  children,
+  className,
+  contentClassName,
+  intensity = 1,
+  ...props
+}: HeroShaderProps) {
+  const intensityMultiplier = Math.max(0, Math.min(1, intensity))
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null)
   const containerRef = React.useRef<HTMLDivElement | null>(null)
   const cursorRef = React.useRef({ x: 0, y: 0 })
@@ -46,10 +64,12 @@ export function HeroShader({ children, className, ...props }: HeroShaderProps) {
     if (!context) return
 
     const dotRgb = isLightMode ? "16, 16, 16" : "255, 255, 255"
-    const glowPeak = isLightMode ? 0.052 : 0.062
-    const glowMid = isLightMode ? 0.02 : 0.024
-    const baseAlpha = isLightMode ? BASE_ALPHA_LIGHT : BASE_ALPHA_DARK
-    const hoverAlpha = isLightMode ? HOVER_ALPHA_LIGHT : HOVER_ALPHA_DARK
+    const glowPeak = (isLightMode ? 0.052 : 0.062) * intensityMultiplier
+    const glowMid = (isLightMode ? 0.02 : 0.024) * intensityMultiplier
+    const baseAlpha =
+      (isLightMode ? BASE_ALPHA_LIGHT : BASE_ALPHA_DARK) * intensityMultiplier
+    const hoverAlpha =
+      (isLightMode ? HOVER_ALPHA_LIGHT : HOVER_ALPHA_DARK) * intensityMultiplier
     const baseFillStyle = `rgba(${dotRgb}, ${baseAlpha})`
 
     let width = 0
@@ -242,7 +262,7 @@ export function HeroShader({ children, className, ...props }: HeroShaderProps) {
       unsubActivity()
       requestTickRef.current = () => {}
     }
-  }, [isLightMode, smoothActivity])
+  }, [isLightMode, intensityMultiplier, smoothActivity])
 
   const updatePointer = React.useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
@@ -294,7 +314,7 @@ export function HeroShader({ children, className, ...props }: HeroShaderProps) {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.06))] dark:bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.22))]"
       />
-      <div className="relative z-10">{children}</div>
+      <div className={cn("relative z-10", contentClassName)}>{children}</div>
     </div>
   )
 }

@@ -11,6 +11,7 @@ import {
   type MotionValue,
 } from "motion/react"
 
+import { HeroShader } from "@/components/hero-shader"
 import { cn } from "@/lib/utils"
 import { processArtifacts, type ProcessStep } from "@/lib/site"
 
@@ -111,7 +112,10 @@ function HorizontalChapters({
       className="relative"
       style={{ height: `${steps.length * 100}vh` }}
     >
-      <div className="sticky top-16 h-[calc(100dvh-4rem)] overflow-hidden border-y border-border bg-background">
+      <HeroShader
+        className="sticky top-16 h-[calc(100dvh-4rem)] border-y border-border bg-background"
+        contentClassName="h-full"
+      >
         <ChapterProgress
           eyebrow={eyebrow}
           scrollYProgress={scrollYProgress}
@@ -135,7 +139,7 @@ function HorizontalChapters({
         </motion.div>
 
         <ScrollHint />
-      </div>
+      </HeroShader>
     </div>
   )
 }
@@ -157,7 +161,7 @@ function ChapterProgress({
 }) {
   return (
     <div className="absolute top-0 right-0 left-0 z-10 border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex items-center gap-6 px-8 py-5 sm:px-12 sm:py-6">
+      <div className="flex h-16 items-center gap-6 px-6 sm:px-10 lg:px-20">
         <span className="font-heading text-[10px] tracking-[0.22em] text-muted-foreground uppercase">
           {eyebrow}
         </span>
@@ -170,16 +174,7 @@ function ChapterProgress({
           </span>
         </span>
 
-        <div className="relative flex-1">
-          <div className="h-px bg-border" />
-          <motion.div
-            aria-hidden
-            className="absolute inset-y-0 left-0 h-px origin-left bg-foreground"
-            style={{ scaleX: scrollYProgress }}
-          />
-        </div>
-
-        <div className="flex items-center gap-3">
+        <div className="ml-auto flex items-center gap-3">
           {Array.from({ length: total }).map((_, i) => (
             <button
               key={i}
