@@ -29,11 +29,11 @@ export function Section({
     >
       <div
         className={cn(
-          bleed ? "w-full" : "mx-auto w-full max-w-7xl px-6 sm:px-8"
+          bleed ? "w-full" : "w-full px-6 sm:px-10 lg:px-20"
         )}
       >
         {eyebrow ? (
-          <p className="mb-6 text-xs font-medium tracking-[0.2em] text-primary uppercase">
+          <p className="mb-6 text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase">
             {eyebrow}
           </p>
         ) : null}

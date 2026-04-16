@@ -1,9 +1,12 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 
+import { Reveal, RevealGroup, RevealItem } from "@/components/reveal"
 import { Section } from "@/components/section"
 import { Badge } from "@/components/ui/badge"
+import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 
 const differentiators = [
   {
@@ -46,26 +49,32 @@ export default function AboutPage() {
   return (
     <>
       <Section size="md">
-        <div className="max-w-3xl space-y-6">
-          <Badge
-            variant="outline"
-            className="rounded-none border-primary/50 bg-transparent px-3 py-1 text-[10px] tracking-[0.22em] text-primary uppercase"
-          >
-            About us
-          </Badge>
-          <h1 className="font-heading text-5xl leading-[0.95] tracking-tight text-foreground uppercase sm:text-6xl">
-            A digital product studio built to move fast.
-          </h1>
-          <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
-            We&apos;re a small, focused team that builds websites, apps, and
-            systems for businesses that want to grow. No bloat. No bureaucracy.
-            Just great work, shipped on time.
-          </p>
-        </div>
+        <RevealGroup className="max-w-3xl space-y-6" delayChildren={0.08}>
+          <RevealItem y={18}>
+            <Badge
+              variant="outline"
+              className="rounded-none border-border bg-transparent px-3 py-1 text-[10px] tracking-[0.22em] text-muted-foreground uppercase"
+            >
+              About us
+            </Badge>
+          </RevealItem>
+          <RevealItem y={24}>
+            <h1 className="font-heading text-5xl leading-[0.95] tracking-tight text-foreground uppercase sm:text-6xl">
+              A digital product studio built to move fast.
+            </h1>
+          </RevealItem>
+          <RevealItem y={28}>
+            <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
+              We&apos;re a small, focused team that builds websites, apps, and
+              systems for businesses that want to grow. No bloat. No
+              bureaucracy. Just great work, shipped on time.
+            </p>
+          </RevealItem>
+        </RevealGroup>
       </Section>
 
       <Section eyebrow="Why we exist">
-        <div className="max-w-4xl space-y-6">
+        <Reveal className="max-w-4xl space-y-6" delay={0.12}>
           <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
             Most businesses know they need a better digital presence. The
             problem is finding a partner who can actually deliver — without the
@@ -73,62 +82,81 @@ export default function AboutPage() {
             That&apos;s the gap we fill. We build digital products that work, at
             a pace that makes sense for your business.
           </p>
-        </div>
+        </Reveal>
       </Section>
 
       <Section eyebrow="Our edge">
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <RevealGroup
+          className="grid gap-6 md:grid-cols-2 xl:grid-cols-3"
+          delayChildren={0.12}
+          stagger={0.08}
+        >
           {differentiators.map((item) => (
-            <Card
-              key={item.title}
-              className="gap-3 rounded-none bg-card ring-1 ring-border"
-            >
-              <CardHeader>
-                <CardTitle className="font-heading text-xl tracking-[0.04em] uppercase">
-                  {item.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {item.copy}
-                </p>
-              </CardContent>
-            </Card>
+            <RevealItem key={item.title} y={20}>
+              <Card className="gap-3 rounded-none bg-card ring-1 ring-border">
+                <CardHeader>
+                  <CardTitle className="font-heading text-xl tracking-[0.04em] uppercase">
+                    {item.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {item.copy}
+                  </p>
+                </CardContent>
+              </Card>
+            </RevealItem>
           ))}
-        </div>
+        </RevealGroup>
       </Section>
 
       <Section eyebrow="What we build with">
-        <div className="grid gap-4 md:grid-cols-2">
+        <RevealGroup
+          className="grid gap-4 md:grid-cols-2"
+          delayChildren={0.16}
+          stagger={0.07}
+        >
           {techStack.map((item) => (
-            <div
-              key={item}
-              className="border-t border-border bg-card p-6 text-sm leading-relaxed text-muted-foreground ring-1 ring-border"
-            >
-              {item}
-            </div>
+            <RevealItem key={item} y={18}>
+              <div className="border-t border-border bg-card p-6 text-sm leading-relaxed text-muted-foreground ring-1 ring-border">
+                {item}
+              </div>
+            </RevealItem>
           ))}
-        </div>
+        </RevealGroup>
       </Section>
 
       <Section size="lg" className="border-b-0 bg-card/40">
-        <div className="mx-auto max-w-3xl space-y-8 text-center">
-          <h2 className="font-heading text-4xl leading-none tracking-tight text-foreground uppercase sm:text-5xl">
-            Want to work with us?
-          </h2>
-          <p className="text-base leading-relaxed text-muted-foreground">
-            We take on a limited number of projects at a time. Let&apos;s talk
-            about yours.
-          </p>
-          <div className="flex justify-center">
-            <Link
-              href="/contact"
-              className="inline-flex h-14 items-center justify-center bg-primary px-8 text-base font-medium tracking-[0.14em] text-primary-foreground uppercase transition-colors hover:bg-primary/85"
-            >
-              Start a project
-            </Link>
-          </div>
-        </div>
+        <RevealGroup
+          className="mx-auto max-w-3xl space-y-8 text-center"
+          delayChildren={0.18}
+          stagger={0.08}
+        >
+          <RevealItem y={18}>
+            <h2 className="font-heading text-4xl leading-[1.05] tracking-tight text-foreground uppercase sm:text-5xl">
+              Want to work with us?
+            </h2>
+          </RevealItem>
+          <RevealItem y={22}>
+            <p className="text-base leading-relaxed text-muted-foreground">
+              We take on a limited number of projects at a time. Let&apos;s talk
+              about yours.
+            </p>
+          </RevealItem>
+          <RevealItem y={26}>
+            <div className="flex justify-center">
+              <Link
+                href="/contact"
+                className={cn(
+                  buttonVariants({ size: "lg" }),
+                  "rounded-none tracking-[0.14em] uppercase"
+                )}
+              >
+                Start a project
+              </Link>
+            </div>
+          </RevealItem>
+        </RevealGroup>
       </Section>
     </>
   )

@@ -1,6 +1,7 @@
 import * as React from "react"
 import { MessageCircle } from "lucide-react"
 
+import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { whatsappHref } from "@/lib/whatsapp"
 
@@ -21,11 +22,8 @@ export function WhatsAppButton({
 }: WhatsAppButtonProps) {
   const href = whatsappHref(message)
   const isLarge = size === "lg"
-  const dims = isLarge ? "h-14 px-8 text-base" : "h-11 px-5 text-sm"
-  const styles =
-    variant === "primary"
-      ? "bg-primary text-primary-foreground hover:bg-primary/85"
-      : "bg-transparent text-foreground border border-foreground/40 hover:bg-foreground/10"
+  const sharedVariant = variant === "primary" ? "default" : "outline"
+  const sharedSize = isLarge ? "lg" : "default"
 
   return (
     <a
@@ -34,9 +32,10 @@ export function WhatsAppButton({
       rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
       data-slot="whatsapp-button"
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-none font-medium tracking-[0.14em] uppercase transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        dims,
-        styles,
+        buttonVariants({ variant: sharedVariant, size: sharedSize }),
+        "rounded-none tracking-[0.14em] uppercase",
+        variant === "ghost" &&
+          "border-foreground/40 bg-transparent hover:bg-foreground/10 hover:text-foreground",
         className
       )}
     >
