@@ -68,7 +68,7 @@ export function SiteHeader() {
             href="/contact"
             className={cn(
               buttonVariants({ size: "sm" }),
-              "hidden rounded-none px-4 text-xs font-medium tracking-[0.18em] uppercase lg:inline-flex"
+              "hidden rounded-none text-xs font-medium tracking-[0.18em] uppercase lg:inline-flex"
             )}
           >
             Start a project

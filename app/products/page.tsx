@@ -1,10 +1,10 @@
 import type { Metadata } from "next"
 
+import { ProductsAccordion } from "@/components/products-accordion"
 import { RevealGroup, RevealItem } from "@/components/reveal"
 import { Section } from "@/components/section"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { site, products } from "@/lib/site"
 
@@ -42,60 +42,7 @@ export default function ProductsPage() {
       </Section>
 
       <Section eyebrow="What we build">
-        <RevealGroup className="grid gap-6" delayChildren={0.12} stagger={0.08}>
-          {products.map((product) => (
-            <RevealItem key={product.id} y={22}>
-              <Card className="rounded-none bg-card ring-1 ring-border">
-                <div className="grid gap-8 p-8 lg:grid-cols-[1.1fr_0.9fr]">
-                  <CardHeader className="space-y-4 p-0">
-                    <CardTitle className="font-heading text-3xl tracking-tight text-foreground uppercase">
-                      {product.name}
-                    </CardTitle>
-                    <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">
-                      {product.tagline}
-                    </p>
-                    <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                      {product.description}
-                    </p>
-                  </CardHeader>
-
-                  <CardContent className="grid gap-6 p-0 sm:grid-cols-2">
-                    <div className="space-y-2 border-t border-border pt-4">
-                      <p className="text-[10px] tracking-[0.22em] text-muted-foreground uppercase">
-                        Starting at
-                      </p>
-                      <p className="font-heading text-2xl text-foreground">
-                        {product.startingAt ?? "See pricing tiers"}
-                      </p>
-                    </div>
-
-                    <div className="space-y-2 border-t border-border pt-4">
-                      <p className="text-[10px] tracking-[0.22em] text-muted-foreground uppercase">
-                        Timeline
-                      </p>
-                      <p className="font-heading text-2xl text-foreground">
-                        {product.timeline}
-                      </p>
-                    </div>
-
-                    {product.pricingTiers ? (
-                      <div className="space-y-3 border-t border-border pt-4 sm:col-span-2">
-                        {product.pricingTiers.map((tier) => (
-                          <p
-                            key={tier}
-                            className="text-sm leading-relaxed text-muted-foreground"
-                          >
-                            {tier}
-                          </p>
-                        ))}
-                      </div>
-                    ) : null}
-                  </CardContent>
-                </div>
-              </Card>
-            </RevealItem>
-          ))}
-        </RevealGroup>
+        <ProductsAccordion products={products} />
       </Section>
 
       <Section size="lg" className="border-b-0 bg-card/40">

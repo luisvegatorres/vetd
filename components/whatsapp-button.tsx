@@ -34,8 +34,6 @@ export function WhatsAppButton({
       className={cn(
         buttonVariants({ variant: sharedVariant, size: sharedSize }),
         "rounded-none tracking-[0.14em] uppercase",
-        variant === "ghost" &&
-          "border-foreground/40 bg-transparent hover:bg-foreground/10 hover:text-foreground",
         className
       )}
     >

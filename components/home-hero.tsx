@@ -61,7 +61,7 @@ export function HomeHero() {
                 href="/work"
                 className={cn(
                   buttonVariants({ variant: "outline", size: "lg" }),
-                  "group rounded-none border-foreground/30 tracking-[0.18em] uppercase hover:bg-foreground/5"
+                  "group rounded-none tracking-[0.18em] uppercase"
                 )}
               >
                 See our work

@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 
+import { ProcessHorizontalChapters } from "@/components/process-horizontal-chapters"
 import { RevealGroup, RevealItem } from "@/components/reveal"
 import { Section } from "@/components/section"
 import { Badge } from "@/components/ui/badge"
@@ -40,32 +41,8 @@ export default function ProcessPage() {
         </RevealGroup>
       </Section>
 
-      <Section eyebrow="Step by step">
-        <RevealGroup className="grid gap-6" delayChildren={0.12} stagger={0.08}>
-          {processSteps.map((step) => (
-            <RevealItem key={step.number} y={22}>
-              <div className="grid gap-6 border-t border-border bg-card p-8 ring-1 ring-border lg:grid-cols-[180px_1fr]">
-                <div className="space-y-2">
-                  <p className="font-heading text-5xl text-foreground">
-                    {step.number}
-                  </p>
-                  <p className="text-[10px] tracking-[0.22em] text-muted-foreground uppercase">
-                    Step {step.number}
-                  </p>
-                </div>
-                <div className="space-y-4">
-                  <h2 className="font-heading text-3xl leading-[1.1] tracking-tight text-foreground uppercase">
-                    {step.title}
-                  </h2>
-                  <p className="max-w-3xl text-base leading-relaxed text-muted-foreground">
-                    {step.copy}
-                  </p>
-                </div>
-              </div>
-            </RevealItem>
-          ))}
-        </RevealGroup>
-      </Section>
+      <ProcessHorizontalChapters steps={processSteps} />
+
 
       <Section size="lg" className="border-b-0 bg-card/40">
         <RevealGroup

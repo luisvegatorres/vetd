@@ -95,6 +95,66 @@ export type ProcessStep = {
   copy: string
 }
 
+export type ProcessArtifact = {
+  kicker: string
+  title: string
+  bullets: readonly string[]
+  meta: string
+}
+
+export const processArtifacts: Record<string, ProcessArtifact> = {
+  "01": {
+    kicker: "Deliverable · 01",
+    title: "Discovery call",
+    bullets: [
+      "Goals & constraints",
+      "Success criteria",
+      "Rough scope & timeline",
+    ],
+    meta: "20 min · Free · No pitch",
+  },
+  "02": {
+    kicker: "Deliverable · 02",
+    title: "Written proposal",
+    bullets: [
+      "Detailed scope",
+      "Fixed timeline",
+      "Fixed price, no hourly",
+    ],
+    meta: "Sign → kickoff",
+  },
+  "03": {
+    kicker: "Deliverable · 03",
+    title: "Design + build",
+    bullets: [
+      "Wireframes & flows",
+      "Visual design",
+      "Production build",
+    ],
+    meta: "Sprints · Weekly reviews",
+  },
+  "04": {
+    kicker: "Deliverable · 04",
+    title: "Live deployment",
+    bullets: [
+      "Domain & hosting",
+      "QA & final testing",
+      "Full handoff",
+    ],
+    meta: "Code · Accounts · Data — yours",
+  },
+  "05": {
+    kicker: "Deliverable · 05",
+    title: "Ongoing care",
+    bullets: [
+      "Monthly maintenance",
+      "SEO management",
+      "On-demand fixes",
+    ],
+    meta: "Monthly · No contract",
+  },
+} as const
+
 export const processSteps: ProcessStep[] = [
   {
     number: "01",
