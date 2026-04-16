@@ -19,6 +19,7 @@ export function WhatsAppButton({
   className,
   children,
 }: WhatsAppButtonProps) {
+  const href = whatsappHref(message)
   const isLarge = size === "lg"
   const dims = isLarge ? "h-14 px-8 text-base" : "h-11 px-5 text-sm"
   const styles =
@@ -28,12 +29,12 @@ export function WhatsAppButton({
 
   return (
     <a
-      href={whatsappHref(message)}
-      target="_blank"
-      rel="noopener noreferrer"
+      href={href}
+      target={href.startsWith("http") ? "_blank" : undefined}
+      rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
       data-slot="whatsapp-button"
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-none font-medium uppercase tracking-[0.14em] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        "inline-flex items-center justify-center gap-2 rounded-none font-medium tracking-[0.14em] uppercase transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         dims,
         styles,
         className

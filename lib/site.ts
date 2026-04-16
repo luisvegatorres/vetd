@@ -1,150 +1,124 @@
 export const site = {
   name: "Innovate App Studios",
-  tagline: {
-    es: "Sitios web y presencia en Google para negocios en Puerto Rico.",
-    en: "Websites and Google presence for businesses in Puerto Rico.",
-  },
-  email: "hola@innovateappstudios.com",
-  instagram: "innovateappstudios",
-  instagramUrl: "https://instagram.com/innovateappstudios",
-  location: "Puerto Rico",
-  founderName: "Luis Vega Torres",
-  founderInitials: "LV",
+  tagline: "Digital products that grow businesses.",
+  description:
+    "Websites, mobile apps, web apps, AI integrations, and growth systems built to perform and designed to convert.",
+  email: "hello@innovateappstudios.com",
+  location: "Global · Remote-first",
+  responseTime: "Within 24 hours — usually same day.",
+  discoveryCallHref: process.env.NEXT_PUBLIC_CALENDLY_URL || "/contact",
+  whatsappDisplay:
+    process.env.NEXT_PUBLIC_WHATSAPP_DISPLAY ||
+    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ||
+    "[your number]",
 } as const
 
 export const nav = [
-  { href: "/", label: { es: "Inicio", en: "Home" } },
-  { href: "/servicios", label: { es: "Servicios", en: "Services" } },
-  { href: "/trabajo", label: { es: "Trabajo", en: "Work" } },
-  { href: "/nosotros", label: { es: "Nosotros", en: "About" } },
-  { href: "/contacto", label: { es: "Contacto", en: "Contact" } },
+  { href: "/", label: "Home" },
+  { href: "/products", label: "Products" },
+  { href: "/work", label: "Work" },
+  { href: "/process", label: "Process" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
 ] as const
 
-export type Plan = {
-  id: "presencia" | "crecimiento"
+export type Product = {
+  id:
+    | "marketing-website"
+    | "mobile-app"
+    | "web-app"
+    | "growth-system"
+    | "ai-integration"
   name: string
-  price: string
-  cadence: string
-  tagline: { es: string; en: string }
-  features: { es: string; en: string }[]
-  highlight?: boolean
-  ctaMessage: string
+  tagline: string
+  description: string
+  startingAt?: string
+  timeline: string
+  pricingTiers?: string[]
 }
 
-export const plans: Plan[] = [
+export const products: Product[] = [
   {
-    id: "presencia",
-    name: "Presencia",
-    price: "$149",
-    cadence: "/mes · /month",
-    tagline: {
-      es: "Para empezar a aparecer en Google.",
-      en: "Start showing up on Google.",
-    },
-    features: [
-      { es: "Sitio web profesional (1–4 páginas)", en: "Professional website (1–4 pages)" },
-      { es: "Optimización de Google Business Profile", en: "Google Business Profile optimization" },
-      { es: "SEO local en español e inglés", en: "Bilingual local SEO" },
-      { es: "Botón de WhatsApp integrado", en: "WhatsApp button integrated" },
-      { es: "Hosting y mantenimiento incluido", en: "Hosting & maintenance included" },
+    id: "marketing-website",
+    name: "Marketing Website",
+    tagline: "Get found. Look credible. Convert visitors.",
+    description:
+      "A fast, mobile-first website built with SEO from day one. Designed to turn traffic into leads, calls, and sales. Includes hosting, domain, WhatsApp or contact integration, and on-page SEO.",
+    startingAt: "$97/mo (Growth System) or one-time project pricing",
+    timeline: "5–7 days",
+  },
+  {
+    id: "mobile-app",
+    name: "Mobile App",
+    tagline: "Your product in every pocket.",
+    description:
+      "Native iOS and Android apps built in Flutter. We take you from idea to App Store — architecture, design, development, and launch. Built for performance and scale.",
+    startingAt: "Custom quote",
+    timeline: "4–12 weeks",
+  },
+  {
+    id: "web-app",
+    name: "Web App & Portal",
+    tagline: "Tools that run your business.",
+    description:
+      "Custom web applications — booking systems, client portals, admin dashboards, internal tools. Built with Next.js and Supabase. Designed to replace spreadsheets and manual processes.",
+    startingAt: "Custom quote",
+    timeline: "3–8 weeks",
+  },
+  {
+    id: "growth-system",
+    name: "Growth System",
+    tagline: "Show up on Google. Stay there.",
+    description:
+      "A monthly product that combines a high-performance website with ongoing SEO management. Includes Google Business optimization, monthly reports, review automation, and content updates.",
+    timeline: "Ongoing monthly management",
+    pricingTiers: [
+      "Presence: $97/mo",
+      "Growth: $247/mo",
+      "No contract. Cancel anytime.",
     ],
-    ctaMessage: "Hola, me interesa el plan Presencia para mi negocio.",
   },
   {
-    id: "crecimiento",
-    name: "Crecimiento",
-    price: "$299",
-    cadence: "/mes · /month",
-    tagline: {
-      es: "Para atraer más clientes cada mes.",
-      en: "Bring in more customers every month.",
-    },
-    features: [
-      { es: "Todo lo que incluye Presencia", en: "Everything in Presencia" },
-      { es: "Reseñas automáticas en Google", en: "Automated Google reviews" },
-      { es: "Reportes mensuales de resultados", en: "Monthly performance reports" },
-      { es: "Actualizaciones ilimitadas del sitio", en: "Unlimited site updates" },
-      { es: "Soporte prioritario por WhatsApp", en: "Priority WhatsApp support" },
-    ],
-    highlight: true,
-    ctaMessage: "Hola, me interesa el plan Crecimiento para mi negocio.",
+    id: "ai-integration",
+    name: "AI Integration",
+    tagline: "Make your product smarter.",
+    description:
+      "We add AI-powered features to any website, app, or tool — intelligent chatbots, personalized recommendations, content automation, and more. Powered by the latest models from Anthropic, OpenAI, and Google.",
+    startingAt: "Custom quote",
+    timeline: "Depends on scope",
   },
-]
+] as const
 
-export type Vertical = {
-  id: "restaurantes" | "turismo" | "airbnb"
-  title: { es: string; en: string }
-  description: { es: string; en: string }
-  icon: "Utensils" | "Compass" | "House"
-}
-
-export const verticals: Vertical[] = [
-  {
-    id: "restaurantes",
-    title: { es: "Restaurantes y cafeterías", en: "Restaurants & cafés" },
-    description: {
-      es: "Menús actualizables, reservaciones y reseñas en Google que llenan tus mesas.",
-      en: "Live menus, reservations, and Google reviews that fill your tables.",
-    },
-    icon: "Utensils",
-  },
-  {
-    id: "turismo",
-    title: { es: "Turismo y excursiones", en: "Tourism & tours" },
-    description: {
-      es: "Reservas directas y posicionamiento bilingüe para turistas que ya están buscando.",
-      en: "Direct bookings and bilingual ranking for tourists already searching.",
-    },
-    icon: "Compass",
-  },
-  {
-    id: "airbnb",
-    title: { es: "Airbnb y rentas vacacionales", en: "Airbnb & vacation rentals" },
-    description: {
-      es: "Tu propia página directa — sin comisiones, con reseñas reales y contacto inmediato.",
-      en: "Your own direct page — no commissions, real reviews, instant contact.",
-    },
-    icon: "House",
-  },
-]
-
-export type Step = {
+export type ProcessStep = {
   number: string
-  title: { es: string; en: string }
-  description: { es: string; en: string }
+  title: string
+  copy: string
 }
 
-export const processSteps: Step[] = [
+export const processSteps: ProcessStep[] = [
   {
     number: "01",
-    title: { es: "Conversación", en: "Conversation" },
-    description: {
-      es: "Nos contactas por WhatsApp. Entendemos tu negocio. Sin presión.",
-      en: "You message us on WhatsApp. We learn about your business. No pressure.",
-    },
+    title: "Discovery",
+    copy: "We learn your business, your goals, and what success looks like. This starts with a free 20-minute call — no pitch, no pressure.",
   },
   {
     number: "02",
-    title: { es: "Preparación", en: "Preparation" },
-    description: {
-      es: "Construimos tu sitio en 5 a 7 días con tu contenido y fotos.",
-      en: "We build your site in 5 to 7 days using your content and photos.",
-    },
+    title: "Proposal",
+    copy: "You get a clear written scope, timeline, and price. No hourly billing, no hidden costs, and nothing starts until you approve it.",
   },
   {
     number: "03",
-    title: { es: "Lanzamiento", en: "Launch" },
-    description: {
-      es: "Tu sitio sale en vivo y dejamos tu Google Business Profile optimizado.",
-      en: "Your site goes live and your Google Business Profile is optimized.",
-    },
+    title: "Design & Build",
+    copy: "We design and develop your product in focused sprints with regular check-ins. Feedback is part of the process, not an afterthought.",
   },
   {
     number: "04",
-    title: { es: "Crecimiento", en: "Growth" },
-    description: {
-      es: "Seguimiento mensual, reportes y ajustes según los resultados.",
-      en: "Monthly follow-up, reports, and tweaks based on real results.",
-    },
+    title: "Launch",
+    copy: "We deploy, test, and handle final QA. When we hand it off, you own the code, domain, accounts, and data.",
   },
-]
+  {
+    number: "05",
+    title: "Support",
+    copy: "Need ongoing help? We offer monthly support, SEO management, and product maintenance. Or reach out whenever you need us.",
+  },
+] as const

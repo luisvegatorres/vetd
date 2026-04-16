@@ -18,6 +18,8 @@ function usePreviousValue<T>(value: T): T | undefined {
       prev.current = undefined
     }
   })
+  // This hook intentionally exposes the previous committed value.
+  // eslint-disable-next-line react-hooks/refs
   return prev.current
 }
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Motion for React"
+  short_description: "Add Motion animations to React UI"
+  default_prompt: "Use $motion-react to add polished Motion animations to this React component."

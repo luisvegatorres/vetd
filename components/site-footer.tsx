@@ -1,41 +1,41 @@
 import Link from "next/link"
-import { AtSign, Mail, MapPin, MessageCircle } from "lucide-react"
+import { Calendar, Mail, MessageCircle, Timer } from "lucide-react"
 
+import { ThemeSwitch } from "@/components/theme-switch"
 import { Separator } from "@/components/ui/separator"
 import { nav, site } from "@/lib/site"
 import { whatsappHref } from "@/lib/whatsapp"
 
 export function SiteFooter() {
   const year = new Date().getFullYear()
+  const whatsappLink = whatsappHref("Hi, I'd like to talk about a project.")
+  const discoveryIsExternal = site.discoveryCallHref.startsWith("http")
 
   return (
     <footer className="w-full border-t border-border/60 bg-background">
-      <div className="mx-auto w-full max-w-6xl px-6 py-16 sm:px-8">
+      <div className="mx-auto w-full max-w-7xl px-6 py-16 sm:px-8">
         <div className="grid gap-12 md:grid-cols-3">
           <div className="space-y-3">
-            <p className="font-heading text-base font-medium uppercase tracking-[0.18em] text-foreground">
+            <p className="font-heading text-base font-medium tracking-[0.18em] text-foreground uppercase">
               {site.name}
             </p>
             <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
-              {site.tagline.es}
-            </p>
-            <p className="max-w-xs text-xs uppercase tracking-[0.18em] text-muted-foreground/70">
-              {site.tagline.en}
+              {site.description}
             </p>
           </div>
 
           <div>
-            <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-primary">
-              Navegar · Navigate
+            <p className="mb-4 text-xs font-medium tracking-[0.2em] text-primary uppercase">
+              Navigate
             </p>
-            <ul className="space-y-2.5">
+            <ul className="space-y-3">
               {nav.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="text-sm uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground"
+                    className="text-sm tracking-[0.14em] text-muted-foreground uppercase transition-colors hover:text-foreground"
                   >
-                    {item.label.es}
+                    {item.label}
                   </Link>
                 </li>
               ))}
@@ -43,19 +43,19 @@ export function SiteFooter() {
           </div>
 
           <div>
-            <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-primary">
-              Contacto · Contact
+            <p className="mb-4 text-xs font-medium tracking-[0.2em] text-primary uppercase">
+              Contact
             </p>
             <ul className="space-y-3 text-sm">
               <li>
                 <a
-                  href={whatsappHref()}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href={site.discoveryCallHref}
+                  target={discoveryIsExternal ? "_blank" : undefined}
+                  rel={discoveryIsExternal ? "noopener noreferrer" : undefined}
                   className="inline-flex items-center gap-2 text-foreground hover:text-primary"
                 >
-                  <MessageCircle className="size-4" />
-                  WhatsApp
+                  <Calendar className="size-4" />
+                  Book a call
                 </a>
               </li>
               <li>
@@ -69,17 +69,24 @@ export function SiteFooter() {
               </li>
               <li>
                 <a
-                  href={site.instagramUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href={whatsappLink}
+                  target={
+                    whatsappLink.startsWith("http") ? "_blank" : undefined
+                  }
+                  rel={
+                    whatsappLink.startsWith("http")
+                      ? "noopener noreferrer"
+                      : undefined
+                  }
                   className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground"
                 >
-                  <AtSign className="size-4" />@{site.instagram}
+                  <MessageCircle className="size-4" />
+                  {site.whatsappDisplay}
                 </a>
               </li>
               <li className="inline-flex items-center gap-2 text-muted-foreground">
-                <MapPin className="size-4" />
-                {site.location}
+                <Timer className="size-4" />
+                {site.responseTime}
               </li>
             </ul>
           </div>
@@ -87,11 +94,14 @@ export function SiteFooter() {
 
         <Separator className="my-12 bg-border/60" />
 
-        <div className="flex flex-col gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground/70 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 text-xs tracking-[0.18em] text-muted-foreground/70 uppercase sm:flex-row sm:items-center sm:justify-between">
           <p>
-            © {year} {site.name}. Hecho en Puerto Rico.
+            © {year} {site.name}. Built for businesses worldwide.
           </p>
-          <p>Sin contrato · No contract · Mes a mes</p>
+          <div className="flex items-center gap-6">
+            <p>{site.location}</p>
+            <ThemeSwitch />
+          </div>
         </div>
       </div>
     </footer>

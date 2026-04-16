@@ -28,16 +28,14 @@ const fontMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://innovateappstudios.com"),
   title: {
-    default: `${site.name} — Sitios web para negocios en Puerto Rico`,
+    default: `${site.name} — ${site.tagline}`,
     template: `%s · ${site.name}`,
   },
-  description:
-    "Sitios web, Google Business Profile y SEO bilingüe para restaurantes, turismo y Airbnb en Puerto Rico. Sin contrato, mes a mes.",
+  description: site.description,
   openGraph: {
-    title: `${site.name} — Sitios web para negocios en Puerto Rico`,
-    description:
-      "Todo lo que necesitas para crecer en línea. Sin contrato, mes a mes.",
-    locale: "es_PR",
+    title: `${site.name} — ${site.tagline}`,
+    description: site.description,
+    locale: "en_US",
     type: "website",
   },
 }
@@ -49,7 +47,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="es"
+      lang="en"
       suppressHydrationWarning
       className={cn(
         "antialiased",
