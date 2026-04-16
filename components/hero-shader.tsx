@@ -287,8 +287,11 @@ export function HeroShader({
     (event: React.PointerEvent<HTMLDivElement>) => {
       if (shouldReduceMotion) return
       updatePointer(event)
+      // If the cursor was already inside on mount/navigation, pointerenter
+      // never fires — activate on first move so the effect wakes up.
+      activity.set(1)
     },
-    [shouldReduceMotion, updatePointer]
+    [activity, shouldReduceMotion, updatePointer]
   )
 
   const handlePointerLeave = React.useCallback(() => {

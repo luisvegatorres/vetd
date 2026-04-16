@@ -42,7 +42,8 @@ export function SiteHeader() {
   }, [open])
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/85 backdrop-blur-md">
+    <>
+      <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/85 backdrop-blur-md">
       <div className="flex h-16 w-full items-center justify-between px-6 sm:px-10 lg:px-20">
         <Link
           href="/"
@@ -182,5 +183,24 @@ export function SiteHeader() {
         ) : null}
       </AnimatePresence>
     </header>
+
+    <AnimatePresence>
+      {open ? (
+        <motion.div
+          key="mobile-backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{
+            duration: shouldReduceMotion ? 0 : 0.28,
+            ease: PANEL_EASE,
+          }}
+          onClick={() => setOpen(false)}
+          aria-hidden
+          className="fixed inset-x-0 top-16 bottom-0 z-40 bg-black/50 backdrop-blur-md lg:hidden"
+        />
+      ) : null}
+    </AnimatePresence>
+    </>
   )
 }

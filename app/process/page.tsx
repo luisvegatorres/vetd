@@ -1,12 +1,11 @@
 import type { Metadata } from "next"
 
+import { BookCallButton } from "@/components/book-call-button"
 import { ProcessHorizontalChapters } from "@/components/process-horizontal-chapters"
 import { RevealGroup, RevealItem } from "@/components/reveal"
 import { Section } from "@/components/section"
 import { Badge } from "@/components/ui/badge"
-import { buttonVariants } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { site, processSteps } from "@/lib/site"
+import { processSteps } from "@/lib/site"
 
 export const metadata: Metadata = {
   title: "Process",
@@ -62,25 +61,12 @@ export default function ProcessPage() {
           </RevealItem>
           <RevealItem y={26}>
             <div className="flex justify-center">
-              <a
-                href={site.discoveryCallHref}
-                target={
-                  site.discoveryCallHref.startsWith("http")
-                    ? "_blank"
-                    : undefined
-                }
-                rel={
-                  site.discoveryCallHref.startsWith("http")
-                    ? "noopener noreferrer"
-                    : undefined
-                }
-                className={cn(
-                  buttonVariants({ size: "lg" }),
-                  "rounded-none tracking-[0.14em] uppercase"
-                )}
+              <BookCallButton
+                size="lg"
+                className="rounded-none tracking-[0.14em] uppercase"
               >
                 Book a call
-              </a>
+              </BookCallButton>
             </div>
           </RevealItem>
         </RevealGroup>

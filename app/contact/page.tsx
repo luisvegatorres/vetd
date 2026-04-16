@@ -1,23 +1,16 @@
 "use client"
 
 import * as React from "react"
-import { Calendar, Mail, MessageCircle, Timer } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import { toast } from "sonner"
 
+import { BookCallButton } from "@/components/book-call-button"
 import { Reveal, RevealGroup, RevealItem } from "@/components/reveal"
 import { Section } from "@/components/section"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import {
-  Item,
-  ItemContent,
-  ItemGroup,
-  ItemMedia,
-  ItemTitle,
-  ItemDescription,
-} from "@/components/ui/item"
 import {
   Select,
   SelectContent,
@@ -27,8 +20,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { site } from "@/lib/site"
-import { whatsappHref } from "@/lib/whatsapp"
 
 const buildOptions = [
   "Marketing Website",
@@ -47,38 +38,20 @@ const budgetOptions = [
   "Monthly plan",
 ] as const
 
-type ContactItem = {
-  icon: React.ElementType
-  label: string
-  value: string
-  href?: string
-}
-
-const contactItems: ContactItem[] = [
+const howWeStart = [
   {
-    icon: Calendar,
-    label: "Book a free 20-min discovery call",
-    value: "Open scheduling link",
-    href: site.discoveryCallHref,
+    value: "20 min",
+    label: "Free discovery call · No pitch",
   },
   {
-    icon: Mail,
-    label: "Email",
-    value: site.email,
-    href: `mailto:${site.email}`,
+    value: "24 hr",
+    label: "Response time, usually same day",
   },
   {
-    icon: MessageCircle,
-    label: "WhatsApp",
-    value: site.whatsappDisplay,
-    href: whatsappHref("Hi, I'd like to talk about a project."),
+    value: "Fixed",
+    label: "Scope, timeline, and price up front",
   },
-  {
-    icon: Timer,
-    label: "Response time",
-    value: site.responseTime,
-  },
-]
+] as const
 
 export default function ContactPage() {
   const [projectType, setProjectType] = React.useState<string>("")
@@ -101,7 +74,6 @@ export default function ContactPage() {
     const data = new FormData(form)
     const payload = {
       name: data.get("name"),
-      company: data.get("company"),
       email: data.get("email"),
       projectType,
       projectDetails: data.get("projectDetails"),
@@ -124,43 +96,61 @@ export default function ContactPage() {
   return (
     <>
       <Section size="md">
-        <RevealGroup className="max-w-3xl space-y-6" delayChildren={0.08}>
-          <RevealItem y={18}>
-            <Badge
-              variant="outline"
-              className="rounded-none border-border bg-transparent px-3 py-1 text-[10px] tracking-[0.22em] text-muted-foreground uppercase"
-            >
-              Contact
-            </Badge>
-          </RevealItem>
-          <RevealItem y={24}>
-            <h1 className="font-heading text-5xl leading-[0.95] tracking-tight text-foreground uppercase sm:text-6xl">
-              Let&apos;s build something.
-            </h1>
-          </RevealItem>
-          <RevealItem y={28}>
-            <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Tell us about your project. We respond within 24 hours.
-            </p>
-          </RevealItem>
-        </RevealGroup>
-      </Section>
+        <div className="grid items-start gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+          <RevealGroup
+            className="space-y-8 lg:pt-6"
+            delayChildren={0.1}
+            stagger={0.08}
+          >
+            <RevealItem y={18}>
+              <Badge
+                variant="outline"
+                className="rounded-none border-border bg-transparent px-3 py-1 text-[10px] tracking-[0.22em] text-muted-foreground uppercase"
+              >
+                Contact
+              </Badge>
+            </RevealItem>
 
-      <Section eyebrow="Inquiry form">
-        <div className="grid gap-10 lg:grid-cols-[1.3fr_0.7fr]">
-          <Reveal y={22}>
+            <RevealItem className="space-y-5" y={26}>
+              <h1 className="font-heading text-5xl leading-[0.95] font-normal tracking-tight text-foreground uppercase sm:text-6xl md:text-7xl">
+                <span className="block">Let&apos;s build</span>
+                <span className="block">something.</span>
+              </h1>
+              <p className="max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+                Book a free 20-minute discovery call, or send an inquiry —
+                we respond within 24 hours.
+              </p>
+            </RevealItem>
+
+            <RevealItem y={28}>
+              <BookCallButton
+                size="lg"
+                className="group rounded-none tracking-[0.14em] uppercase"
+              >
+                Book a discovery call
+                <ArrowRight className="size-4 transition-transform duration-300 group-hover/button:translate-x-1" />
+              </BookCallButton>
+            </RevealItem>
+          </RevealGroup>
+
+          <Reveal
+            className="bg-card ring-1 ring-border"
+            delay={0.18}
+            x={28}
+            y={20}
+          >
             <form
               onSubmit={onSubmit}
-              className="border-t border-border bg-card p-8 ring-1 ring-border"
+              className="flex h-full flex-col gap-8 p-8 sm:p-10"
+              id="inquiry-form"
             >
-              <div className="mb-6 space-y-2">
-                <h2 className="font-heading text-3xl leading-[1.1] tracking-tight text-foreground uppercase">
-                  Project inquiry
-                </h2>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  Share the essentials and we&apos;ll come back with the right
-                  next step.
+              <div className="space-y-2">
+                <p className="text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
+                  / 001 — Inquiry form
                 </p>
+                <h2 className="font-heading text-3xl leading-[1.1] tracking-tight text-foreground uppercase">
+                  Tell us about it
+                </h2>
               </div>
 
               <FieldGroup>
@@ -176,21 +166,6 @@ export default function ContactPage() {
                     name="name"
                     required
                     placeholder="Jane Smith"
-                    className="rounded-none"
-                  />
-                </Field>
-
-                <Field>
-                  <FieldLabel
-                    htmlFor="company"
-                    className="text-xs tracking-[0.18em] uppercase"
-                  >
-                    Company or business name (optional)
-                  </FieldLabel>
-                  <Input
-                    id="company"
-                    name="company"
-                    placeholder="Acme Health"
                     className="rounded-none"
                   />
                 </Field>
@@ -279,57 +254,38 @@ export default function ContactPage() {
                   type="submit"
                   size="lg"
                   disabled={submitting}
-                  className="w-full rounded-none tracking-[0.18em] uppercase"
+                  className="group w-full rounded-none tracking-[0.18em] uppercase"
                 >
                   {submitting ? "Sending..." : "Send inquiry"}
+                  {!submitting && (
+                    <ArrowRight className="size-4 transition-transform duration-300 group-hover/button:translate-x-1" />
+                  )}
                 </Button>
               </FieldGroup>
             </form>
           </Reveal>
-
-          <RevealGroup delayChildren={0.08} stagger={0.06}>
-            <ItemGroup className="gap-5">
-              {contactItems.map((item) => {
-                const isExternal = item.href?.startsWith("http")
-                const Icon = item.icon
-
-                return (
-                  <RevealItem key={item.label} y={16}>
-                    <Item
-                      variant="outline"
-                      className="gap-5 px-6 py-6"
-                      render={
-                        item.href ? (
-                          <a
-                            href={item.href}
-                            target={isExternal ? "_blank" : undefined}
-                            rel={isExternal ? "noopener noreferrer" : undefined}
-                          />
-                        ) : undefined
-                      }
-                    >
-                      <ItemMedia
-                        variant="icon"
-                        className="text-muted-foreground transition-colors group-hover/item:text-foreground [&_svg:not([class*='size-'])]:size-7"
-                      >
-                        <Icon />
-                      </ItemMedia>
-
-                      <ItemContent className="gap-1.5">
-                        <ItemTitle className="text-lg leading-snug">
-                          {item.label}
-                        </ItemTitle>
-                        <ItemDescription className="text-base">
-                          {item.value}
-                        </ItemDescription>
-                      </ItemContent>
-                    </Item>
-                  </RevealItem>
-                )
-              })}
-            </ItemGroup>
-          </RevealGroup>
         </div>
+      </Section>
+
+      <Section eyebrow="/ 002 — How we start" size="md">
+        <RevealGroup
+          className="grid grid-cols-1 gap-px bg-border sm:grid-cols-3"
+          delayChildren={0.08}
+          stagger={0.08}
+        >
+          {howWeStart.map((item) => (
+            <RevealItem key={item.label} y={18} className="h-full">
+              <div className="flex h-full flex-col justify-between gap-8 bg-background p-8">
+                <p className="font-heading text-5xl leading-none text-foreground sm:text-6xl">
+                  {item.value}
+                </p>
+                <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">
+                  {item.label}
+                </p>
+              </div>
+            </RevealItem>
+          ))}
+        </RevealGroup>
       </Section>
     </>
   )

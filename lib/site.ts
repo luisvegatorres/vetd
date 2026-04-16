@@ -7,6 +7,7 @@ export const site = {
   location: "Global · Remote-first",
   responseTime: "Within 24 hours — usually same day.",
   discoveryCallHref: process.env.NEXT_PUBLIC_CALENDLY_URL || "/contact",
+  calLink: process.env.NEXT_PUBLIC_CAL_LINK || "",
   whatsappDisplay:
     process.env.NEXT_PUBLIC_WHATSAPP_DISPLAY ||
     process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ||
