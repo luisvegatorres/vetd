@@ -8,7 +8,6 @@ import {
   useMotionValueEvent,
   useReducedMotion,
   useScroll,
-  useSpring,
   useTransform,
 } from "motion/react"
 
@@ -196,14 +195,7 @@ function HorizontalChapters({
   )
 
   const totalOffset = (steps.length - 1) * 100
-  const smoothChapter = useSpring(chapterProgress, {
-    stiffness: 260,
-    damping: 34,
-    mass: 0.22,
-    restDelta: 0.0005,
-  })
-
-  const x = useTransform(smoothChapter, (progress) => {
+  const x = useTransform(chapterProgress, (progress) => {
     return `${-progress * totalOffset}vw`
   })
 
@@ -294,7 +286,7 @@ function HorizontalChapters({
                 step={step}
                 index={index}
                 total={steps.length}
-                progress={smoothChapter}
+                progress={chapterProgress}
               />
             ))}
           </motion.div>
