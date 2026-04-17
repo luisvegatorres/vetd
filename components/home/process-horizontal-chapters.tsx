@@ -3,7 +3,6 @@
 import * as React from "react"
 import {
   motion,
-  useMotionValue,
   useMotionValueEvent,
   useReducedMotion,
   useScroll,
@@ -75,9 +74,6 @@ function HorizontalChapters({
   heading: ProcessHeading
 }) {
   const outerRef = React.useRef<HTMLDivElement>(null)
-  const stickyRef = React.useRef<HTMLDivElement>(null)
-  const wrapperRef = React.useRef<HTMLDivElement>(null)
-  const titleRef = React.useRef<HTMLHeadingElement>(null)
   const [activeIndex, setActiveIndex] = React.useState(0)
 
   const { scrollYProgress } = useScroll({
@@ -85,116 +81,8 @@ function HorizontalChapters({
     offset: ["start start", "end end"],
   })
 
-  // Reserve the first viewport of scroll for the big→small heading intro.
-  const introFraction = 1 / (steps.length + 1)
-
-  const introProgress = useTransform(
-    scrollYProgress,
-    [0, introFraction],
-    [0, 1],
-    { clamp: true }
-  )
-
-  // Start/end font size and translate — populated by measurement so the big
-  // centered state lands precisely regardless of viewport size.
-  const smallTitleFs = useMotionValue(24)
-  const bigTitleFs = useMotionValue(24)
-  const startTx = useMotionValue(0)
-  const startTy = useMotionValue(0)
-  const ready = useMotionValue(0)
-
-  React.useLayoutEffect(() => {
-    function measure() {
-      const wrapper = wrapperRef.current
-      const title = titleRef.current
-      const sticky = stickyRef.current
-      if (!wrapper || !title || !sticky) return
-
-      // Clear any inline style Motion has written so we read the natural
-      // (CSS-defined) small state dimensions.
-      const prevTranslate = wrapper.style.translate
-      const prevTransform = wrapper.style.transform
-      const prevTitleFs = title.style.fontSize
-      wrapper.style.translate = ""
-      wrapper.style.transform = "none"
-      title.style.fontSize = ""
-
-      const titleFs = parseFloat(getComputedStyle(title).fontSize)
-
-      const wRect = wrapper.getBoundingClientRect()
-      const sRect = sticky.getBoundingClientRect()
-      const smallW = wRect.width
-      const smallH = wRect.height
-      const naturalLeft = wRect.left - sRect.left
-      const naturalTop = wRect.top - sRect.top
-      const cw = sRect.width
-      const ch = sRect.height
-
-      // Restore Motion-owned inline styles so it keeps control.
-      wrapper.style.translate = prevTranslate
-      wrapper.style.transform = prevTransform
-      title.style.fontSize = prevTitleFs
-
-      if (smallW === 0 || smallH === 0) return
-
-      // Big font size = whatever makes the title ~88% wide / 72% tall.
-      // Since the title wraps to a fixed number of lines (via max-w-[16ch]),
-      // width/height scale linearly with font-size.
-      const ratio = Math.min((cw * 0.88) / smallW, (ch * 0.72) / smallH)
-      const bigTitle = titleFs * ratio
-      const bigW = smallW * ratio
-      const bigH = smallH * ratio
-
-      // Translate the small top-left so the big version's center lands on the
-      // sticky container's center.
-      const tx = cw / 2 - bigW / 2 - naturalLeft
-      const ty = ch / 2 - bigH / 2 - naturalTop
-
-      smallTitleFs.set(titleFs)
-      bigTitleFs.set(bigTitle)
-      startTx.set(tx)
-      startTy.set(ty)
-      ready.set(1)
-    }
-
-    measure()
-
-    const ro = new ResizeObserver(measure)
-    const stickyEl = stickyRef.current
-    if (stickyEl) ro.observe(stickyEl)
-    window.addEventListener("resize", measure)
-    return () => {
-      ro.disconnect()
-      window.removeEventListener("resize", measure)
-    }
-  }, [bigTitleFs, ready, smallTitleFs, startTx, startTy])
-
-  // Motion-driven interpolation: font-size animates (so text re-rasterizes
-  // crisply at every frame) and translate moves the anchor from center to
-  // top-left.
-  const titleFontSize = useTransform(() => {
-    const p = introProgress.get()
-    return bigTitleFs.get() * (1 - p) + smallTitleFs.get() * p
-  })
-  const wrapperX = useTransform(() => startTx.get() * (1 - introProgress.get()))
-  const wrapperY = useTransform(() => startTy.get() * (1 - introProgress.get()))
-  const wrapperOpacity = useTransform(ready, [0, 1], [0, 1])
-
-  // Eyebrow only appears once the title has settled into the top-left.
-  const eyebrowOpacity = useTransform(introProgress, [0.85, 1], [0, 1])
-
-  // Chapter layer — revealed as intro completes.
-  const chapterOpacity = useTransform(introProgress, [0.55, 1], [0, 1])
-
-  const chapterProgress = useTransform(
-    scrollYProgress,
-    [introFraction, 1],
-    [0, 1],
-    { clamp: true }
-  )
-
   const totalOffset = (steps.length - 1) * 100
-  const x = useTransform(chapterProgress, (progress) => {
+  const x = useTransform(scrollYProgress, (progress) => {
     return `${-progress * totalOffset}vw`
   })
 
@@ -207,7 +95,7 @@ function HorizontalChapters({
     setActiveIndex((current) => (current === idx ? current : idx))
   })
 
-  useMotionValueEvent(chapterProgress, "change", (progress) => {
+  useMotionValueEvent(scrollYProgress, "change", (progress) => {
     handleProgressChange(progress)
   })
 
@@ -218,63 +106,37 @@ function HorizontalChapters({
 
       const rect = outer.getBoundingClientRect()
       const scrollable = outer.offsetHeight - window.innerHeight
-      const introOffset = introFraction * scrollable
-      const chapterTarget =
-        (index / Math.max(1, steps.length - 1)) * (scrollable - introOffset)
-      const target = rect.top + window.scrollY + introOffset + chapterTarget
+      const target =
+        rect.top +
+        window.scrollY +
+        (index / Math.max(1, steps.length - 1)) * scrollable
 
       window.scrollTo({ top: target, behavior: "smooth" })
     },
-    [introFraction, steps.length]
+    [steps.length]
   )
 
   return (
     <div
       ref={outerRef}
       className="relative"
-      style={{ height: `${(steps.length + 1) * 100}vh` }}
+      style={{ height: `${steps.length * 100}vh` }}
     >
-      <div
-        ref={stickyRef}
-        className="h-screen-minus-header-dvh sticky top-16 overflow-hidden border-y border-border bg-background"
-      >
+      <div className="h-screen-minus-header-dvh sticky top-16 overflow-hidden border-y border-border bg-background">
         <div
           aria-hidden
           className="process-grid-overlay pointer-events-none absolute inset-0 opacity-60"
         />
 
-        {/* Eyebrow — fades in once the title has settled into the corner */}
-        <motion.p
-          style={{ opacity: eyebrowOpacity }}
-          className="pointer-events-none absolute top-20 left-6 z-20 text-xs font-medium tracking-section text-muted-foreground uppercase sm:left-10 lg:left-20"
-        >
+        <p className="pointer-events-none absolute top-20 left-6 z-20 text-xs font-medium tracking-section text-muted-foreground uppercase sm:left-10 lg:left-20">
           {heading.eyebrow}
-        </motion.p>
+        </p>
 
-        {/* Morphing title — font-size + translate animate on scroll */}
-        <motion.div
-          ref={wrapperRef}
-          style={{
-            x: wrapperX,
-            y: wrapperY,
-            opacity: wrapperOpacity,
-          }}
-          className="pointer-events-none absolute top-28 left-6 z-20 will-change-transform sm:left-10 lg:left-20"
-        >
-          <motion.h2
-            ref={titleRef}
-            style={{ fontSize: titleFontSize }}
-            className="leading-section max-w-[16ch] font-heading text-4xl tracking-tight text-foreground capitalize sm:text-5xl"
-          >
-            {heading.title}
-          </motion.h2>
-        </motion.div>
+        <h2 className="pointer-events-none absolute top-28 left-6 z-20 max-w-[16ch] font-heading text-4xl leading-section tracking-tight text-foreground capitalize sm:left-10 sm:text-5xl lg:left-20">
+          {heading.title}
+        </h2>
 
-        {/* Chapter layer — fades in as the heading settles into the corner */}
-        <motion.div
-          style={{ opacity: chapterOpacity }}
-          className="relative h-full"
-        >
+        <div className="relative h-full">
           <motion.div
             className="flex h-full transform-gpu will-change-transform"
             style={{ x }}
@@ -300,7 +162,7 @@ function HorizontalChapters({
             activeIndex={activeIndex}
             total={steps.length}
           />
-        </motion.div>
+        </div>
       </div>
     </div>
   )

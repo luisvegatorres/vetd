@@ -1,8 +1,8 @@
 import Link from "next/link"
 import { Calendar, Mail, MessageCircle, Timer } from "lucide-react"
 
-import { RevealGroup, RevealItem } from "@/components/reveal"
-import { ThemeSwitch } from "@/components/theme-switch"
+import { ThemeSwitch } from "@/components/actions/theme-switch"
+import { RevealGroup, RevealItem } from "@/components/motion/reveal"
 import { Separator } from "@/components/ui/separator"
 import { nav, site } from "@/lib/site"
 import { whatsappHref } from "@/lib/whatsapp"

@@ -1,9 +1,9 @@
 import { ArrowRight } from "lucide-react"
 
-import { BookCallButton } from "@/components/book-call-button"
-import { HeroShader } from "@/components/hero-shader"
-import { Reveal, RevealGroup, RevealItem } from "@/components/reveal"
-import { Section } from "@/components/section"
+import { BookCallButton } from "@/components/actions/book-call-button"
+import { Section } from "@/components/layout/section"
+import { HeroShader } from "@/components/motion/hero-shader"
+import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal"
 import { Badge } from "@/components/ui/badge"
 
 export function HomeHero() {

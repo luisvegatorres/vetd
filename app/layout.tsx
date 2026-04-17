@@ -2,11 +2,10 @@ import type { Metadata } from "next"
 import { Geist_Mono, Noto_Sans } from "next/font/google"
 
 import "./globals.css"
-import { LenisProvider } from "@/components/lenis-provider"
-import { PageTransition } from "@/components/page-transition"
-import { SiteFooter } from "@/components/site-footer"
-import { SiteHeader } from "@/components/site-header"
-import { ThemeProvider } from "@/components/theme-provider"
+import { SiteFooter } from "@/components/layout/site-footer"
+import { SiteHeader } from "@/components/layout/site-header"
+import { PageTransition } from "@/components/motion/page-transition"
+import { ThemeProvider } from "@/components/providers/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 import { site } from "@/lib/site"
@@ -60,15 +59,13 @@ export default function RootLayout({
     >
       <body className="min-h-svh bg-background text-foreground">
         <ThemeProvider defaultTheme="dark">
-          <LenisProvider>
-            <div className="flex min-h-svh flex-col">
-              <SiteHeader />
-              <main className="flex-1">
-                <PageTransition>{children}</PageTransition>
-              </main>
-              <SiteFooter />
-            </div>
-          </LenisProvider>
+          <div className="flex min-h-svh flex-col">
+            <SiteHeader />
+            <main className="flex-1">
+              <PageTransition>{children}</PageTransition>
+            </main>
+            <SiteFooter />
+          </div>
           <Toaster position="bottom-right" />
         </ThemeProvider>
       </body>

@@ -1,19 +1,19 @@
 import Link from "next/link"
 import { ArrowRight, Quote } from "lucide-react"
 
-import { CraftLogoCloud } from "@/components/craft-logo-cloud"
-import { HomeHero } from "@/components/home-hero"
-import { ProcessHorizontalChapters } from "@/components/process-horizontal-chapters"
-import { ProductsScrollAccordion } from "@/components/products-scroll-accordion"
-import { Section } from "@/components/section"
-import { WorkGrid } from "@/components/work-grid"
+import { CraftLogoCloud } from "@/components/home/craft-logo-cloud"
+import { HomeHero } from "@/components/home/home-hero"
+import { ProcessHorizontalChapters } from "@/components/home/process-horizontal-chapters"
+import { ProductsScrollAccordion } from "@/components/home/products-scroll-accordion"
+import { WorkGrid } from "@/components/home/work-grid"
+import { Section } from "@/components/layout/section"
+import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal"
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { Reveal, RevealGroup, RevealItem } from "@/components/reveal"
 import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"

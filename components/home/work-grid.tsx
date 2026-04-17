@@ -3,9 +3,9 @@
 import * as React from "react"
 import { ArrowUpRight } from "lucide-react"
 
+import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Reveal, RevealGroup, RevealItem } from "@/components/reveal"
 import { cn } from "@/lib/utils"
 
 const filters = [
