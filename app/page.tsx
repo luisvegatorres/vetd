@@ -1,6 +1,7 @@
 import Link from "next/link"
-import { ArrowRight, Quote } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 
+import { AboutValuesGrid } from "@/components/home/about-values-grid"
 import { CraftLogoCloud } from "@/components/home/craft-logo-cloud"
 import { HomeHero } from "@/components/home/home-hero"
 import { ProcessHorizontalChapters } from "@/components/home/process-horizontal-chapters"
@@ -15,41 +16,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { buttonVariants } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { processSteps, products } from "@/lib/site"
-
-const values = [
-  {
-    title: "We ship products, not hours",
-    copy: "Fixed scopes, fixed prices, finished work. No open-ended retainers, no billable-hour games.",
-  },
-  {
-    title: "Speed is a feature",
-    copy: "A marketing site in 7 days. An MVP in weeks. Momentum compounds — slow projects rarely recover.",
-  },
-  {
-    title: "We pick tools that win",
-    copy: "Next.js, Flutter, Supabase, shadcn, Claude. Proven stacks only. No framework-of-the-month experiments on your budget.",
-  },
-  {
-    title: "You own everything",
-    copy: "Code, domain, accounts, content. No lock-in, no dependencies on us to keep the lights on.",
-  },
-  {
-    title: "Remote by default",
-    copy: "Clients across industries, time zones, and markets — held to the same standard of craft and communication.",
-  },
-] as const
-
-const commitments = [
-  "Fixed prices. You know the cost before we start.",
-  "Weekly demos. You see working product, not slide decks.",
-  "Full ownership from day one. Code, accounts, and content are yours.",
-  "No lock-in. Cancel anytime. No exit fees, no hostage data.",
-  "Straight answers. If something can't be done, we tell you early.",
-] as const
-
 
 const homeFaq = [
   {
@@ -80,6 +48,12 @@ export default function HomePage() {
   return (
     <>
       <HomeHero />
+
+      <Section size="sm">
+        <Reveal y={18}>
+          <CraftLogoCloud />
+        </Reveal>
+      </Section>
 
       <div id="products" className={sectionAnchor}>
         <ProductsScrollAccordion
@@ -114,7 +88,12 @@ export default function HomePage() {
         />
       </div>
 
-      <Section id="about" eyebrow="003 — About us" className={sectionAnchor}>
+      <Section
+        id="about"
+        size="sm"
+        eyebrow="003 — About us"
+        className={cn(sectionAnchor, "border-b-0")}
+      >
         <div className="mb-20 grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
           <RevealGroup
             className="space-y-5"
@@ -149,99 +128,12 @@ export default function HomePage() {
           </RevealGroup>
         </div>
 
-        <div className="mb-20">
-          <Reveal
-            className="mb-6 -mx-6 flex items-end justify-between border-b border-border/60 px-6 pb-6 sm:-mx-10 sm:px-10 lg:-mx-20 lg:px-20"
-            y={18}
-          >
-            <h3 className="font-heading text-2xl tracking-wider capitalize sm:text-3xl">
-              What we stand for
-            </h3>
-            <span className="hidden text-xs tracking-section text-muted-foreground uppercase sm:inline">
-              Our values
-            </span>
-          </Reveal>
-
-          <RevealGroup
-            className="divide-y divide-border/60"
-            delayChildren={0.12}
-            stagger={0.07}
-          >
-            {values.map((item, index) => (
-              <RevealItem
-                key={item.title}
-                y={22}
-                className="grid gap-3 py-8 md:grid-cols-[5rem_1fr_1.6fr] md:items-baseline md:gap-10"
-              >
-                <span className="font-heading text-4xl leading-none tabular-nums tracking-tight text-foreground sm:text-5xl">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <h4 className="font-heading text-xl leading-subheading tracking-wider text-foreground capitalize sm:text-2xl">
-                  {item.title}
-                </h4>
-                <p className="text-sm leading-relaxed text-muted-foreground md:text-base">
-                  {item.copy}
-                </p>
-              </RevealItem>
-            ))}
-          </RevealGroup>
-        </div>
-
-        <Reveal className="mb-20" y={22}>
-          <Card className="gap-0 rounded-none bg-card p-10 ring-1 ring-border sm:p-14">
-            <CardContent className="grid gap-10 px-0 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
-              <div className="space-y-4">
-                <p className="text-xs font-medium tracking-section text-muted-foreground uppercase">
-                  Our commitment
-                </p>
-                <h3 className="leading-section font-heading text-3xl tracking-tight text-foreground capitalize sm:text-4xl">
-                  Promises we put in writing.
-                </h3>
-                <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-                  Every engagement ships with the same guarantees — no
-                  matter the scope or the price.
-                </p>
-              </div>
-              <ul className="space-y-5">
-                {commitments.map((commitment) => (
-                  <li
-                    key={commitment}
-                    className="flex gap-4 border-b border-border/60 pb-5 text-sm leading-relaxed text-foreground last:border-b-0 last:pb-0 sm:text-base"
-                  >
-                    <span
-                      className="mt-2 size-2 shrink-0 bg-foreground"
-                      aria-hidden
-                    />
-                    <span>{commitment}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        </Reveal>
-
-        <div>
-          <Reveal
-            className="mb-10 -mx-6 flex items-end justify-between border-b border-border/60 px-6 pb-6 sm:-mx-10 sm:px-10 lg:-mx-20 lg:px-20"
-            y={18}
-          >
-            <h3 className="font-heading text-2xl tracking-wider capitalize sm:text-3xl">
-              Our craft
-            </h3>
-            <span className="hidden text-xs tracking-section text-muted-foreground uppercase sm:inline">
-              The tools we use
-            </span>
-          </Reveal>
-
-          <Reveal y={18}>
-            <CraftLogoCloud />
-          </Reveal>
-        </div>
+        <AboutValuesGrid />
       </Section>
 
-      <Section id="work" eyebrow="004 — Our work" className={sectionAnchor}>
+      <Section id="work" size="sm" eyebrow="004 — Our work" className={sectionAnchor}>
         <RevealGroup
-          className="mb-10 max-w-3xl space-y-4"
+          className="mb-20 max-w-3xl space-y-4"
           delayChildren={0.08}
           stagger={0.08}
         >
@@ -255,24 +147,7 @@ export default function HomePage() {
         <WorkGrid />
       </Section>
 
-      <Section eyebrow="005 — What clients say">
-        <Reveal y={22}>
-          <Card className="gap-4 rounded-none bg-card p-10 ring-1 ring-border">
-            <Quote className="size-10 text-muted-foreground/50" />
-            <CardContent className="space-y-4 px-0">
-              <p className="font-heading text-2xl leading-tight tracking-tight text-foreground capitalize sm:text-3xl">
-                Client testimonials will live here.
-              </p>
-              <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                We&apos;re keeping this section ready for real client feedback
-                as new launches go live and performance data comes in.
-              </p>
-            </CardContent>
-          </Card>
-        </Reveal>
-      </Section>
-
-      <Section eyebrow="006 — FAQ">
+      <Section size="sm" eyebrow="005 — FAQ">
         <div className="faq-split-grid grid gap-12">
           <Reveal y={18}>
             <h2 className="leading-section font-heading text-4xl tracking-tight text-foreground capitalize sm:text-5xl">
