@@ -104,19 +104,15 @@ export default function HomePage() {
       </div>
 
       <div id="process" className={sectionAnchor}>
-        <Section eyebrow="002 — How we work">
-          <Reveal className="max-w-3xl space-y-4" y={18}>
-            <h2 className="leading-section font-heading text-4xl tracking-tight text-foreground capitalize sm:text-5xl">
-              Simple process. No surprises.
-            </h2>
-            <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
-              You always know what&apos;s happening, what&apos;s next, and
-              what it costs.
-            </p>
-          </Reveal>
-        </Section>
-
-        <ProcessHorizontalChapters steps={processSteps} />
+        <ProcessHorizontalChapters
+          steps={processSteps}
+          heading={{
+            eyebrow: "002 — How we work",
+            title: "Simple process. No surprises.",
+            subtitle:
+              "You always know what's happening, what's next, and what it costs.",
+          }}
+        />
       </div>
 
       <Section id="work" eyebrow="003 — Our work" className={sectionAnchor}>

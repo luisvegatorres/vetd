@@ -57,7 +57,7 @@ export function ProductsScrollAccordion({
       {header ? (
         <div
           ref={headerRef}
-          className="sticky top-16 z-30 border-b border-border bg-background"
+          className="sticky top-16 z-30 bg-background"
         >
           {header}
         </div>
@@ -129,18 +129,20 @@ function StackCard({
   const number = String(index + 1).padStart(2, "0")
 
   return (
-    <motion.article
-      style={{
-        y,
-        scale,
-        opacity,
-        zIndex: index + 1,
-        transformOrigin: "50% 0%",
-        willChange: "transform, opacity",
-      }}
-      className="absolute inset-x-6 top-12 bottom-12 flex flex-col overflow-hidden bg-card ring-1 ring-border sm:inset-x-10 sm:top-16 sm:bottom-16 lg:inset-x-20 lg:top-20 lg:bottom-20"
+    <div
+      className="absolute inset-x-6 top-0 flex h-full items-center justify-center sm:inset-x-10 lg:inset-x-20"
+      style={{ zIndex: index + 1 }}
     >
-      <div className="relative flex h-full flex-col">
+      <motion.article
+        style={{
+          y,
+          scale,
+          opacity,
+          transformOrigin: "50% 50%",
+          willChange: "transform, opacity",
+        }}
+        className="relative flex w-full max-w-6xl flex-col overflow-hidden bg-card ring-1 ring-border"
+      >
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-linear-to-br from-primary/8 via-primary/2 to-transparent"
@@ -152,7 +154,7 @@ function StackCard({
           {number}
         </span>
 
-        <div className="relative grid flex-1 content-center gap-10 p-8 sm:p-12 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-16 lg:p-16">
+        <div className="relative grid gap-10 p-8 sm:p-12 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-16 lg:p-16">
           <div className="space-y-6">
             <div className="flex items-center gap-4">
               <span className="font-heading text-xs tracking-badge text-muted-foreground tabular-nums">
@@ -212,8 +214,8 @@ function StackCard({
             ) : null}
           </div>
         </div>
-      </div>
-    </motion.article>
+      </motion.article>
+    </div>
   )
 }
 
