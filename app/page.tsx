@@ -85,17 +85,16 @@ export default function HomePage() {
         <ProductsScrollAccordion
           products={products}
           header={
-            <div className="px-6 py-16 sm:px-10 sm:py-24 lg:px-20">
+            <div className="px-6 pt-16 sm:px-10 sm:pt-24 lg:px-20">
               <p className="mb-6 text-xs font-medium tracking-section text-muted-foreground uppercase">
                 001 — What we build
               </p>
               <div className="max-w-3xl space-y-4">
                 <h2 className="leading-section font-heading text-4xl tracking-tight text-foreground capitalize sm:text-5xl">
-                  Everything your business needs to compete online.
+                  The complete toolkit, under one studio.
                 </h2>
                 <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
-                  From a $97/mo website to a full mobile app — we build what
-                  your business actually needs.
+                  Pick what fits. We handle the rest.
                 </p>
               </div>
             </div>
@@ -115,23 +114,7 @@ export default function HomePage() {
         />
       </div>
 
-      <Section id="work" eyebrow="003 — Our work" className={sectionAnchor}>
-        <RevealGroup
-          className="mb-10 max-w-3xl space-y-4"
-          delayChildren={0.08}
-          stagger={0.08}
-        >
-          <RevealItem y={18}>
-            <h2 className="leading-section font-heading text-4xl tracking-tight text-foreground capitalize sm:text-5xl">
-              Products we&apos;ve built and shipped.
-            </h2>
-          </RevealItem>
-        </RevealGroup>
-
-        <WorkGrid />
-      </Section>
-
-      <Section id="about" eyebrow="004 — About us" className={sectionAnchor}>
+      <Section id="about" eyebrow="003 — About us" className={sectionAnchor}>
         <div className="mb-20 grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
           <RevealGroup
             className="space-y-5"
@@ -254,6 +237,22 @@ export default function HomePage() {
             <CraftLogoCloud />
           </Reveal>
         </div>
+      </Section>
+
+      <Section id="work" eyebrow="004 — Our work" className={sectionAnchor}>
+        <RevealGroup
+          className="mb-10 max-w-3xl space-y-4"
+          delayChildren={0.08}
+          stagger={0.08}
+        >
+          <RevealItem y={18}>
+            <h2 className="leading-section font-heading text-4xl tracking-tight text-foreground capitalize sm:text-5xl">
+              Products we&apos;ve built and shipped.
+            </h2>
+          </RevealItem>
+        </RevealGroup>
+
+        <WorkGrid />
       </Section>
 
       <Section eyebrow="005 — What clients say">

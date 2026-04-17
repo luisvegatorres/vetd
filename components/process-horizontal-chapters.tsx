@@ -3,7 +3,6 @@
 import * as React from "react"
 import {
   motion,
-  type MotionValue,
   useMotionValue,
   useMotionValueEvent,
   useReducedMotion,
@@ -286,7 +285,6 @@ function HorizontalChapters({
                 step={step}
                 index={index}
                 total={steps.length}
-                progress={chapterProgress}
               />
             ))}
           </motion.div>
@@ -376,29 +374,15 @@ function Chapter({
   step,
   index,
   total,
-  progress,
 }: {
   step: ProcessStep
   index: number
   total: number
-  progress: MotionValue<number>
 }) {
   const artifact = processArtifacts[step.number]
 
-  // Fade the card to 0 as it slides past the viewport edge, full opacity when
-  // centered. Each slot = 1 / (total - 1) of the chapter scroll.
-  const slot = 1 / Math.max(1, total - 1)
-  const activeP = index * slot
-  const opacity = useTransform(
-    progress,
-    [activeP - slot, activeP, activeP + slot],
-    [0, 1, 0],
-    { clamp: true }
-  )
-
   return (
-    <motion.article
-      style={{ opacity }}
+    <article
       className="flex h-full w-screen shrink-0 items-center px-8 pt-24 pb-16 sm:px-16 sm:pt-28"
       aria-label={`Step ${step.number}: ${step.title}`}
     >
@@ -463,7 +447,7 @@ function Chapter({
           ) : null}
         </div>
       </div>
-    </motion.article>
+    </article>
   )
 }
 

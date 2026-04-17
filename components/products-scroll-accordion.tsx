@@ -25,18 +25,6 @@ export function ProductsScrollAccordion({
   header,
 }: ProductsScrollAccordionProps) {
   const sectionRef = React.useRef<HTMLDivElement>(null)
-  const headerRef = React.useRef<HTMLDivElement>(null)
-  const [headerH, setHeaderH] = React.useState(0)
-
-  React.useLayoutEffect(() => {
-    if (!headerRef.current) return
-    const el = headerRef.current
-    const update = () => setHeaderH(el.offsetHeight)
-    update()
-    const ro = new ResizeObserver(update)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -54,32 +42,20 @@ export function ProductsScrollAccordion({
       className="relative"
       style={{ height: `${sectionVh}vh` }}
     >
-      {header ? (
-        <div
-          ref={headerRef}
-          className="sticky top-16 z-30 bg-background"
-        >
-          {header}
-        </div>
-      ) : null}
-
-      <div
-        className="sticky overflow-hidden"
-        style={{
-          top: `calc(4rem + ${headerH}px)`,
-          height: `calc(100dvh - 4rem - ${headerH}px)`,
-        }}
-      >
-        <div className="relative h-full">
-          {products.map((product, i) => (
-            <StackCard
-              key={product.id}
-              product={product}
-              index={i}
-              total={products.length}
-              progress={scrollYProgress}
-            />
-          ))}
+      <div className="sticky top-16 flex h-[calc(100dvh-4rem)] flex-col overflow-hidden bg-background">
+        {header ? <div className="bg-background">{header}</div> : null}
+        <div className="relative flex flex-1 flex-col overflow-hidden px-6 py-16 sm:px-10 sm:py-24 lg:px-20">
+          <div className="relative grid flex-1 grid-cols-1 grid-rows-1">
+            {products.map((product, i) => (
+              <StackCard
+                key={product.id}
+                product={product}
+                index={i}
+                total={products.length}
+                progress={scrollYProgress}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -129,31 +105,17 @@ function StackCard({
   const number = String(index + 1).padStart(2, "0")
 
   return (
-    <div
-      className="absolute inset-x-6 top-0 flex h-full items-center justify-center sm:inset-x-10 lg:inset-x-20"
-      style={{ zIndex: index + 1 }}
+    <motion.article
+      style={{
+        y,
+        scale,
+        opacity,
+        zIndex: index + 1,
+        transformOrigin: "50% 50%",
+        willChange: "transform, opacity",
+      }}
+      className="relative col-start-1 row-start-1 mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden bg-card ring-1 ring-border"
     >
-      <motion.article
-        style={{
-          y,
-          scale,
-          opacity,
-          transformOrigin: "50% 50%",
-          willChange: "transform, opacity",
-        }}
-        className="relative flex w-full max-w-6xl flex-col overflow-hidden bg-card ring-1 ring-border"
-      >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-linear-to-br from-primary/8 via-primary/2 to-transparent"
-        />
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -right-2 -bottom-10 font-heading text-[clamp(10rem,22vw,24rem)] leading-none tracking-tight text-foreground/[0.035] select-none sm:-right-4 sm:-bottom-16 lg:-right-6 lg:-bottom-20"
-        >
-          {number}
-        </span>
-
         <div className="relative grid gap-10 p-8 sm:p-12 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-16 lg:p-16">
           <div className="space-y-6">
             <div className="flex items-center gap-4">
@@ -167,7 +129,7 @@ function StackCard({
             </div>
 
             <div className="space-y-4">
-              <h3 className="font-heading text-3xl leading-section tracking-tight text-foreground capitalize sm:text-4xl lg:text-6xl">
+              <h3 className="font-heading text-xl leading-section tracking-tight text-foreground capitalize sm:text-2xl lg:text-3xl">
                 {product.name}
               </h3>
               <p className="text-xs tracking-badge text-muted-foreground uppercase sm:text-sm">
@@ -190,7 +152,7 @@ function StackCard({
             ) : null}
           </div>
 
-          <div className="grid content-start gap-6 border-t border-border pt-8 sm:grid-cols-2 lg:grid-cols-1 lg:border-t-0 lg:border-l lg:border-border lg:pt-0 lg:pl-12">
+          <div className="grid content-start gap-6 border-t border-border pt-8 sm:grid-cols-2 lg:grid-cols-1 lg:border-t-0 lg:pt-0 lg:pl-12">
             <MetaBlock label="Starting at">
               {product.startingAt ?? "See pricing tiers"}
             </MetaBlock>
@@ -212,10 +174,48 @@ function StackCard({
                 </ul>
               </div>
             ) : null}
+            {product.includes ? (
+              <div className="space-y-3 sm:col-span-2 lg:col-span-1">
+                <p className="text-[10px] tracking-badge text-muted-foreground uppercase">
+                  What&apos;s included
+                </p>
+                <ul className="space-y-2">
+                  {product.includes.map((item) => (
+                    <li
+                      key={item}
+                      className="flex gap-3 text-xs leading-relaxed text-muted-foreground sm:text-sm"
+                    >
+                      <span
+                        className="mt-1.5 size-1 shrink-0 bg-foreground/60"
+                        aria-hidden
+                      />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {product.tools ? (
+              <div className="space-y-3 sm:col-span-2 lg:col-span-1">
+                <p className="text-[10px] tracking-badge text-muted-foreground uppercase">
+                  Built with
+                </p>
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+                  {product.tools.map((tool) => (
+                    <img
+                      key={tool.slug}
+                      src={`https://cdn.jsdelivr.net/npm/simple-icons@v14/icons/${tool.slug}.svg`}
+                      alt={tool.name}
+                      loading="lazy"
+                      className="h-5 w-auto opacity-55 dark:invert"
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
-        </div>
-      </motion.article>
-    </div>
+      </div>
+    </motion.article>
   )
 }
 

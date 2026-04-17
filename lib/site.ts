@@ -36,17 +36,30 @@ export type Product = {
   startingAt?: string
   timeline: string
   pricingTiers?: string[]
+  includes?: string[]
+  tools?: { name: string; slug: string }[]
 }
 
 export const products: Product[] = [
   {
     id: "marketing-website",
-    name: "Marketing Website",
+    name: "Business Website",
     tagline: "Get found. Look credible. Convert visitors.",
     description:
       "A fast, mobile-first website built with SEO from day one. Designed to turn traffic into leads, calls, and sales. Includes hosting, domain, WhatsApp or contact integration, and on-page SEO.",
     startingAt: "$97/mo (Growth System) or one-time project pricing",
     timeline: "5–7 days",
+    includes: [
+      "Custom design & copy",
+      "On-page SEO & analytics",
+      "Hosting, domain, SSL",
+      "WhatsApp & contact integration",
+    ],
+    tools: [
+      { name: "Next.js", slug: "nextdotjs" },
+      { name: "Tailwind CSS", slug: "tailwindcss" },
+      { name: "Vercel", slug: "vercel" },
+    ],
   },
   {
     id: "mobile-app",
@@ -56,6 +69,18 @@ export const products: Product[] = [
       "Native iOS and Android apps built in Flutter. We take you from idea to App Store — architecture, design, development, and launch. Built for performance and scale.",
     startingAt: "Custom quote",
     timeline: "4–12 weeks",
+    includes: [
+      "iOS & Android from one codebase",
+      "Product & UX design",
+      "Backend & authentication",
+      "App Store & Play Store launch",
+    ],
+    tools: [
+      { name: "Flutter", slug: "flutter" },
+      { name: "Firebase", slug: "firebase" },
+      { name: "Apple", slug: "apple" },
+      { name: "Google Play", slug: "googleplay" },
+    ],
   },
   {
     id: "web-app",
@@ -65,6 +90,17 @@ export const products: Product[] = [
       "Custom web applications — booking systems, client portals, admin dashboards, internal tools. Built with Next.js and Supabase. Designed to replace spreadsheets and manual processes.",
     startingAt: "Custom quote",
     timeline: "3–8 weeks",
+    includes: [
+      "Role-based auth & permissions",
+      "Database & admin dashboard",
+      "Integrations & automations",
+      "Analytics & reporting",
+    ],
+    tools: [
+      { name: "Next.js", slug: "nextdotjs" },
+      { name: "Supabase", slug: "supabase" },
+      { name: "PostgreSQL", slug: "postgresql" },
+    ],
   },
   {
     id: "growth-system",
@@ -78,6 +114,17 @@ export const products: Product[] = [
       "Growth: $247/mo",
       "No contract. Cancel anytime.",
     ],
+    includes: [
+      "Marketing website + hosting",
+      "Google Business optimization",
+      "Monthly SEO & content updates",
+      "Review automation & reports",
+    ],
+    tools: [
+      { name: "Google", slug: "google" },
+      { name: "Next.js", slug: "nextdotjs" },
+      { name: "Vercel", slug: "vercel" },
+    ],
   },
   {
     id: "ai-integration",
@@ -87,6 +134,17 @@ export const products: Product[] = [
       "We add AI-powered features to any website, app, or tool — intelligent chatbots, personalized recommendations, content automation, and more. Powered by the latest models from Anthropic, OpenAI, and Google.",
     startingAt: "Custom quote",
     timeline: "Depends on scope",
+    includes: [
+      "Chatbots & assistants",
+      "Personalized recommendations",
+      "Content & workflow automation",
+      "Claude, GPT, and Gemini support",
+    ],
+    tools: [
+      { name: "Anthropic", slug: "anthropic" },
+      { name: "OpenAI", slug: "openai" },
+      { name: "Google", slug: "google" },
+    ],
   },
 ] as const
 
