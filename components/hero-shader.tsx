@@ -315,7 +315,7 @@ export function HeroShader({
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.06))] dark:bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.22))]"
+        className="hero-shader-overlay pointer-events-none absolute inset-0"
       />
       <div className={cn("relative z-10", contentClassName)}>{children}</div>
     </div>

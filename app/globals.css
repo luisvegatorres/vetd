@@ -38,6 +38,11 @@
     --sidebar-accent-foreground: oklch(0.145 0 0);
     --sidebar-border: oklch(0.9 0 0);
     --sidebar-ring: oklch(0.5 0.15 260);
+    --hero-shader-overlay: linear-gradient(
+      180deg,
+      transparent,
+      rgba(0, 0, 0, 0.06)
+    );
 }
 
 /* Dark mode = the primary lamborghini canvas. */
@@ -73,6 +78,11 @@
     --sidebar-accent-foreground: oklch(1 0 0);
     --sidebar-border: oklch(1 0 0 / 12%);
     --sidebar-ring: oklch(0.5 0.15 260);
+    --hero-shader-overlay: linear-gradient(
+      180deg,
+      transparent,
+      rgba(0, 0, 0, 0.22)
+    );
 }
 
 @theme inline {
@@ -109,6 +119,43 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
+    --text-overline-size: 0.625rem;
+    --text-overline-line-height: 1rem;
+    --text-hero-display: 5.5rem;
+    --text-process-number: clamp(8rem, 16vw, 18rem);
+    --text-stack-number: clamp(6rem, 14vw, 14rem);
+    --leading-hero: 0.95;
+    --leading-section: 1.05;
+    --leading-subheading: 1.15;
+    --leading-form-title: 1.1;
+    --leading-process-title: 1.02;
+    --leading-process-number: 0.82;
+    --tracking-ui: 0.18em;
+    --tracking-section: 0.2em;
+    --tracking-badge: 0.22em;
+    --tracking-banner: 0.3em;
+    --layout-header-height: 4rem;
+    --layout-screen-minus-header: calc(100svh - var(--layout-header-height));
+    --layout-screen-minus-header-dvh: calc(100dvh - var(--layout-header-height));
+    --grid-cols-hero: 1.25fr 0.75fr;
+    --grid-cols-contact: 1.05fr 0.95fr;
+    --grid-cols-faq: 1fr 2fr;
+    --grid-cols-product-row: 2.25rem 1fr auto;
+    --grid-cols-product-panel-sm: 2.25rem 1fr;
+    --grid-cols-product-panel-lg: 2.25rem 1.4fr 1fr;
+    --grid-cols-product-stack: minmax(0, 1.4fr) minmax(0, 1fr);
+    --grid-cols-process-fallback: auto 1fr;
+    --blur-panel-soft: 2px;
+    --space-marker-offset: 0.55rem;
+    --process-grid-overlay:
+      linear-gradient(to right, var(--border) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+    --process-grid-size: 3rem 3rem;
+    --process-grid-mask: radial-gradient(
+      ellipse at center,
+      black 35%,
+      transparent 85%
+    );
     --radius-sm: 0;
     --radius-md: 0;
     --radius-lg: 0;
@@ -127,5 +174,119 @@
   }
   html {
     @apply relative font-sans;
+    scroll-behavior: smooth;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+@layer utilities {
+  .text-overline {
+    font-size: var(--text-overline-size);
+    line-height: var(--text-overline-line-height);
+  }
+
+  .text-process-number {
+    font-size: var(--text-process-number);
+    line-height: var(--leading-process-number);
+  }
+
+  .text-stack-number {
+    font-size: var(--text-stack-number);
+  }
+
+  .leading-hero {
+    line-height: var(--leading-hero);
+  }
+
+  .leading-section {
+    line-height: var(--leading-section);
+  }
+
+  .leading-subheading {
+    line-height: var(--leading-subheading);
+  }
+
+  .leading-form-title {
+    line-height: var(--leading-form-title);
+  }
+
+  .leading-process-title {
+    line-height: var(--leading-process-title);
+  }
+
+  .min-h-screen-minus-header {
+    min-height: var(--layout-screen-minus-header);
+  }
+
+  .h-screen-minus-header-dvh {
+    height: var(--layout-screen-minus-header-dvh);
+  }
+
+  .hero-shader-overlay {
+    background-image: var(--hero-shader-overlay);
+  }
+
+  .panel-blur-soft {
+    backdrop-filter: blur(var(--blur-panel-soft));
+  }
+
+  .chapter-progress-surface {
+    background-color: color-mix(in oklab, var(--background) 60%, transparent);
+    backdrop-filter: blur(12px);
+  }
+
+  .process-grid-overlay {
+    background-image: var(--process-grid-overlay);
+    background-size: var(--process-grid-size);
+    mask-image: var(--process-grid-mask);
+  }
+
+  .product-row-grid {
+    grid-template-columns: var(--grid-cols-product-row);
+  }
+
+  .marker-offset {
+    margin-top: var(--space-marker-offset);
+  }
+
+  @media (min-width: 40rem) {
+    .product-panel-grid {
+      grid-template-columns: var(--grid-cols-product-panel-sm);
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .hero-display-scale {
+      font-size: var(--text-hero-display);
+    }
+
+    .hero-split-grid {
+      grid-template-columns: var(--grid-cols-hero);
+    }
+
+    .contact-split-grid {
+      grid-template-columns: var(--grid-cols-contact);
+    }
+
+    .faq-split-grid {
+      grid-template-columns: var(--grid-cols-faq);
+    }
+
+    .product-panel-grid {
+      grid-template-columns: var(--grid-cols-product-panel-lg);
+    }
+
+    .process-fallback-grid {
+      grid-template-columns: var(--grid-cols-process-fallback);
+    }
+
+    .product-stack-grid {
+      grid-template-columns: var(--grid-cols-product-stack);
+    }
   }
 }

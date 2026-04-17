@@ -15,11 +15,11 @@ export const site = {
 } as const
 
 export const nav = [
-  { href: "/", label: "Home" },
-  { href: "/products", label: "Products" },
-  { href: "/work", label: "Work" },
-  { href: "/process", label: "Process" },
-  { href: "/about", label: "About" },
+  { href: "/#home", label: "Home" },
+  { href: "/#products", label: "Products" },
+  { href: "/#process", label: "Process" },
+  { href: "/#work", label: "Work" },
+  { href: "/#about", label: "About" },
   { href: "/contact", label: "Contact" },
 ] as const
 

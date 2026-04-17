@@ -96,7 +96,7 @@ export default function ContactPage() {
   return (
     <>
       <Section size="md">
-        <div className="grid items-start gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="contact-split-grid grid items-start gap-12">
           <RevealGroup
             className="space-y-8 lg:pt-6"
             delayChildren={0.1}
@@ -105,14 +105,14 @@ export default function ContactPage() {
             <RevealItem y={18}>
               <Badge
                 variant="outline"
-                className="rounded-none border-border bg-transparent px-3 py-1 text-[10px] tracking-[0.22em] text-muted-foreground uppercase"
+                className="text-overline rounded-none border-border bg-transparent px-3 py-1 tracking-badge text-muted-foreground uppercase"
               >
                 Contact
               </Badge>
             </RevealItem>
 
             <RevealItem className="space-y-5" y={26}>
-              <h1 className="font-heading text-5xl leading-[0.95] font-normal tracking-tight text-foreground uppercase sm:text-6xl md:text-7xl">
+              <h1 className="leading-hero font-heading text-5xl font-normal tracking-tight text-foreground capitalize sm:text-6xl md:text-7xl">
                 <span className="block">Let&apos;s build</span>
                 <span className="block">something.</span>
               </h1>
@@ -125,7 +125,7 @@ export default function ContactPage() {
             <RevealItem y={28}>
               <BookCallButton
                 size="lg"
-                className="group rounded-none tracking-[0.14em] uppercase"
+                className="group tracking-wider uppercase"
               >
                 Book a discovery call
                 <ArrowRight className="size-4 transition-transform duration-300 group-hover/button:translate-x-1" />
@@ -145,10 +145,10 @@ export default function ContactPage() {
               id="inquiry-form"
             >
               <div className="space-y-2">
-                <p className="text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
+                <p className="text-overline tracking-banner text-muted-foreground uppercase">
                   / 001 — Inquiry form
                 </p>
-                <h2 className="font-heading text-3xl leading-[1.1] tracking-tight text-foreground uppercase">
+                <h2 className="leading-form-title font-heading text-3xl tracking-tight text-foreground capitalize">
                   Tell us about it
                 </h2>
               </div>
@@ -157,7 +157,7 @@ export default function ContactPage() {
                 <Field>
                   <FieldLabel
                     htmlFor="name"
-                    className="text-xs tracking-[0.18em] uppercase"
+                    className="text-xs tracking-ui uppercase"
                   >
                     Your name
                   </FieldLabel>
@@ -173,7 +173,7 @@ export default function ContactPage() {
                 <Field>
                   <FieldLabel
                     htmlFor="email"
-                    className="text-xs tracking-[0.18em] uppercase"
+                    className="text-xs tracking-ui uppercase"
                   >
                     Email
                   </FieldLabel>
@@ -188,7 +188,7 @@ export default function ContactPage() {
                 </Field>
 
                 <Field>
-                  <FieldLabel className="text-xs tracking-[0.18em] uppercase">
+                  <FieldLabel className="text-xs tracking-ui uppercase">
                     What are you looking to build?
                   </FieldLabel>
                   <Select
@@ -213,7 +213,7 @@ export default function ContactPage() {
                 <Field>
                   <FieldLabel
                     htmlFor="projectDetails"
-                    className="text-xs tracking-[0.18em] uppercase"
+                    className="text-xs tracking-ui uppercase"
                   >
                     Tell us about your project
                   </FieldLabel>
@@ -228,7 +228,7 @@ export default function ContactPage() {
                 </Field>
 
                 <Field>
-                  <FieldLabel className="text-xs tracking-[0.18em] uppercase">
+                  <FieldLabel className="text-xs tracking-ui uppercase">
                     Budget range
                   </FieldLabel>
                   <Select
@@ -254,7 +254,7 @@ export default function ContactPage() {
                   type="submit"
                   size="lg"
                   disabled={submitting}
-                  className="group w-full rounded-none tracking-[0.18em] uppercase"
+                  className="group w-full tracking-wider uppercase"
                 >
                   {submitting ? "Sending..." : "Send inquiry"}
                   {!submitting && (
@@ -279,7 +279,7 @@ export default function ContactPage() {
                 <p className="font-heading text-5xl leading-none text-foreground sm:text-6xl">
                   {item.value}
                 </p>
-                <p className="text-xs tracking-[0.18em] text-muted-foreground uppercase">
+                <p className="text-xs tracking-ui text-muted-foreground uppercase">
                   {item.label}
                 </p>
               </div>

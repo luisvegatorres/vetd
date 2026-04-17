@@ -14,9 +14,9 @@ type BilingualHeadingProps = {
 }
 
 const sizeMap: Record<Level, string> = {
-  h1: "text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.95] tracking-tight",
-  h2: "text-3xl sm:text-4xl md:text-5xl leading-[1.05] tracking-tight",
-  h3: "text-2xl sm:text-3xl leading-[1.15] tracking-tight",
+  h1: "leading-hero text-4xl tracking-tight sm:text-5xl md:text-6xl lg:text-7xl",
+  h2: "leading-section text-3xl tracking-tight sm:text-4xl md:text-5xl",
+  h3: "leading-subheading text-2xl tracking-tight sm:text-3xl",
 }
 
 const enSizeMap: Record<Level, string> = {
@@ -38,7 +38,7 @@ export function BilingualHeading({
     <div className={cn(align === "center" && "text-center", "space-y-2")}>
       <Tag
         className={cn(
-          "font-heading font-normal uppercase text-foreground",
+          "font-heading font-normal capitalize text-foreground",
           sizeMap[as],
           className
         )}
@@ -47,7 +47,7 @@ export function BilingualHeading({
       </Tag>
       <p
         className={cn(
-          "uppercase tracking-[0.18em] text-muted-foreground",
+          "uppercase tracking-ui text-muted-foreground",
           enSizeMap[as],
           enClassName
         )}

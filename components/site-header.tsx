@@ -47,7 +47,7 @@ export function SiteHeader() {
       <div className="flex h-16 w-full items-center justify-between px-6 sm:px-10 lg:px-20">
         <Link
           href="/"
-          className="font-heading text-base font-medium tracking-[0.18em] text-foreground uppercase"
+          className="font-heading text-base font-medium tracking-ui text-foreground uppercase"
         >
           {site.name}
         </Link>
@@ -57,7 +57,7 @@ export function SiteHeader() {
             <Link
               key={item.href}
               href={item.href}
-              className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase transition-colors hover:text-foreground"
+              className="text-xs font-medium tracking-ui text-muted-foreground uppercase transition-colors hover:text-foreground"
             >
               {item.label}
             </Link>
@@ -69,7 +69,7 @@ export function SiteHeader() {
             href="/contact"
             className={cn(
               buttonVariants({ size: "sm" }),
-              "hidden rounded-none text-xs font-medium tracking-[0.18em] uppercase lg:inline-flex"
+              "hidden text-xs font-medium tracking-wider uppercase lg:inline-flex"
             )}
           >
             Start a project
@@ -146,7 +146,7 @@ export function SiteHeader() {
                     href={item.href}
                     onClick={() => setOpen(false)}
                     className={cn(
-                      "block border-b border-border/40 py-4 font-heading text-2xl tracking-[0.02em] transition-colors",
+                      "block border-b border-border/40 py-4 font-heading text-2xl tracking-wide transition-colors",
                       pathname === item.href
                         ? "text-foreground"
                         : "text-muted-foreground hover:text-foreground"
@@ -172,7 +172,7 @@ export function SiteHeader() {
                   onClick={() => setOpen(false)}
                   className={cn(
                     buttonVariants({ size: "lg" }),
-                    "w-full rounded-none text-xs font-medium tracking-[0.18em] uppercase"
+                    "w-full text-xs font-medium tracking-wider uppercase"
                   )}
                 >
                   Start a project
