@@ -1,8 +1,11 @@
 import { ArrowRight } from "lucide-react"
 
+import { AutoRefresh } from "@/components/dashboard/auto-refresh"
 import { KpiCard } from "@/components/dashboard/kpi-card"
-import { MrrPanel } from "@/components/dashboard/mrr-panel"
 import { PageHeader } from "@/components/dashboard/page-header"
+import { PipelineSnapshot } from "@/components/dashboard/pipeline-snapshot"
+import { QuickActions } from "@/components/dashboard/quick-actions"
+import { TodaysFocus } from "@/components/dashboard/todays-focus"
 import { createClient } from "@/lib/supabase/server"
 
 function getGreeting(date = new Date()) {
@@ -12,60 +15,193 @@ function getGreeting(date = new Date()) {
   return "Good evening"
 }
 
-const KPIS = [
-  {
-    label: "Open Deal Value",
-    value: "$86,200",
-    badge: "+18.4%",
-    badgeTone: "positive" as const,
-    footer: "Across 8 deals",
-  },
-  {
-    label: "Revenue This Month",
-    value: "$22,700",
-    badge: "+9.2%",
-    badgeTone: "positive" as const,
-    footer: "12 weeks · Paid via Stripe",
-  },
-  {
-    label: "Commissions Owed",
-    value: "$1,220",
-    badge: "3 reps",
-    footer: "Pending payout this cycle",
-  },
-  {
-    label: (
-      <>
-        Lead <ArrowRight className="size-3" aria-hidden /> Won Rate
-      </>
-    ),
-    value: "67%",
-    badge: "+3.1pts",
-    badgeTone: "positive" as const,
-    footer: "Last 90 days · Avg 17 days in stage",
-  },
-]
+const fmtMoney = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+})
+
+const fmtMonth = new Intl.DateTimeFormat("en-US", { month: "long" })
 
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: auth } = await supabase.auth.getUser()
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name")
-    .eq("id", auth!.user!.id)
-    .single()
+  const now = new Date()
+  const startOfDay = new Date(now)
+  startOfDay.setHours(0, 0, 0, 0)
+  const endOfDay = new Date(startOfDay)
+  endOfDay.setDate(endOfDay.getDate() + 1)
+  const todayIso = now.toISOString()
+
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+  const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+
+  const [
+    profileRes,
+    dealsRes,
+    overdueRes,
+    meetingsRes,
+    openDealsRes,
+    thisMonthPaymentsRes,
+    lastMonthPaymentsRes,
+    commissionsRes,
+    clientsClosedRes,
+  ] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", auth!.user!.id)
+      .single(),
+    supabase
+      .from("projects")
+      .select("id", { count: "exact", head: true })
+      .in("stage", ["proposal", "negotiation", "active"]),
+    supabase
+      .from("projects")
+      .select("id", { count: "exact", head: true })
+      .in("payment_status", ["unpaid", "link_sent"])
+      .lt("deadline", todayIso),
+    supabase
+      .from("interactions")
+      .select("id", { count: "exact", head: true })
+      .eq("type", "meeting")
+      .gte("occurred_at", startOfDay.toISOString())
+      .lt("occurred_at", endOfDay.toISOString()),
+    supabase
+      .from("projects")
+      .select("value")
+      .in("stage", ["proposal", "negotiation", "active"]),
+    supabase
+      .from("payments")
+      .select("amount")
+      .in("status", ["paid", "succeeded"])
+      .gte("created_at", monthStart.toISOString())
+      .lt("created_at", nextMonthStart.toISOString()),
+    supabase
+      .from("payments")
+      .select("amount")
+      .in("status", ["paid", "succeeded"])
+      .gte("created_at", prevMonthStart.toISOString())
+      .lt("created_at", monthStart.toISOString()),
+    supabase
+      .from("projects")
+      .select("commission_amount, sold_by")
+      .eq("payment_status", "paid")
+      .gte("paid_at", monthStart.toISOString())
+      .lt("paid_at", nextMonthStart.toISOString()),
+    supabase
+      .from("clients")
+      .select("status")
+      .in("status", ["active_client", "lost"]),
+  ])
 
   const firstName =
-    profile?.full_name?.trim().split(/\s+/)[0] ??
+    profileRes.data?.full_name?.trim().split(/\s+/)[0] ??
     auth?.user?.email?.split("@")[0] ??
     "there"
+
+  const title = [
+    `${dealsRes.count ?? 0} Deals Moving.`,
+    `${overdueRes.count ?? 0} Payments Overdue.`,
+    `${meetingsRes.count ?? 0} Meetings Today.`,
+  ].join(" ")
+
+  const openDeals = openDealsRes.data ?? []
+  const openDealCount = openDeals.length
+  const openDealValue = openDeals.reduce(
+    (sum, r) => sum + Number(r.value ?? 0),
+    0,
+  )
+
+  const thisMonthPayments = thisMonthPaymentsRes.data ?? []
+  const lastMonthPayments = lastMonthPaymentsRes.data ?? []
+  const revenueThisMonth = thisMonthPayments.reduce(
+    (sum, r) => sum + Number(r.amount ?? 0),
+    0,
+  )
+  const revenueLastMonth = lastMonthPayments.reduce(
+    (sum, r) => sum + Number(r.amount ?? 0),
+    0,
+  )
+  const revenueDelta =
+    revenueLastMonth > 0
+      ? ((revenueThisMonth - revenueLastMonth) / revenueLastMonth) * 100
+      : null
+
+  const commissionsRows = commissionsRes.data ?? []
+  const commissionsOwed = commissionsRows.reduce(
+    (sum, r) => sum + Number(r.commission_amount ?? 0),
+    0,
+  )
+  const commissionRepCount = new Set(
+    commissionsRows.map((r) => r.sold_by).filter(Boolean),
+  ).size
+
+  const closedClients = clientsClosedRes.data ?? []
+  const wonClients = closedClients.filter(
+    (c) => c.status === "active_client",
+  ).length
+  const lostClients = closedClients.length - wonClients
+  const winRate =
+    closedClients.length > 0 ? (wonClients / closedClients.length) * 100 : null
+
+  const KPIS = [
+    {
+      label: "Open Deal Value",
+      value: fmtMoney.format(openDealValue),
+      badge: `${openDealCount} ${openDealCount === 1 ? "deal" : "deals"}`,
+      badgeTone: "neutral" as const,
+      footer: openDealCount
+        ? `Across ${openDealCount} ${openDealCount === 1 ? "deal" : "deals"}`
+        : "No open deals",
+    },
+    {
+      label: "Revenue This Month",
+      value: fmtMoney.format(revenueThisMonth),
+      badge:
+        revenueDelta != null
+          ? `${revenueDelta >= 0 ? "+" : ""}${revenueDelta.toFixed(1)}%`
+          : undefined,
+      badgeTone: (revenueDelta != null && revenueDelta >= 0
+        ? "positive"
+        : "neutral") as "positive" | "neutral",
+      footer: `${fmtMonth.format(now)} · ${thisMonthPayments.length} ${
+        thisMonthPayments.length === 1 ? "payment" : "payments"
+      }`,
+    },
+    {
+      label: "Commissions Owed",
+      value: fmtMoney.format(commissionsOwed),
+      badge: `${commissionRepCount} ${commissionRepCount === 1 ? "rep" : "reps"}`,
+      badgeTone: "neutral" as const,
+      footer: "Pending payout this cycle",
+    },
+    {
+      label: (
+        <>
+          Lead <ArrowRight className="size-3" aria-hidden /> Won Rate
+        </>
+      ),
+      value: winRate != null ? `${Math.round(winRate)}%` : "—",
+      badge:
+        closedClients.length > 0
+          ? `${wonClients} won · ${lostClients} lost`
+          : undefined,
+      badgeTone: "neutral" as const,
+      footer:
+        closedClients.length > 0
+          ? "All-time close rate"
+          : "No closed deals yet",
+    },
+  ]
 
   return (
     <div className="space-y-10">
       <PageHeader
         eyebrow={`${getGreeting()}, ${firstName}`}
-        title="5 Deals Moving. 2 Payments Overdue. 4 Meetings Today."
+        title={title}
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -74,7 +210,16 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      <MrrPanel />
+      <QuickActions />
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="xl:col-span-2">
+          <PipelineSnapshot />
+        </div>
+        <TodaysFocus />
+      </div>
+
+      <AutoRefresh />
     </div>
   )
 }

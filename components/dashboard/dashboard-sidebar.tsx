@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
+  BarChart3,
   Briefcase,
   DollarSign,
   Inbox,
@@ -56,6 +57,7 @@ const accountNav: NavItem[] = [
 ]
 
 const adminNav: NavItem[] = [
+  { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/admin/users", label: "Users", icon: UserCog },
 ]
 
@@ -95,7 +97,7 @@ export function DashboardSidebar({ isAdmin }: { isAdmin: boolean }) {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4">
+      <SidebarHeader>
         <Link
           href="/dashboard"
           className="font-heading text-sm font-medium tracking-ui text-foreground uppercase"
@@ -110,7 +112,7 @@ export function DashboardSidebar({ isAdmin }: { isAdmin: boolean }) {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup className="p-4">
+        <SidebarGroup>
           <SidebarGroupLabel className="uppercase tracking-ui">
             Workspace
           </SidebarGroupLabel>
@@ -147,7 +149,7 @@ export function DashboardSidebar({ isAdmin }: { isAdmin: boolean }) {
         ) : null}
       </SidebarContent>
 
-      <SidebarFooter className="p-4">
+      <SidebarFooter>
         <SidebarMenu>
           {accountNav.map((item) => (
             <NavItemLink
