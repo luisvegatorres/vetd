@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/sidebar"
 import { LogoutButton } from "@/components/auth/logout-button"
 import { site } from "@/lib/site"
+import { cn } from "@/lib/utils"
 
 type NavItem = {
   href: string
@@ -59,6 +60,7 @@ const adminNav: NavItem[] = [
 ]
 
 const itemClasses = "font-medium uppercase tracking-ui text-xs"
+const inactiveClasses = "text-muted-foreground"
 
 function NavItemLink({
   item,
@@ -73,7 +75,7 @@ function NavItemLink({
         isActive={active}
         tooltip={item.label}
         render={<Link href={item.href} />}
-        className={itemClasses}
+        className={cn(itemClasses, !active && inactiveClasses)}
       >
         <item.icon />
         <span>{item.label}</span>
@@ -93,7 +95,7 @@ export function DashboardSidebar({ isAdmin }: { isAdmin: boolean }) {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader>
+      <SidebarHeader className="p-4">
         <Link
           href="/dashboard"
           className="font-heading text-sm font-medium tracking-ui text-foreground uppercase"
@@ -108,7 +110,7 @@ export function DashboardSidebar({ isAdmin }: { isAdmin: boolean }) {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
+        <SidebarGroup className="p-4">
           <SidebarGroupLabel className="uppercase tracking-ui">
             Workspace
           </SidebarGroupLabel>
@@ -145,7 +147,7 @@ export function DashboardSidebar({ isAdmin }: { isAdmin: boolean }) {
         ) : null}
       </SidebarContent>
 
-      <SidebarFooter>
+      <SidebarFooter className="p-4">
         <SidebarMenu>
           {accountNav.map((item) => (
             <NavItemLink

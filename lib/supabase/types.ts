@@ -352,6 +352,69 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          canceled_at: string | null
+          client_id: string
+          created_at: string
+          currency: string
+          id: string
+          monthly_rate: number
+          notes: string | null
+          plan: string
+          product: string
+          sold_by: string | null
+          started_at: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          updated_at: string
+        }
+        Insert: {
+          canceled_at?: string | null
+          client_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          monthly_rate: number
+          notes?: string | null
+          plan: string
+          product: string
+          sold_by?: string | null
+          started_at: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+        }
+        Update: {
+          canceled_at?: string | null
+          client_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          monthly_rate?: number
+          notes?: string | null
+          plan?: string
+          product?: string
+          sold_by?: string | null
+          started_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_sold_by_fkey"
+            columns: ["sold_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -391,6 +454,7 @@ export type Database = {
         | "active"
         | "completed"
         | "cancelled"
+      subscription_status: "active" | "at_risk" | "canceled"
       user_role: "admin" | "editor" | "sales_rep" | "viewer"
     }
     CompositeTypes: {
@@ -545,6 +609,7 @@ export const Constants = {
         "completed",
         "cancelled",
       ],
+      subscription_status: ["active", "at_risk", "canceled"],
       user_role: ["admin", "editor", "sales_rep", "viewer"],
     },
   },
