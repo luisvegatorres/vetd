@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { getUpcomingBookings } from "@/lib/calcom"
 import { createClient } from "@/lib/supabase/server"
 import { cn } from "@/lib/utils"
@@ -160,7 +161,7 @@ export async function TodaysFocus() {
   const topAttention = attention.slice(0, 5)
 
   return (
-    <section className="flex flex-col border border-border/60 bg-card">
+    <Card className="flex flex-col gap-0 py-0">
       <header className="flex items-center justify-between gap-4 border-b border-border/60 p-6">
         <h2 className="font-heading text-lg font-medium tracking-tight">
           Today&apos;s focus
@@ -246,7 +247,7 @@ export async function TodaysFocus() {
           )}
         </div>
       </div>
-    </section>
+    </Card>
   )
 }
 

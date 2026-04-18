@@ -2,6 +2,7 @@ import Link from "next/link"
 import { ArrowUpRight, MessageSquarePlus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/server"
 import { cn } from "@/lib/utils"
 import type { Database } from "@/lib/supabase/types"
@@ -114,7 +115,7 @@ export async function PipelineSnapshot() {
   }
 
   return (
-    <section className="border border-border/60 bg-card">
+    <Card className="gap-0 py-0">
       <header className="flex items-center justify-between gap-4 border-b border-border/60 p-6">
         <h2 className="font-heading text-lg font-medium tracking-tight">
           Pipeline &amp; opportunities
@@ -250,6 +251,6 @@ export async function PipelineSnapshot() {
           })}
         </ol>
       )}
-    </section>
+    </Card>
   )
 }

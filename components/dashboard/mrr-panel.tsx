@@ -1,6 +1,7 @@
 import { Plus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import {
   MrrDataTable,
   type MrrRow,
@@ -88,7 +89,7 @@ export async function MrrPanel() {
   const canceledMrr = totals.mrrByStatus.canceled ?? 0
 
   return (
-    <section className="border border-border/60 bg-card">
+    <Card className="gap-0 py-0">
       <header className="flex items-center justify-between gap-4 border-b border-border/60 p-6">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <h2 className="font-heading text-lg font-medium tracking-tight">
@@ -114,7 +115,7 @@ export async function MrrPanel() {
         />
         <MrrDataTable rows={rows} />
       </div>
-    </section>
+    </Card>
   )
 }
 

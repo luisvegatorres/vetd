@@ -9,6 +9,7 @@ import {
   type LucideIcon,
 } from "lucide-react"
 
+import { Card } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/server"
 import { cn } from "@/lib/utils"
 import type { Database } from "@/lib/supabase/types"
@@ -149,7 +150,7 @@ export async function ActivityFeed() {
   const top = events.slice(0, 10)
 
   return (
-    <section className="border border-border/60 bg-card">
+    <Card className="gap-0 py-0">
       <header className="flex items-center justify-between gap-4 border-b border-border/60 p-6">
         <h2 className="font-heading text-lg font-medium tracking-tight">
           Recent activity
@@ -195,7 +196,7 @@ export async function ActivityFeed() {
           ))}
         </ol>
       )}
-    </section>
+    </Card>
   )
 }
 

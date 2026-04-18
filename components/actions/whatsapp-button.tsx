@@ -33,7 +33,7 @@ export function WhatsAppButton({
       data-slot="whatsapp-button"
       className={cn(
         buttonVariants({ variant: sharedVariant, size: sharedSize }),
-        "tracking-wider uppercase",
+        "tracking-wider",
         className
       )}
     >

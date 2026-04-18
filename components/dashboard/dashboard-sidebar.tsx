@@ -61,7 +61,7 @@ const adminNav: NavItem[] = [
   { href: "/admin/users", label: "Users", icon: UserCog },
 ]
 
-const itemClasses = "font-medium uppercase tracking-ui text-xs"
+const itemClasses = "font-medium tracking-ui text-xs"
 const inactiveClasses = "text-muted-foreground"
 
 function NavItemLink({

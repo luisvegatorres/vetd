@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react"
 import { AutoRefresh } from "@/components/dashboard/auto-refresh"
 import { KpiCard } from "@/components/dashboard/kpi-card"
 import { PageHeader } from "@/components/dashboard/page-header"
+import { Dot } from "@/components/ui/dot"
 import { PipelineSnapshot } from "@/components/dashboard/pipeline-snapshot"
 import { QuickActions } from "@/components/dashboard/quick-actions"
 import { TodaysFocus } from "@/components/dashboard/todays-focus"
@@ -102,11 +103,15 @@ export default async function DashboardPage() {
     auth?.user?.email?.split("@")[0] ??
     "there"
 
-  const title = [
-    `${dealsRes.count ?? 0} Deals Moving.`,
-    `${overdueRes.count ?? 0} Payments Overdue.`,
-    `${meetingsRes.count ?? 0} Meetings Today.`,
-  ].join(" ")
+  const title = (
+    <span className="flex flex-wrap items-center gap-3">
+      <span>{dealsRes.count ?? 0} Deals Moving</span>
+      <Dot />
+      <span>{overdueRes.count ?? 0} Payments Overdue</span>
+      <Dot />
+      <span>{meetingsRes.count ?? 0} Meetings Today</span>
+    </span>
+  )
 
   const openDeals = openDealsRes.data ?? []
   const openDealCount = openDeals.length

@@ -86,7 +86,7 @@ export function WorkGrid() {
                 onClick={() => setActive(filter)}
                 variant={isActive ? "default" : "outline"}
                 className={cn(
-                  "tracking-wider uppercase",
+                  "tracking-wider",
                   !isActive &&
                     "bg-card text-muted-foreground hover:text-foreground"
                 )}

@@ -50,7 +50,7 @@ export function HomeHero() {
             >
               <BookCallButton
                 size="lg"
-                className="group tracking-wider uppercase"
+                className="group tracking-wider"
               >
                 Book a discovery call
                 <ArrowRight

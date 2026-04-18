@@ -125,7 +125,7 @@ export default function ContactPage() {
             <RevealItem y={28}>
               <BookCallButton
                 size="lg"
-                className="group tracking-wider uppercase"
+                className="group tracking-wider"
               >
                 Book a discovery call
                 <ArrowRight className="size-4 transition-transform duration-300 group-hover/button:translate-x-1" />
@@ -254,7 +254,7 @@ export default function ContactPage() {
                   type="submit"
                   size="lg"
                   disabled={submitting}
-                  className="group w-full tracking-wider uppercase"
+                  className="group w-full tracking-wider"
                 >
                   {submitting ? "Sending..." : "Send inquiry"}
                   {!submitting && (

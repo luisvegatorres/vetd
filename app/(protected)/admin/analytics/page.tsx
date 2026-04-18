@@ -221,7 +221,7 @@ export default async function AdminAnalyticsPage() {
       <MrrPanel />
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <section className="border border-border/60 bg-card">
+        <section className="border border-border/60">
           <header className="border-b border-border/60 p-6">
             <h2 className="font-heading text-lg font-medium tracking-tight">
               Pipeline progression
@@ -259,7 +259,7 @@ export default async function AdminAnalyticsPage() {
           </ul>
         </section>
 
-        <section className="border border-border/60 bg-card">
+        <section className="border border-border/60">
           <header className="border-b border-border/60 p-6">
             <h2 className="font-heading text-lg font-medium tracking-tight">
               Recent payments
@@ -310,7 +310,7 @@ export default async function AdminAnalyticsPage() {
         </section>
       </div>
 
-      <section className="border border-border/60 bg-card">
+      <section className="border border-border/60">
         <header className="border-b border-border/60 p-6">
           <h2 className="font-heading text-lg font-medium tracking-tight">
             Team performance

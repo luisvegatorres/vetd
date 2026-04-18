@@ -69,7 +69,7 @@ export function SiteHeader() {
             href="/contact"
             className={cn(
               buttonVariants({ size: "sm" }),
-              "hidden text-xs font-medium tracking-wider uppercase lg:inline-flex"
+              "hidden text-xs font-medium tracking-wider lg:inline-flex"
             )}
           >
             Start a project
@@ -172,7 +172,7 @@ export function SiteHeader() {
                   onClick={() => setOpen(false)}
                   className={cn(
                     buttonVariants({ size: "lg" }),
-                    "w-full text-xs font-medium tracking-wider uppercase"
+                    "w-full text-xs font-medium tracking-wider"
                   )}
                 >
                   Start a project

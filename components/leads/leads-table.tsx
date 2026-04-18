@@ -12,45 +12,30 @@ import { cn } from "@/lib/utils"
 import { LeadStatusBadge } from "./lead-status-badge"
 import {
   SOURCE_LABEL,
-  avatarColor,
   deriveStatus,
   formatAge,
-  initials,
+  scoreBarColorClass,
   type LeadRow,
 } from "./lead-types"
 
 const COLS =
-  "64px minmax(0,2.2fr) minmax(0,1.4fr) minmax(0,1.2fr) 56px minmax(0,1fr)"
+  "64px minmax(0,2.2fr) minmax(0,1.4fr) minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr)"
 
 function ScoreBar({ score }: { score: number | null }) {
   const pct = Math.max(0, Math.min(100, score ?? 0))
   return (
     <div className="flex items-center gap-2">
-      <div className="h-1 w-8 bg-muted">
+      <div
+        className="h-0.5 w-8 bg-border/60"
+        aria-hidden
+        role="presentation"
+      >
         <div
-          className={cn(
-            "h-full",
-            score == null
-              ? "bg-muted-foreground/40"
-              : score >= 70
-                ? "bg-primary"
-                : "bg-muted-foreground",
-          )}
+          className={cn("h-full", scoreBarColorClass(score))}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span
-        className={cn(
-          "text-sm font-medium tabular-nums",
-          score == null
-            ? "text-muted-foreground"
-            : score >= 70
-              ? "text-emerald-500"
-              : "text-foreground",
-        )}
-      >
-        {score ?? "—"}
-      </span>
+      <span className="text-sm font-medium tabular-nums">{score ?? 0}</span>
     </div>
   )
 }
@@ -58,19 +43,13 @@ function ScoreBar({ score }: { score: number | null }) {
 function OwnerChip({ owner }: { owner: LeadRow["owner"] }) {
   if (!owner)
     return (
-      <span className="text-base text-muted-foreground" aria-label="Unassigned">
+      <span className="text-sm text-muted-foreground" aria-label="Unassigned">
         —
       </span>
     )
   return (
-    <span
-      className={cn(
-        "flex size-7 items-center justify-center text-xs font-medium uppercase tracking-ui text-white",
-        avatarColor(owner.id),
-      )}
-      title={owner.full_name ?? "Unassigned"}
-    >
-      {initials(owner.full_name, "·")}
+    <span className="truncate text-sm">
+      {owner.full_name ?? "Unassigned"}
     </span>
   )
 }
@@ -116,15 +95,7 @@ export function LeadsTable({
                   <ScoreBar score={row.score} />
                 </DataTableCell>
 
-                <DataTableCell className="gap-3">
-                  <span
-                    className={cn(
-                      "flex size-7 items-center justify-center text-xs font-medium uppercase tracking-ui text-white",
-                      avatarColor(row.id),
-                    )}
-                  >
-                    {initials(row.name)}
-                  </span>
+                <DataTableCell>
                   <div className="min-w-0">
                     <p className="truncate font-medium">{row.name}</p>
                     <p className="mt-1 truncate text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">

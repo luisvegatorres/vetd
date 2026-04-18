@@ -66,30 +66,6 @@ const STATUS_FILTER_LABEL: Record<string, string> = {
   canceled: "Canceled",
 }
 
-const AVATAR_PALETTE = [
-  "bg-orange-500/80",
-  "bg-purple-500/80",
-  "bg-[var(--chart-1)]/80",
-  "bg-emerald-500/80",
-  "bg-rose-500/80",
-] as const
-
-function avatarColor(seed: string) {
-  let h = 0
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0
-  return AVATAR_PALETTE[Math.abs(h) % AVATAR_PALETTE.length]
-}
-
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .map((p) => p[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase()
-}
-
 const fmtMoney = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -103,21 +79,11 @@ const columns: ColumnDef<MrrRow>[] = [
     cell: ({ row }) => {
       const client = row.original.client
       return (
-        <div className="flex items-center gap-3">
-          <span
-            className={cn(
-              "flex size-7 items-center justify-center text-xs font-medium uppercase tracking-ui text-white",
-              avatarColor(client),
-            )}
-          >
-            {initials(client)}
-          </span>
-          <div className="min-w-0">
-            <p className="truncate font-medium">{client}</p>
-            <p className="mt-1 flex items-center gap-2 truncate text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
-              Sold by <Dot /> {row.original.soldBy}
-            </p>
-          </div>
+        <div className="min-w-0">
+          <p className="truncate font-medium">{client}</p>
+          <p className="mt-1 flex items-center gap-2 truncate text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+            Sold by <Dot /> {row.original.soldBy}
+          </p>
         </div>
       )
     },

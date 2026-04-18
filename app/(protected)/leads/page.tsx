@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/dashboard/page-header"
+import { Dot } from "@/components/ui/dot"
 import { LeadDetailPanel } from "@/components/leads/lead-detail-panel"
 import {
   deriveStatus,
@@ -76,7 +77,7 @@ export default async function LeadsPage({
       `
         id, lead_number, name, company, email, phone,
         score, intent, budget, notes, source, status, created_at,
-        owner:profiles!clients_assigned_to_fkey (id, full_name, avatar_url)
+        owner:profiles!clients_assigned_to_fkey (id, full_name)
       `,
     )
     .in("status", ["lead", "qualified", "archived", "lost"])
@@ -128,7 +129,6 @@ export default async function LeadsPage({
         ? {
             id: ownerObj.id,
             full_name: ownerObj.full_name,
-            avatar_url: ownerObj.avatar_url,
           }
         : null,
       has_interactions: contactedIds.has(r.id),
@@ -179,12 +179,19 @@ export default async function LeadsPage({
     <div className="space-y-6">
       <PageHeader
         eyebrow="Pipeline"
-        title="Leads"
-        description="Inbound inquiries from the contact form, WhatsApp, and discovery calls. Triage, assign, and respond fast."
+        title={
+          <span className="flex flex-wrap items-center gap-3">
+            <span>{counts.new} new</span>
+            <Dot />
+            <span>{counts.qualified} qualified</span>
+            <Dot />
+            <span>{totalFiltered} showing</span>
+          </span>
+        }
       />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <div className="flex min-h-0 flex-col border border-border/60 bg-card">
+        <div className="flex min-h-0 flex-col border border-border/60">
           <div className="flex flex-wrap items-center gap-3 border-b border-border/60 px-4 py-3">
             <LeadsTabs active={tab} counts={counts} />
             <div className="flex flex-1 justify-center">

@@ -195,7 +195,7 @@ export default function HomePage() {
                 href="/contact"
                 className={cn(
                   buttonVariants({ size: "lg" }),
-                  "tracking-wider uppercase"
+                  "tracking-wider"
                 )}
               >
                 Start a project

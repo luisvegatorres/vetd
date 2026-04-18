@@ -9,7 +9,6 @@ export type LeadDerivedStatus = Exclude<LeadTab, "all">
 export type LeadOwner = {
   id: string
   full_name: string | null
-  avatar_url: string | null
 }
 
 export type LeadRow = {
@@ -49,6 +48,13 @@ export function deriveStatus(row: {
   return row.has_interactions ? "contacted" : "new"
 }
 
+export function scoreBarColorClass(score: number | null) {
+  if (score == null) return "bg-muted-foreground/60"
+  if (score >= 70) return "bg-emerald-500"
+  if (score >= 40) return "bg-amber-500"
+  return "bg-red-500"
+}
+
 export function formatLeadNumber(n: number) {
   return `L-${n.toString().padStart(3, "0")}`
 }
@@ -68,29 +74,3 @@ export function formatAge(iso: string, now = new Date()) {
   return `${months}mo`
 }
 
-const AVATAR_PALETTE = [
-  "bg-orange-500/80",
-  "bg-purple-500/80",
-  "bg-emerald-500/80",
-  "bg-rose-500/80",
-  "bg-sky-500/80",
-  "bg-amber-500/80",
-] as const
-
-export function avatarColor(seed: string | null | undefined) {
-  if (!seed) return "bg-muted"
-  let h = 0
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0
-  return AVATAR_PALETTE[Math.abs(h) % AVATAR_PALETTE.length]
-}
-
-export function initials(name: string | null | undefined, fallback = "?") {
-  if (!name) return fallback
-  const parts = name.trim().split(/\s+/)
-  const letters = parts
-    .map((p) => p[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-  return letters.toUpperCase() || fallback
-}

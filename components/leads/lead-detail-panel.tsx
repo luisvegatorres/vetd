@@ -1,18 +1,26 @@
 import { ArrowRight, Mail, Phone, UserPlus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card"
+import { Dot } from "@/components/ui/dot"
+import { Separator } from "@/components/ui/separator"
 import { claimLead, convertLeadToDeal } from "@/app/(protected)/leads/actions"
 import { LeadStatusBadge } from "./lead-status-badge"
 import {
   SOURCE_LABEL,
-  avatarColor,
   deriveStatus,
   formatAge,
   formatLeadNumber,
-  initials,
+  scoreBarColorClass,
   type LeadRow,
 } from "./lead-types"
+import { cn } from "@/lib/utils"
 
 function Field({
   label,
@@ -22,11 +30,11 @@ function Field({
   children: React.ReactNode
 }) {
   return (
-    <div>
+    <div className="space-y-2">
       <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
-        / {label}
+        {label}
       </p>
-      <p className="mt-2 text-sm">{children}</p>
+      <p className="text-sm">{children}</p>
     </div>
   )
 }
@@ -34,136 +42,124 @@ function Field({
 export function LeadDetailPanel({ lead }: { lead: LeadRow | null }) {
   if (!lead) {
     return (
-      <aside className="flex min-h-80 flex-col items-center justify-center border border-border/60 bg-card p-10 text-center">
+      <Card className="flex min-h-80 flex-col items-center justify-center gap-0 p-10 text-center">
         <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
-          / No Lead Selected
+          No Lead Selected
         </p>
         <p className="mt-4 max-w-xs text-sm text-muted-foreground">
           Pick a row to see intent, notes, and jump to a quick action.
         </p>
-      </aside>
+      </Card>
     )
   }
 
   const derived = deriveStatus(lead)
+  const score = lead.score ?? 0
 
   return (
-    <aside className="flex min-h-80 flex-col border border-border/60 bg-card">
-      <header className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-4">
-        <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
-          / {formatLeadNumber(lead.lead_number)}
-        </p>
-        <LeadStatusBadge status={derived} />
-      </header>
+    <Card className="flex min-h-80 flex-col gap-0 py-0">
+      <CardHeader className="items-center p-6">
+        <div className="flex items-center gap-2 text-overline font-medium uppercase tracking-ui text-muted-foreground">
+          <span>Lead</span>
+          <Dot />
+          <span>{formatLeadNumber(lead.lead_number)}</span>
+        </div>
+        <CardAction>
+          <LeadStatusBadge status={derived} />
+        </CardAction>
+      </CardHeader>
 
-      <div className="space-y-6 px-5 py-5">
-        <div className="flex items-start gap-3">
-          <span
-            className={cn(
-              "flex size-9 items-center justify-center text-xs font-medium uppercase tracking-ui text-white",
-              avatarColor(lead.id),
-            )}
-          >
-            {initials(lead.name)}
-          </span>
-          <div className="min-w-0">
-            <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
-              / Lead
+      <CardContent className="flex flex-col gap-6 p-6 pt-0">
+        <div className="min-w-0">
+          <h2 className="truncate font-heading text-2xl font-medium leading-tight tracking-tight">
+            {lead.name}
+          </h2>
+          {lead.company ? (
+            <p className="mt-1 truncate text-sm text-muted-foreground">
+              {lead.company}
             </p>
-            <h2 className="mt-1 truncate font-heading text-2xl font-medium tracking-tight">
-              {lead.name}
-            </h2>
-            {lead.company ? (
-              <p className="mt-1 truncate text-sm text-muted-foreground">
-                {lead.company}
-              </p>
-            ) : null}
-          </div>
+          ) : null}
         </div>
 
-        <div>
-          <div className="flex items-end gap-3">
-            <span className="font-heading text-4xl font-medium leading-none tracking-tight tabular-nums">
-              {lead.score ?? "—"}
-            </span>
-            <span className="pb-1 text-overline font-medium uppercase tracking-ui text-muted-foreground">
+        <div className="space-y-3">
+          <div className="flex items-baseline gap-3">
+            <p className="font-heading text-3xl font-medium leading-none tracking-tight tabular-nums">
+              {lead.score ?? 0}
+            </p>
+            <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
               Score / 100
-            </span>
+            </p>
           </div>
-          <div className="mt-3 h-1 w-full bg-muted">
+          <div className="h-0.5 bg-border/60" aria-hidden role="presentation">
             <div
-              className="h-full bg-primary"
-              style={{
-                width: `${Math.max(0, Math.min(100, lead.score ?? 0))}%`,
-              }}
+              className={cn("h-full", scoreBarColorClass(lead.score))}
+              style={{ width: `${Math.min(100, Math.max(0, score))}%` }}
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-x-6 gap-y-5 border-t border-border/60 pt-5">
-          <Field label="Intent">{lead.intent ?? "—"}</Field>
+        <Field label="Intent">{lead.intent ?? "—"}</Field>
+
+        <div className="grid grid-cols-2 gap-6">
           <Field label="Source">{SOURCE_LABEL[lead.source]}</Field>
-          <Field label="Budget">{lead.budget ?? "—"}</Field>
           <Field label="Age">{formatAge(lead.created_at)} ago</Field>
+          <Field label="Budget">{lead.budget ?? "—"}</Field>
           <Field label="Owner">
             {lead.owner?.full_name ?? (
               <span className="text-muted-foreground">Unassigned</span>
             )}
           </Field>
-          <Field label="ID">{formatLeadNumber(lead.lead_number)}</Field>
         </div>
 
         {lead.notes ? (
-          <div className="border-t border-border/60 pt-5">
-            <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
-              / Notes
-            </p>
-            <p className="mt-2 text-sm leading-relaxed">{lead.notes}</p>
-          </div>
+          <>
+            <Separator />
+            <div className="space-y-2">
+              <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
+                Notes
+              </p>
+              <p className="text-sm leading-relaxed">{lead.notes}</p>
+            </div>
+          </>
         ) : null}
-      </div>
+      </CardContent>
 
-      <div className="mt-auto border-t border-border/60">
+      <CardFooter className="mt-auto flex-col items-stretch gap-3 p-6">
         <form action={convertLeadToDeal.bind(null, lead.id)}>
-          <Button type="submit" className="h-11 w-full uppercase tracking-ui">
-            <ArrowRight aria-hidden /> Convert to deal
+          <Button type="submit" className="w-full gap-2 capitalize">
+            <ArrowRight aria-hidden /> Create deal
           </Button>
         </form>
-        <div className="grid grid-cols-3 divide-x divide-border/60 border-t border-border/60">
+        <div className="grid grid-cols-3 gap-3">
           <Button
-            variant="ghost"
-            size="default"
+            variant="outline"
             disabled={!lead.email}
             nativeButton={!lead.email}
-            className="h-11 rounded-none uppercase tracking-ui"
-            render={
-              lead.email ? <a href={`mailto:${lead.email}`} /> : undefined
-            }
+            className="gap-2 capitalize"
+            render={lead.email ? <a href={`mailto:${lead.email}`} /> : undefined}
           >
             <Mail aria-hidden /> Email
           </Button>
           <Button
-            variant="ghost"
-            size="default"
+            variant="outline"
             disabled={!lead.phone}
             nativeButton={!lead.phone}
-            className="h-11 rounded-none uppercase tracking-ui"
+            className="gap-2 capitalize"
             render={lead.phone ? <a href={`tel:${lead.phone}`} /> : undefined}
           >
             <Phone aria-hidden /> Call
           </Button>
-          <form action={claimLead.bind(null, lead.id)} className="contents">
+          <form action={claimLead.bind(null, lead.id)}>
             <Button
-              variant="ghost"
-              size="default"
+              variant="outline"
               type="submit"
-              className="h-11 rounded-none uppercase tracking-ui"
+              className="w-full gap-2 capitalize"
             >
               <UserPlus aria-hidden /> Assign
             </Button>
           </form>
         </div>
-      </div>
-    </aside>
+      </CardFooter>
+    </Card>
   )
 }
