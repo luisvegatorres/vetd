@@ -8,9 +8,9 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card"
-import { Dot } from "@/components/ui/dot"
-import { Separator } from "@/components/ui/separator"
 import { claimLead, convertLeadToDeal } from "@/app/(protected)/leads/actions"
+import { EditLeadDialog } from "./lead-form-dialog"
+import { LeadNotesDialog } from "./lead-notes-dialog"
 import { LeadStatusBadge } from "./lead-status-badge"
 import {
   SOURCE_LABEL,
@@ -59,13 +59,9 @@ export function LeadDetailPanel({ lead }: { lead: LeadRow | null }) {
   return (
     <Card className="flex min-h-80 flex-col gap-0 py-0">
       <CardHeader className="items-center p-6">
-        <div className="flex items-center gap-2 text-overline font-medium uppercase tracking-ui text-muted-foreground">
-          <span>Lead</span>
-          <Dot />
-          <span>{formatLeadNumber(lead.lead_number)}</span>
-        </div>
+        <LeadStatusBadge status={derived} />
         <CardAction>
-          <LeadStatusBadge status={derived} />
+          <EditLeadDialog lead={lead} />
         </CardAction>
       </CardHeader>
 
@@ -104,24 +100,14 @@ export function LeadDetailPanel({ lead }: { lead: LeadRow | null }) {
           <Field label="Source">{SOURCE_LABEL[lead.source]}</Field>
           <Field label="Age">{formatAge(lead.created_at)} ago</Field>
           <Field label="Budget">{lead.budget ?? "—"}</Field>
-          <Field label="Owner">
+          <Field label="Rep">
             {lead.owner?.full_name ?? (
               <span className="text-muted-foreground">Unassigned</span>
             )}
           </Field>
+          <LeadNotesDialog notes={lead.notes} />
+          <Field label="Lead ID">{formatLeadNumber(lead.lead_number)}</Field>
         </div>
-
-        {lead.notes ? (
-          <>
-            <Separator />
-            <div className="space-y-2">
-              <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
-                Notes
-              </p>
-              <p className="text-sm leading-relaxed">{lead.notes}</p>
-            </div>
-          </>
-        ) : null}
       </CardContent>
 
       <CardFooter className="mt-auto flex-col items-stretch gap-3 p-6">

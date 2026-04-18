@@ -12,7 +12,8 @@ const STATUS_LABEL: Record<LeadDerivedStatus, string> = {
 const STATUS_CLASS: Record<LeadDerivedStatus, string> = {
   new: "bg-primary/10 text-primary",
   contacted: "bg-foreground/10 text-foreground",
-  qualified: "bg-emerald-500/10 text-emerald-500",
+  qualified:
+    "bg-emerald-600/10 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500",
   archived: "bg-muted text-muted-foreground",
 }
 

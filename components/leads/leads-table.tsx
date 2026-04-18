@@ -74,7 +74,7 @@ export function LeadsTable({
         <DataTableHead className="gap-2">
           Source <Dot /> Age
         </DataTableHead>
-        <DataTableHead>Owner</DataTableHead>
+        <DataTableHead>Rep</DataTableHead>
         <DataTableHead>Status</DataTableHead>
       </DataTableHeader>
 

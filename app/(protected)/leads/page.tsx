@@ -11,6 +11,7 @@ import { LeadsPagination } from "@/components/leads/leads-pagination"
 import { LeadsTable } from "@/components/leads/leads-table"
 import { LeadsTabs } from "@/components/leads/leads-tabs"
 import { LeadsFilters, LeadsSearch } from "@/components/leads/leads-toolbar"
+import { NewLeadDialog } from "@/components/leads/lead-form-dialog"
 import { createClient } from "@/lib/supabase/server"
 import { Constants } from "@/lib/supabase/types"
 
@@ -188,6 +189,7 @@ export default async function LeadsPage({
             <span>{totalFiltered} showing</span>
           </span>
         }
+        action={<NewLeadDialog />}
       />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">

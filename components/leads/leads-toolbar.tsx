@@ -89,7 +89,7 @@ export function LeadsFilters({
           })
         }
       >
-        <SelectTrigger size="sm" className="w-40">
+        <SelectTrigger size="sm" className="w-32">
           <SelectValue placeholder="All sources">
             {(value) =>
               !value || value === "all"
@@ -122,7 +122,7 @@ export function LeadsFilters({
           })
         }
       >
-        <SelectTrigger size="sm" className="w-40">
+        <SelectTrigger size="sm" className="w-32">
           <SelectValue placeholder="Score">
             {(value) =>
               value ? (SORT_LABEL[value as Sort] ?? "Score") : "Score"

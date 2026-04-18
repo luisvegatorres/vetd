@@ -50,7 +50,7 @@ export function deriveStatus(row: {
 
 export function scoreBarColorClass(score: number | null) {
   if (score == null) return "bg-muted-foreground/60"
-  if (score >= 70) return "bg-emerald-500"
+  if (score >= 70) return "bg-emerald-600 dark:bg-emerald-500"
   if (score >= 40) return "bg-amber-500"
   return "bg-red-500"
 }
