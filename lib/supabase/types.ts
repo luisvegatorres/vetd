@@ -17,42 +17,54 @@ export type Database = {
       clients: {
         Row: {
           assigned_to: string | null
+          budget: string | null
           company: string | null
           created_at: string
           email: string | null
           id: string
           intake: Json | null
+          intent: string | null
+          lead_number: number
           name: string
           notes: string | null
           phone: string | null
+          score: number | null
           source: Database["public"]["Enums"]["client_source"]
           status: Database["public"]["Enums"]["client_status"]
           updated_at: string
         }
         Insert: {
           assigned_to?: string | null
+          budget?: string | null
           company?: string | null
           created_at?: string
           email?: string | null
           id?: string
           intake?: Json | null
+          intent?: string | null
+          lead_number?: number
           name: string
           notes?: string | null
           phone?: string | null
+          score?: number | null
           source?: Database["public"]["Enums"]["client_source"]
           status?: Database["public"]["Enums"]["client_status"]
           updated_at?: string
         }
         Update: {
           assigned_to?: string | null
+          budget?: string | null
           company?: string | null
           created_at?: string
           email?: string | null
           id?: string
           intake?: Json | null
+          intent?: string | null
+          lead_number?: number
           name?: string
           notes?: string | null
           phone?: string | null
+          score?: number | null
           source?: Database["public"]["Enums"]["client_source"]
           status?: Database["public"]["Enums"]["client_status"]
           updated_at?: string

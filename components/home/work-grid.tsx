@@ -125,7 +125,7 @@ export function WorkGrid() {
                   </span>
                 </div>
                 <div className="absolute top-4 left-4">
-                  <span className="inline-flex items-center bg-background/80 px-2 py-1 text-[10px] font-medium tracking-section text-muted-foreground uppercase backdrop-blur-sm">
+                  <span className="inline-flex items-center bg-background/80 px-2 py-1 text-xs font-medium tracking-section text-muted-foreground uppercase backdrop-blur-sm">
                     {project.category}
                   </span>
                 </div>

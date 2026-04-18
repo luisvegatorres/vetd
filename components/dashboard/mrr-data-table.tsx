@@ -16,6 +16,7 @@ import {
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Dot } from "@/components/ui/dot"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -105,7 +106,7 @@ const columns: ColumnDef<MrrRow>[] = [
         <div className="flex items-center gap-3">
           <span
             className={cn(
-              "flex size-7 items-center justify-center text-[10px] font-medium uppercase tracking-ui text-white",
+              "flex size-7 items-center justify-center text-xs font-medium uppercase tracking-ui text-white",
               avatarColor(client),
             )}
           >
@@ -113,8 +114,8 @@ const columns: ColumnDef<MrrRow>[] = [
           </span>
           <div className="min-w-0">
             <p className="truncate font-medium">{client}</p>
-            <p className="mt-1 truncate text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
-              Sold by · {row.original.soldBy}
+            <p className="mt-1 flex items-center gap-2 truncate text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+              Sold by <Dot /> {row.original.soldBy}
             </p>
           </div>
         </div>
@@ -130,12 +131,16 @@ const columns: ColumnDef<MrrRow>[] = [
   },
   {
     id: "product_plan",
-    header: "Product · Plan",
+    header: () => (
+      <span className="flex items-center gap-2">
+        Product <Dot /> Plan
+      </span>
+    ),
     cell: ({ row }) => (
       <div>
         <p className="font-medium">{row.original.product}</p>
-        <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
-          {row.original.plan} · Since {row.original.since}
+        <p className="mt-1 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+          {row.original.plan} <Dot /> Since {row.original.since}
         </p>
       </div>
     ),
@@ -165,7 +170,7 @@ const columns: ColumnDef<MrrRow>[] = [
     cell: ({ row }) => (
       <span className="inline-flex items-center gap-1 font-medium tabular-nums">
         {fmtMoney.format(row.original.mrr)}
-        <span className="text-[10px] tracking-[0.12em] text-muted-foreground">
+        <span className="text-xs tracking-[0.12em] text-muted-foreground">
           /mo
         </span>
       </span>
@@ -261,7 +266,7 @@ export function MrrDataTable({ rows }: { rows: MrrRow[] }) {
                 <TableHead
                   key={h.id}
                   className={cn(
-                    "flex h-auto items-center px-4 py-2 text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground",
+                    "flex h-auto items-center px-4 py-2 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground",
                     h.column.id === "mrr" && "justify-end",
                   )}
                 >
@@ -341,10 +346,15 @@ export function MrrDataTable({ rows }: { rows: MrrRow[] }) {
       </div>
 
       <div className="flex items-center justify-between gap-3 border-t border-border/60 px-4 py-3">
-        <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
-          Page {table.getState().pagination.pageIndex + 1} of{" "}
-          {table.getPageCount() || 1} · {table.getFilteredRowModel().rows.length}{" "}
-          results
+        <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+          <span>
+            Page {table.getState().pagination.pageIndex + 1} of{" "}
+            {table.getPageCount() || 1}
+          </span>
+          <Dot />
+          <span>
+            {table.getFilteredRowModel().rows.length} results
+          </span>
         </p>
         <div className="flex items-center gap-1">
           <Button

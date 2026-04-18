@@ -1,8 +1,17 @@
 import { redirect } from "next/navigation"
 
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableEmpty,
+  DataTableRow,
+} from "@/components/dashboard/data-table"
 import { KpiCard } from "@/components/dashboard/kpi-card"
 import { MrrPanel } from "@/components/dashboard/mrr-panel"
 import { PageHeader } from "@/components/dashboard/page-header"
+import { Badge } from "@/components/ui/badge"
+import { Dot } from "@/components/ui/dot"
 import { createClient } from "@/lib/supabase/server"
 import { cn } from "@/lib/utils"
 
@@ -33,6 +42,33 @@ const fmtDate = new Intl.DateTimeFormat("en-US", {
   month: "short",
   day: "numeric",
 })
+
+const PAYMENT_STATUS_LABEL: Record<string, string> = {
+  paid: "Paid",
+  succeeded: "Paid",
+  failed: "Failed",
+  link_sent: "Link sent",
+  unpaid: "Unpaid",
+  pending: "Pending",
+  refunded: "Refunded",
+}
+
+function paymentStatusClass(status: string) {
+  switch (status) {
+    case "paid":
+    case "succeeded":
+      return "bg-emerald-500/10 text-emerald-500"
+    case "failed":
+      return "bg-destructive/10 text-destructive"
+    case "link_sent":
+      return "bg-primary/10 text-primary"
+    case "unpaid":
+    case "pending":
+      return "bg-orange-500/10 text-orange-500"
+    default:
+      return "bg-muted text-muted-foreground"
+  }
+}
 
 function daysAgo(n: number) {
   const d = new Date()
@@ -233,45 +269,44 @@ export default async function AdminAnalyticsPage() {
             </p>
           </header>
 
-          {recentPayments.length === 0 ? (
-            <div className="p-6 text-sm text-muted-foreground">
-              No payments recorded yet.
-            </div>
-          ) : (
-            <ul className="divide-y divide-border/60">
-              {recentPayments.map((p) => {
-                const proj = projectById.get(p.project_id)
-                return (
-                  <li
-                    key={p.id}
-                    className="flex items-center justify-between gap-4 px-6 py-4"
-                  >
-                    <div>
-                      <p className="text-sm font-medium">
-                        {fmtMoney.format(Number(p.amount))}
-                      </p>
-                      <p className="text-overline uppercase tracking-ui text-muted-foreground">
-                        {fmtDate.format(new Date(p.created_at))} ·{" "}
-                        {proj?.stage ?? "—"}
-                      </p>
-                    </div>
-                    <span
-                      className={cn(
-                        "text-overline font-medium uppercase tracking-ui",
-                        p.status === "paid"
-                          ? "text-emerald-400"
-                          : p.status === "failed"
-                            ? "text-destructive"
-                            : "text-muted-foreground",
-                      )}
-                    >
-                      {p.status}
-                    </span>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
+          <DataTable cols="minmax(0,1fr) auto">
+            {recentPayments.length === 0 ? (
+              <DataTableEmpty>No payments recorded yet.</DataTableEmpty>
+            ) : (
+              <DataTableBody>
+                {recentPayments.map((p) => {
+                  const proj = projectById.get(p.project_id)
+                  return (
+                    <DataTableRow key={p.id}>
+                      <DataTableCell>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium tabular-nums">
+                            {fmtMoney.format(Number(p.amount))}
+                          </p>
+                          <p className="mt-1 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                            {fmtDate.format(new Date(p.created_at))}
+                            <Dot />
+                            {proj?.stage ?? "—"}
+                          </p>
+                        </div>
+                      </DataTableCell>
+                      <DataTableCell align="end">
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "border-transparent uppercase tracking-ui",
+                            paymentStatusClass(p.status),
+                          )}
+                        >
+                          {PAYMENT_STATUS_LABEL[p.status] ?? p.status}
+                        </Badge>
+                      </DataTableCell>
+                    </DataTableRow>
+                  )
+                })}
+              </DataTableBody>
+            )}
+          </DataTable>
         </section>
       </div>
 

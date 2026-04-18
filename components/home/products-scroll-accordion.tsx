@@ -123,7 +123,7 @@ function StackCard({
                 / {number}
               </span>
               <span className="h-px w-12 bg-foreground/30" />
-              <span className="text-[10px] tracking-badge text-muted-foreground uppercase">
+              <span className="text-xs tracking-badge text-muted-foreground uppercase">
                 {index + 1} of {total}
               </span>
             </div>
@@ -142,7 +142,7 @@ function StackCard({
             </p>
 
             {!isLast ? (
-              <div className="flex items-center gap-3 pt-2 text-[10px] tracking-badge text-muted-foreground uppercase">
+              <div className="flex items-center gap-3 pt-2 text-xs tracking-badge text-muted-foreground uppercase">
                 <ArrowUpRight
                   className="size-4 text-foreground"
                   strokeWidth={1.5}
@@ -159,7 +159,7 @@ function StackCard({
             <MetaBlock label="Timeline">{product.timeline}</MetaBlock>
             {product.pricingTiers ? (
               <div className="space-y-2 sm:col-span-2 lg:col-span-1">
-                <p className="text-[10px] tracking-badge text-muted-foreground uppercase">
+                <p className="text-xs tracking-badge text-muted-foreground uppercase">
                   Tiers
                 </p>
                 <ul className="space-y-1">
@@ -176,7 +176,7 @@ function StackCard({
             ) : null}
             {product.includes ? (
               <div className="space-y-3 sm:col-span-2 lg:col-span-1">
-                <p className="text-[10px] tracking-badge text-muted-foreground uppercase">
+                <p className="text-xs tracking-badge text-muted-foreground uppercase">
                   What&apos;s included
                 </p>
                 <ul className="space-y-2">
@@ -197,7 +197,7 @@ function StackCard({
             ) : null}
             {product.tools ? (
               <div className="space-y-3 sm:col-span-2 lg:col-span-1">
-                <p className="text-[10px] tracking-badge text-muted-foreground uppercase">
+                <p className="text-xs tracking-badge text-muted-foreground uppercase">
                   Built with
                 </p>
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
@@ -228,7 +228,7 @@ function MetaBlock({
 }) {
   return (
     <div className="space-y-2">
-      <p className="text-[10px] tracking-badge text-muted-foreground uppercase">
+      <p className="text-xs tracking-badge text-muted-foreground uppercase">
         {label}
       </p>
       <p className="font-heading text-lg leading-tight text-foreground sm:text-xl">
