@@ -6,7 +6,22 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { createUserAction } from './actions'
+
+const ROLE_OPTIONS = [
+  { value: 'admin', label: 'Admin' },
+  { value: 'editor', label: 'Editor' },
+  { value: 'sales_rep', label: 'Sales rep' },
+  { value: 'viewer', label: 'Viewer' },
+] as const
 
 export function CreateUserForm() {
   const [pending, startTransition] = useTransition()
@@ -40,18 +55,20 @@ export function CreateUserForm() {
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="role">Role</Label>
-        <select
-          id="role"
-          name="role"
-          defaultValue="viewer"
-          required
-          className="h-9 rounded-md border bg-transparent px-3 text-sm shadow-xs"
-        >
-          <option value="admin">Admin</option>
-          <option value="editor">Editor</option>
-          <option value="sales_rep">Sales rep</option>
-          <option value="viewer">Viewer</option>
-        </select>
+        <Select name="role" defaultValue="viewer" required>
+          <SelectTrigger id="role" className="w-full">
+            <SelectValue placeholder="Select a role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {ROLE_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
       {error && <p className="text-sm text-destructive-500">{error}</p>}
       <Button type="submit" disabled={pending}>
