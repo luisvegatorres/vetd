@@ -23,6 +23,11 @@ export async function submitContactForm(
     return { ok: false, error: "Enter a valid email address" }
   }
 
+  const phoneDigits = String(formData.get("phone") ?? "").replace(/\D/g, "")
+  if (phoneDigits.length !== 10) {
+    return { ok: false, error: "Enter a valid 10-digit phone number" }
+  }
+
   const str = (key: string) => {
     const v = String(formData.get(key) ?? "").trim()
     return v.length > 0 ? v : null
@@ -34,6 +39,7 @@ export async function submitContactForm(
   const { error } = await supabase.from("clients").insert({
     name,
     email,
+    phone: phoneDigits,
     company: rawBusiness ? titleCase(rawBusiness) : null,
     intent: str("projectType"),
     budget: str("budgetRange"),

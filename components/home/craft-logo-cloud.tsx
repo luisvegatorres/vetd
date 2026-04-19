@@ -87,8 +87,12 @@ export function CraftLogoCloud() {
     <div className="relative -mx-6 overflow-hidden sm:-mx-10 lg:-mx-20">
       <Marquee pauseOnHover className="[--duration:40s] [--gap:3rem] p-0">
         {tools.map((tool) => (
-          <HoverCard key={tool.slug} openDelay={120} closeDelay={80}>
-            <HoverCardTrigger className="group/logo flex h-10 w-32 shrink-0 cursor-pointer items-center justify-center sm:w-40">
+          <HoverCard key={tool.slug}>
+            <HoverCardTrigger
+              delay={120}
+              closeDelay={80}
+              className="group/logo flex h-10 w-32 shrink-0 cursor-pointer items-center justify-center sm:w-40"
+            >
               <img
                 src={`${LOGO_CDN}/${tool.slug}.svg`}
                 alt={tool.name}
