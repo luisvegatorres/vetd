@@ -1,4 +1,4 @@
-import { ArrowRight, Mail, Phone, UserPlus } from "lucide-react"
+import { Mail, Phone, UserPlus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -8,7 +8,8 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card"
-import { claimLead, convertLeadToDeal } from "@/app/(protected)/leads/actions"
+import { claimLead } from "@/app/(protected)/leads/actions"
+import { ConvertLeadDialog } from "./convert-lead-dialog"
 import { EditLeadDialog } from "./lead-form-dialog"
 import { LeadNotesDialog } from "./lead-notes-dialog"
 import { LeadStatusBadge } from "./lead-status-badge"
@@ -111,11 +112,7 @@ export function LeadDetailPanel({ lead }: { lead: LeadRow | null }) {
       </CardContent>
 
       <CardFooter className="mt-auto flex-col items-stretch gap-3 p-6">
-        <form action={convertLeadToDeal.bind(null, lead.id)}>
-          <Button type="submit" className="w-full gap-2 capitalize">
-            <ArrowRight aria-hidden /> Create deal
-          </Button>
-        </form>
+        <ConvertLeadDialog leadId={lead.id} />
         <div className="grid grid-cols-3 gap-3">
           <Button
             variant="outline"

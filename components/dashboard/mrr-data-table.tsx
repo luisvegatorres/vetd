@@ -17,11 +17,17 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dot } from "@/components/ui/dot"
-import { Input } from "@/components/ui/input"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
@@ -178,17 +184,19 @@ export function MrrDataTable({ rows }: { rows: MrrRow[] }) {
   return (
     <div className="flex h-full min-h-120 flex-col">
       <div className="flex flex-wrap items-center gap-3 border-b border-border/60 px-4 py-3">
-        <div className="relative flex-1 min-w-50">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
+        <InputGroup className="h-8 flex-1 min-w-50">
+          <InputGroupAddon>
+            <Search aria-hidden className="size-3.5" />
+          </InputGroupAddon>
+          <InputGroupInput
             placeholder="Search clients or products"
             value={search}
             onChange={(e) =>
               table.getColumn("client")?.setFilterValue(e.target.value)
             }
-            className="h-8 pl-8 text-sm"
+            className="text-sm"
           />
-        </div>
+        </InputGroup>
         <Select
           value={statusFilter}
           onValueChange={(v) =>
@@ -203,16 +211,19 @@ export function MrrDataTable({ rows }: { rows: MrrRow[] }) {
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{STATUS_FILTER_LABEL.all}</SelectItem>
-            <SelectItem value="active">
-              {STATUS_FILTER_LABEL.active}
-            </SelectItem>
-            <SelectItem value="at_risk">
-              {STATUS_FILTER_LABEL.at_risk}
-            </SelectItem>
-            <SelectItem value="canceled">
-              {STATUS_FILTER_LABEL.canceled}
-            </SelectItem>
+            <SelectGroup>
+              <SelectLabel>Status</SelectLabel>
+              <SelectItem value="all">{STATUS_FILTER_LABEL.all}</SelectItem>
+              <SelectItem value="active">
+                {STATUS_FILTER_LABEL.active}
+              </SelectItem>
+              <SelectItem value="at_risk">
+                {STATUS_FILTER_LABEL.at_risk}
+              </SelectItem>
+              <SelectItem value="canceled">
+                {STATUS_FILTER_LABEL.canceled}
+              </SelectItem>
+            </SelectGroup>
           </SelectContent>
         </Select>
       </div>

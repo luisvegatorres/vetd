@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import {
   BarChart3,
   Briefcase,
-  DollarSign,
+  CreditCard,
   Inbox,
   Layers,
   LayoutGrid,
@@ -43,11 +43,11 @@ type NavItem = {
 
 const workspaceNav: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutGrid },
-  { href: "/pipeline", label: "Pipeline", icon: Layers },
   { href: "/leads", label: "Leads", icon: Inbox, badge: 5 },
-  { href: "/clients", label: "Clients", icon: Users },
+  { href: "/pipeline", label: "Pipeline", icon: Layers },
   { href: "/projects", label: "Projects", icon: Briefcase },
-  { href: "/payments", label: "Payments", icon: DollarSign },
+  { href: "/clients", label: "Clients", icon: Users },
+  { href: "/payments", label: "Payments", icon: CreditCard },
   { href: "/commissions", label: "Commissions", icon: TrendingUp },
   { href: "/pitch-mode", label: "Pitch Mode", icon: Presentation },
 ]

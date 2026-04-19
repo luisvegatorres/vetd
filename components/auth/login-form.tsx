@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Mail } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -13,7 +14,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/components/ui/input-group'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
@@ -120,14 +125,20 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
+                  <InputGroup>
+                    <InputGroupAddon>
+                      <Mail aria-hidden />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      placeholder="name@company.com"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </InputGroup>
                 </div>
                 {error && <p className="text-sm text-destructive-500">{error}</p>}
                 <Button type="submit" className="w-full" disabled={isLoading}>

@@ -12,23 +12,19 @@ import { MrrPanel } from "@/components/dashboard/mrr-panel"
 import { PageHeader } from "@/components/dashboard/page-header"
 import { Badge } from "@/components/ui/badge"
 import { Dot } from "@/components/ui/dot"
+import {
+  PROJECT_STAGE_LABEL,
+  paymentStatusBadgeClass,
+  paymentStatusLabel,
+  projectStageTone,
+  type ProjectStage,
+} from "@/lib/status-colors"
 import { createClient } from "@/lib/supabase/server"
 import { cn } from "@/lib/utils"
 
-type ProjectStage =
-  | "proposal"
-  | "negotiation"
-  | "active"
-  | "completed"
-  | "cancelled"
-
-const STAGES: { key: ProjectStage; label: string }[] = [
-  { key: "proposal", label: "Proposal" },
-  { key: "negotiation", label: "Negotiation" },
-  { key: "active", label: "Active" },
-  { key: "completed", label: "Completed" },
-  { key: "cancelled", label: "Cancelled" },
-]
+const STAGES: { key: ProjectStage; label: string }[] = (
+  Object.keys(PROJECT_STAGE_LABEL) as ProjectStage[]
+).map((key) => ({ key, label: PROJECT_STAGE_LABEL[key] }))
 
 const OPEN_STAGES: ProjectStage[] = ["proposal", "negotiation", "active"]
 
@@ -42,33 +38,6 @@ const fmtDate = new Intl.DateTimeFormat("en-US", {
   month: "short",
   day: "numeric",
 })
-
-const PAYMENT_STATUS_LABEL: Record<string, string> = {
-  paid: "Paid",
-  succeeded: "Paid",
-  failed: "Failed",
-  link_sent: "Link sent",
-  unpaid: "Unpaid",
-  pending: "Pending",
-  refunded: "Refunded",
-}
-
-function paymentStatusClass(status: string) {
-  switch (status) {
-    case "paid":
-    case "succeeded":
-      return "bg-emerald-500/10 text-emerald-500"
-    case "failed":
-      return "bg-destructive/10 text-destructive"
-    case "link_sent":
-      return "bg-primary/10 text-primary"
-    case "unpaid":
-    case "pending":
-      return "bg-orange-500/10 text-orange-500"
-    default:
-      return "bg-muted text-muted-foreground"
-  }
-}
 
 function daysAgo(n: number) {
   const d = new Date()
@@ -232,30 +201,38 @@ export default async function AdminAnalyticsPage() {
           </header>
 
           <ul className="divide-y divide-border/60">
-            {stageBuckets.map((b) => (
-              <li
-                key={b.key}
-                className="grid grid-cols-[1fr_auto] items-center gap-x-6 gap-y-2 px-6 py-4"
-              >
-                <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
-                  {b.label}
-                </p>
-                <p className="font-heading text-xl font-medium tracking-tight tabular-nums">
-                  {b.count}
-                </p>
-                <div className="h-1 w-full bg-border/40">
-                  <div
-                    className="h-full bg-foreground/60"
-                    style={{
-                      width: `${(b.count / maxStageCount) * 100}%`,
-                    }}
-                  />
-                </div>
-                <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground tabular-nums">
-                  {fmtMoney.format(b.value)}
-                </p>
-              </li>
-            ))}
+            {stageBuckets.map((b) => {
+              const tone = projectStageTone(b.key)
+              return (
+                <li
+                  key={b.key}
+                  className="grid grid-cols-[1fr_auto] items-center gap-x-6 gap-y-2 px-6 py-4"
+                >
+                  <p
+                    className={cn(
+                      "text-overline font-medium uppercase tracking-ui",
+                      tone.text,
+                    )}
+                  >
+                    {b.label}
+                  </p>
+                  <p className="font-heading text-xl font-medium tracking-tight tabular-nums">
+                    {b.count}
+                  </p>
+                  <div className="h-1 w-full bg-border/40">
+                    <div
+                      className={cn("h-full", tone.bar)}
+                      style={{
+                        width: `${(b.count / maxStageCount) * 100}%`,
+                      }}
+                    />
+                  </div>
+                  <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground tabular-nums">
+                    {fmtMoney.format(b.value)}
+                  </p>
+                </li>
+              )
+            })}
           </ul>
         </section>
 
@@ -295,10 +272,10 @@ export default async function AdminAnalyticsPage() {
                           variant="outline"
                           className={cn(
                             "border-transparent uppercase tracking-ui",
-                            paymentStatusClass(p.status),
+                            paymentStatusBadgeClass(p.status),
                           )}
                         >
-                          {PAYMENT_STATUS_LABEL[p.status] ?? p.status}
+                          {paymentStatusLabel(p.status)}
                         </Badge>
                       </DataTableCell>
                     </DataTableRow>

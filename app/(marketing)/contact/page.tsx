@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, Mail, User } from "lucide-react"
 import { toast } from "sonner"
 
 import { BookCallButton } from "@/components/actions/book-call-button"
@@ -10,12 +10,17 @@ import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group"
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
@@ -161,13 +166,17 @@ export default function ContactPage() {
                   >
                     Your name
                   </FieldLabel>
-                  <Input
-                    id="name"
-                    name="name"
-                    required
-                    placeholder="Jane Smith"
-                    className="rounded-none"
-                  />
+                  <InputGroup className="rounded-none">
+                    <InputGroupAddon>
+                      <User aria-hidden />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      id="name"
+                      name="name"
+                      required
+                      placeholder="Jane Smith"
+                    />
+                  </InputGroup>
                 </Field>
 
                 <Field>
@@ -177,14 +186,18 @@ export default function ContactPage() {
                   >
                     Email
                   </FieldLabel>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    placeholder="jane@company.com"
-                    className="rounded-none"
-                  />
+                  <InputGroup className="rounded-none">
+                    <InputGroupAddon>
+                      <Mail aria-hidden />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      id="email"
+                      name="email"
+                      type="email"
+                      required
+                      placeholder="jane@company.com"
+                    />
+                  </InputGroup>
                 </Field>
 
                 <Field>
@@ -200,6 +213,7 @@ export default function ContactPage() {
                     </SelectTrigger>
                     <SelectContent className="rounded-none">
                       <SelectGroup>
+                        <SelectLabel>Project type</SelectLabel>
                         {buildOptions.map((option) => (
                           <SelectItem key={option} value={option}>
                             {option}
@@ -240,6 +254,7 @@ export default function ContactPage() {
                     </SelectTrigger>
                     <SelectContent className="rounded-none">
                       <SelectGroup>
+                        <SelectLabel>Budget range</SelectLabel>
                         {budgetOptions.map((option) => (
                           <SelectItem key={option} value={option}>
                             {option}

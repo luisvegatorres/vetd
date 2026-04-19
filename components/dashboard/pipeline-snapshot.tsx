@@ -4,36 +4,13 @@ import { ArrowUpRight, MessageSquarePlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/server"
+import {
+  projectStageTone,
+  type ProjectStage as Stage,
+} from "@/lib/status-colors"
 import { cn } from "@/lib/utils"
-import type { Database } from "@/lib/supabase/types"
-
-type Stage = Database["public"]["Enums"]["project_stage"]
 
 const PIPELINE_STAGES: Stage[] = ["proposal", "negotiation", "active"]
-
-const stageLabel: Record<Stage, string> = {
-  proposal: "Proposal",
-  negotiation: "Negotiation",
-  active: "Active",
-  completed: "Completed",
-  cancelled: "Cancelled",
-}
-
-const stageToneClass: Record<Stage, string> = {
-  proposal: "text-primary",
-  negotiation: "text-indigo-400",
-  active: "text-emerald-400",
-  completed: "text-muted-foreground",
-  cancelled: "text-muted-foreground",
-}
-
-const stageBarClass: Record<Stage, string> = {
-  proposal: "bg-primary",
-  negotiation: "bg-indigo-400",
-  active: "bg-emerald-400",
-  completed: "bg-muted-foreground",
-  cancelled: "bg-muted-foreground",
-}
 
 const fmtCompact = new Intl.NumberFormat("en-US", {
   notation: "compact",
@@ -135,10 +112,16 @@ export async function PipelineSnapshot() {
         {PIPELINE_STAGES.map((stage) => {
           const { count, value } = stageTotals[stage]
           const share = totalValue > 0 ? value / totalValue : 0
+          const tone = projectStageTone(stage)
           return (
             <div key={stage} className="flex flex-col gap-3 p-6">
-              <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
-                {stageLabel[stage]}
+              <p
+                className={cn(
+                  "text-overline font-medium uppercase tracking-ui",
+                  tone.text,
+                )}
+              >
+                {tone.label}
               </p>
               <div className="flex items-baseline gap-2">
                 <p className="font-heading text-2xl font-medium tracking-tight tabular-nums">
@@ -154,7 +137,7 @@ export async function PipelineSnapshot() {
                 role="presentation"
               >
                 <div
-                  className={cn("h-full", stageBarClass[stage])}
+                  className={cn("h-full", tone.bar)}
                   style={{ width: `${Math.round(share * 100)}%` }}
                 />
               </div>
@@ -202,10 +185,10 @@ export async function PipelineSnapshot() {
                     <span
                       className={cn(
                         "text-overline font-medium uppercase tracking-ui leading-none",
-                        stageToneClass[o.stage as Stage],
+                        projectStageTone(o.stage as Stage).text,
                       )}
                     >
-                      {stageLabel[o.stage as Stage]}
+                      {projectStageTone(o.stage as Stage).label}
                     </span>
                     <span
                       aria-hidden

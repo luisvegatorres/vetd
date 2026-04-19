@@ -4,7 +4,11 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Search } from "lucide-react"
 import * as React from "react"
 
-import { Input } from "@/components/ui/input"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group"
 import {
   Select,
   SelectContent,
@@ -57,15 +61,17 @@ export function LeadsSearch({ q }: { q: string }) {
   }, [local])
 
   return (
-    <div className="relative w-full max-w-80">
-      <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-      <Input
+    <InputGroup className="h-8 w-full max-w-80">
+      <InputGroupAddon>
+        <Search aria-hidden className="size-3.5" />
+      </InputGroupAddon>
+      <InputGroupInput
         value={local}
         onChange={(e) => setLocal(e.target.value)}
         placeholder="Search name, company, intent"
-        className="h-8 pl-8 text-sm"
+        className="text-sm"
       />
-    </div>
+    </InputGroup>
   )
 }
 

@@ -179,7 +179,7 @@ export default async function LeadsPage({
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Pipeline"
+        eyebrow="Leads"
         title={
           <span className="flex flex-wrap items-center gap-3">
             <span>{counts.new} new</span>

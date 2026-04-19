@@ -3,14 +3,22 @@
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
 
+import { Mail } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/components/ui/input-group'
 import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
@@ -47,7 +55,18 @@ export function CreateUserForm() {
     >
       <div className="flex flex-col gap-2">
         <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" required />
+        <InputGroup>
+          <InputGroupAddon>
+            <Mail aria-hidden />
+          </InputGroupAddon>
+          <InputGroupInput
+            id="email"
+            name="email"
+            type="email"
+            placeholder="name@company.com"
+            required
+          />
+        </InputGroup>
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="full_name">Full name</Label>
@@ -61,6 +80,7 @@ export function CreateUserForm() {
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
+              <SelectLabel>Role</SelectLabel>
               {ROLE_OPTIONS.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}

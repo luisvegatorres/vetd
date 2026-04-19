@@ -1,6 +1,6 @@
 "use client"
 
-import { Pencil, Plus } from "lucide-react"
+import { Mail, Pencil, Phone, Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useId, useState, useTransition } from "react"
 import { toast } from "sonner"
@@ -16,12 +16,18 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group"
 import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
@@ -145,28 +151,39 @@ function LeadFormDialog(props: Props) {
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor={`${formId}-email`}>Email</Label>
-              <Input
-                id={`${formId}-email`}
-                name="email"
-                type="email"
-                defaultValue={lead?.email ?? ""}
-              />
+              <InputGroup>
+                <InputGroupAddon>
+                  <Mail aria-hidden />
+                </InputGroupAddon>
+                <InputGroupInput
+                  id={`${formId}-email`}
+                  name="email"
+                  type="email"
+                  placeholder="name@company.com"
+                  defaultValue={lead?.email ?? ""}
+                />
+              </InputGroup>
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor={`${formId}-phone`}>Phone</Label>
-              <Input
-                id={`${formId}-phone`}
-                name="phone"
-                type="tel"
-                inputMode="numeric"
-                autoComplete="tel"
-                placeholder="(555) 123-4567"
-                maxLength={14}
-                value={formatPhone(phone)}
-                onChange={(e) =>
-                  setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
-                }
-              />
+              <InputGroup>
+                <InputGroupAddon>
+                  <Phone aria-hidden />
+                </InputGroupAddon>
+                <InputGroupInput
+                  id={`${formId}-phone`}
+                  name="phone"
+                  type="tel"
+                  inputMode="numeric"
+                  autoComplete="tel"
+                  placeholder="(555) 123-4567"
+                  maxLength={14}
+                  value={formatPhone(phone)}
+                  onChange={(e) =>
+                    setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
+                  }
+                />
+              </InputGroup>
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor={`${formId}-source`}>Source</Label>
@@ -188,6 +205,7 @@ function LeadFormDialog(props: Props) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
+                    <SelectLabel>Source</SelectLabel>
                     {SOURCE_OPTIONS.map(([value, label]) => (
                       <SelectItem key={value} value={value}>
                         {label}
@@ -208,6 +226,7 @@ function LeadFormDialog(props: Props) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
+                    <SelectLabel>Budget range</SelectLabel>
                     {BUDGET_OPTIONS.map((value) => (
                       <SelectItem key={value} value={value}>
                         {value}

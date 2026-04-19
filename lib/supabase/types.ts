@@ -241,10 +241,16 @@ export type Database = {
           created_at: string
           currency: string
           deadline: string | null
+          deposit_amount: number | null
+          deposit_paid_at: string | null
+          deposit_rate: number
           description: string | null
           id: string
           paid_at: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
+          product_type:
+            | Database["public"]["Enums"]["project_product_type"]
+            | null
           sold_by: string | null
           stage: Database["public"]["Enums"]["project_stage"]
           start_date: string | null
@@ -262,10 +268,15 @@ export type Database = {
           created_at?: string
           currency?: string
           deadline?: string | null
+          deposit_paid_at?: string | null
+          deposit_rate?: number
           description?: string | null
           id?: string
           paid_at?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          product_type?:
+            | Database["public"]["Enums"]["project_product_type"]
+            | null
           sold_by?: string | null
           stage?: Database["public"]["Enums"]["project_stage"]
           start_date?: string | null
@@ -283,10 +294,15 @@ export type Database = {
           created_at?: string
           currency?: string
           deadline?: string | null
+          deposit_paid_at?: string | null
+          deposit_rate?: number
           description?: string | null
           id?: string
           paid_at?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          product_type?:
+            | Database["public"]["Enums"]["project_product_type"]
+            | null
           sold_by?: string | null
           stage?: Database["public"]["Enums"]["project_stage"]
           start_date?: string | null
@@ -457,6 +473,11 @@ export type Database = {
         | "follow_up"
         | "visit"
       payment_status: "unpaid" | "link_sent" | "paid" | "refunded" | "failed"
+      project_product_type:
+        | "business_website"
+        | "mobile_app"
+        | "web_app"
+        | "ai_integration"
       project_stage:
         | "proposal"
         | "negotiation"
@@ -611,6 +632,12 @@ export const Constants = {
         "visit",
       ],
       payment_status: ["unpaid", "link_sent", "paid", "refunded", "failed"],
+      project_product_type: [
+        "business_website",
+        "mobile_app",
+        "web_app",
+        "ai_integration",
+      ],
       project_stage: [
         "proposal",
         "negotiation",
