@@ -12,8 +12,7 @@ const filters = [
   "All",
   "Websites",
   "Mobile Apps",
-  "Web Apps",
-  "Growth Systems",
+  "SaaS Products",
 ] as const
 
 type Filter = (typeof filters)[number]
@@ -31,37 +30,37 @@ const projects: Project[] = [
     title: "Project Alpha",
     category: "Websites",
     tagline: "Restaurant marketing site with online reservations.",
-    meta: "Website · 2026",
+    meta: "Website ▪ 2026",
   },
   {
     title: "Project Beta",
     category: "Mobile Apps",
     tagline: "iOS and Android companion app for a fitness brand.",
-    meta: "Mobile app · 2026",
+    meta: "Mobile app ▪ 2026",
   },
   {
     title: "Project Gamma",
-    category: "Web Apps",
+    category: "SaaS Products",
     tagline: "Internal booking portal replacing manual spreadsheets.",
-    meta: "Web app · 2025",
+    meta: "SaaS product ▪ 2025",
   },
   {
     title: "Project Delta",
-    category: "Growth Systems",
+    category: "Websites",
     tagline: "Local SEO and content engine for a service business.",
-    meta: "Growth system · 2025",
+    meta: "Website ▪ 2025",
   },
   {
     title: "Project Epsilon",
     category: "Websites",
     tagline: "Product landing page driving pre-orders at launch.",
-    meta: "Website · 2025",
+    meta: "Website ▪ 2025",
   },
   {
     title: "Project Zeta",
-    category: "Web Apps",
+    category: "SaaS Products",
     tagline: "Admin dashboard with custom analytics and reporting.",
-    meta: "Web app · 2025",
+    meta: "SaaS product ▪ 2025",
   },
 ]
 

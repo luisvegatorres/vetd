@@ -186,7 +186,7 @@ export async function TodaysFocus() {
         <div className="flex flex-col gap-4 p-6">
           <div className="flex items-baseline justify-between">
             <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
-              Needs attention · {topAttention.length}
+              Needs attention ▪ {topAttention.length}
             </p>
           </div>
 
@@ -316,7 +316,7 @@ function NextUp({
       {lastInteraction ? (
         <div className="border-l-2 border-border/60 pl-3">
           <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
-            Last touch · {lastInteraction.daysAgo}d ago
+            Last touch ▪ {lastInteraction.daysAgo}d ago
           </p>
           <p className="mt-1 truncate text-sm text-foreground">
             {lastInteraction.title}

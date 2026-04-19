@@ -2,9 +2,9 @@ export const site = {
   name: "Innovate App Studios",
   tagline: "Digital products that grow businesses.",
   description:
-    "Websites, mobile apps, web apps, AI integrations, and growth systems built to perform and designed to convert.",
+    "Websites, mobile apps, SaaS products, and AI integrations built to perform and designed to convert.",
   email: "hello@innovateappstudios.com",
-  location: "Global · Remote-first",
+  location: "Global ▪ Remote-first",
   responseTime: "Within 24 hours — usually same day.",
   discoveryCallHref: process.env.NEXT_PUBLIC_CALENDLY_URL || "/contact",
   calLink: process.env.NEXT_PUBLIC_CAL_LINK || "",
@@ -20,6 +20,7 @@ export const nav = [
   { href: "/#process", label: "Process" },
   { href: "/#work", label: "Work" },
   { href: "/#about", label: "About" },
+  { href: "/financing", label: "Financing" },
   { href: "/contact", label: "Contact" },
 ] as const
 
@@ -28,46 +29,60 @@ export type Product = {
     | "marketing-website"
     | "mobile-app"
     | "web-app"
-    | "growth-system"
     | "ai-integration"
   name: string
   tagline: string
   description: string
-  startingAt?: string
   timeline: string
   pricingTiers?: string[]
   includes?: string[]
   tools?: { name: string; slug: string }[]
+  financingEligible?: boolean
 }
+
+export const financing = {
+  minAmount: 5000,
+  months: 12,
+  depositRate: 30,
+  financingFeeRate: 0,
+  headlineShort: "0% ▪ Spread the 70% balance over 12 months",
+  eligibilityNote: "Projects $5K+",
+} as const
 
 export const products: Product[] = [
   {
     id: "marketing-website",
-    name: "Business Website",
+    name: "Website",
     tagline: "Get found. Look credible. Convert visitors.",
     description:
-      "A fast, mobile-first website built with SEO from day one. Designed to turn traffic into leads, calls, and sales. Includes hosting, domain, WhatsApp or contact integration, and on-page SEO.",
-    startingAt: "$97/mo (Growth System) or one-time project pricing",
+      "A fast, mobile-first website built with SEO from day one. Designed to turn traffic into leads, calls, and sales. Available as a one-time build or monthly — monthly includes ongoing SEO, Google Business, reports, and content updates.",
     timeline: "5–7 days",
+    pricingTiers: [
+      "Presence: $97/mo — website, hosting, basic SEO",
+      "Growth: $247/mo — full SEO, content, reviews, monthly reports",
+      "One-time project: custom quote",
+      "No contract. Cancel anytime.",
+    ],
     includes: [
       "Custom design & copy",
-      "On-page SEO & analytics",
       "Hosting, domain, SSL",
+      "On-page SEO & analytics",
       "WhatsApp & contact integration",
     ],
     tools: [
       { name: "Next.js", slug: "nextdotjs" },
       { name: "Tailwind CSS", slug: "tailwindcss" },
       { name: "Vercel", slug: "vercel" },
+      { name: "Google", slug: "google" },
     ],
   },
   {
     id: "mobile-app",
     name: "Mobile App",
     tagline: "Your product in every pocket.",
+    financingEligible: true,
     description:
       "Native iOS and Android apps built in Flutter. We take you from idea to App Store — architecture, design, development, and launch. Built for performance and scale.",
-    startingAt: "Custom quote",
     timeline: "4–12 weeks",
     includes: [
       "iOS & Android from one codebase",
@@ -84,11 +99,11 @@ export const products: Product[] = [
   },
   {
     id: "web-app",
-    name: "Web App & Portal",
-    tagline: "Tools that run your business.",
+    name: "SaaS Product",
+    tagline: "Software your customers pay for.",
+    financingEligible: true,
     description:
-      "Custom web applications — booking systems, client portals, admin dashboards, internal tools. Built with Next.js and Supabase. Designed to replace spreadsheets and manual processes.",
-    startingAt: "Custom quote",
+      "Custom SaaS products — booking platforms, client portals, admin dashboards, and subscription-ready apps. Built with Next.js and Supabase. Designed to ship fast and scale.",
     timeline: "3–8 weeks",
     includes: [
       "Role-based auth & permissions",
@@ -103,36 +118,12 @@ export const products: Product[] = [
     ],
   },
   {
-    id: "growth-system",
-    name: "Growth System",
-    tagline: "Show up on Google. Stay there.",
-    description:
-      "A monthly product that combines a high-performance website with ongoing SEO management. Includes Google Business optimization, monthly reports, review automation, and content updates.",
-    timeline: "Ongoing monthly management",
-    pricingTiers: [
-      "Presence: $97/mo",
-      "Growth: $247/mo",
-      "No contract. Cancel anytime.",
-    ],
-    includes: [
-      "Marketing website + hosting",
-      "Google Business optimization",
-      "Monthly SEO & content updates",
-      "Review automation & reports",
-    ],
-    tools: [
-      { name: "Google", slug: "google" },
-      { name: "Next.js", slug: "nextdotjs" },
-      { name: "Vercel", slug: "vercel" },
-    ],
-  },
-  {
     id: "ai-integration",
     name: "AI Integration",
     tagline: "Make your product smarter.",
+    financingEligible: true,
     description:
       "We add AI-powered features to any website, app, or tool — intelligent chatbots, personalized recommendations, content automation, and more. Powered by the latest models from Anthropic, OpenAI, and Google.",
-    startingAt: "Custom quote",
     timeline: "Depends on scope",
     includes: [
       "Chatbots & assistants",
@@ -163,17 +154,17 @@ export type ProcessArtifact = {
 
 export const processArtifacts: Record<string, ProcessArtifact> = {
   "01": {
-    kicker: "Deliverable · 01",
+    kicker: "Deliverable ▪ 01",
     title: "Discovery call",
     bullets: [
       "Goals & constraints",
       "Success criteria",
       "Rough scope & timeline",
     ],
-    meta: "20 min · Free · No pitch",
+    meta: "20 min ▪ Free ▪ No pitch",
   },
   "02": {
-    kicker: "Deliverable · 02",
+    kicker: "Deliverable ▪ 02",
     title: "Written proposal",
     bullets: [
       "Detailed scope",
@@ -183,34 +174,34 @@ export const processArtifacts: Record<string, ProcessArtifact> = {
     meta: "Sign → kickoff",
   },
   "03": {
-    kicker: "Deliverable · 03",
+    kicker: "Deliverable ▪ 03",
     title: "Design + build",
     bullets: [
       "Wireframes & flows",
       "Visual design",
       "Production build",
     ],
-    meta: "Sprints · Weekly reviews",
+    meta: "Sprints ▪ Weekly reviews",
   },
   "04": {
-    kicker: "Deliverable · 04",
+    kicker: "Deliverable ▪ 04",
     title: "Live deployment",
     bullets: [
       "Domain & hosting",
       "QA & final testing",
       "Full handoff",
     ],
-    meta: "Code · Accounts · Data — yours",
+    meta: "Code ▪ Accounts ▪ Data — yours",
   },
   "05": {
-    kicker: "Deliverable · 05",
+    kicker: "Deliverable ▪ 05",
     title: "Ongoing care",
     bullets: [
       "Monthly maintenance",
       "SEO management",
       "On-demand fixes",
     ],
-    meta: "Monthly · No contract",
+    meta: "Monthly ▪ No contract",
   },
 } as const
 

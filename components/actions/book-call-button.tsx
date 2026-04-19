@@ -12,6 +12,7 @@ export type BookCallPrefill = {
   email?: string
   notes?: string
   guests?: string[]
+  responses?: Record<string, string | undefined>
 }
 
 type BookCallButtonProps = React.ComponentProps<typeof Button> & {
@@ -43,6 +44,11 @@ export function BookCallButton({
     if (prefill?.email) base.email = prefill.email
     if (prefill?.notes) base.notes = prefill.notes
     if (prefill?.guests?.length) base.guests = prefill.guests
+    if (prefill?.responses) {
+      for (const [key, value] of Object.entries(prefill.responses)) {
+        if (value && value.trim().length > 0) base[key] = value
+      }
+    }
     return JSON.stringify(base)
   }, [prefill])
 

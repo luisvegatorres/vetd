@@ -96,8 +96,8 @@ export async function MrrPanel() {
             Recurring products
           </h2>
           <p className="text-sm text-muted-foreground">
-            {totals.counts.active ?? 0} active ·{" "}
-            {totals.counts.at_risk ?? 0} at-risk ·{" "}
+            {totals.counts.active ?? 0} active ▪{" "}
+            {totals.counts.at_risk ?? 0} at-risk ▪{" "}
             {totals.counts.canceled ?? 0} canceled
           </p>
         </div>
@@ -146,7 +146,7 @@ function MrrSummary({
           </p>
         </div>
         <p className="mt-2 text-overline font-medium uppercase tracking-ui text-muted-foreground">
-          Annualised · {fmtMoney.format(arr)} ARR
+          Annualised ▪ {fmtMoney.format(arr)} ARR
         </p>
       </div>
 
@@ -156,7 +156,7 @@ function MrrSummary({
             11-month trend
           </p>
           <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
-            {nowLabel} · ${mrrK}
+            {nowLabel} ▪ ${mrrK}
           </p>
         </div>
         <div className="mt-4">

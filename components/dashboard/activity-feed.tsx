@@ -110,7 +110,7 @@ export async function ActivityFeed() {
       icon: interactionIcons[row.type as InteractionType] ?? StickyNote,
       iconTone: "default",
       title: row.title,
-      meta: `${actorName} · ${client?.name ?? "Unknown"}`,
+      meta: `${actorName} ▪ ${client?.name ?? "Unknown"}`,
     })
   }
 
@@ -128,8 +128,8 @@ export async function ActivityFeed() {
       at: row.created_at,
       icon: CreditCard,
       iconTone: isPaid ? "positive" : "default",
-      title: `${fmtMoney.format(Number(row.amount))} · ${row.status}`,
-      meta: `${project?.title ?? "Project"} · ${client?.name ?? "Unknown"}`,
+      title: `${fmtMoney.format(Number(row.amount))} ▪ ${row.status}`,
+      meta: `${project?.title ?? "Project"} ▪ ${client?.name ?? "Unknown"}`,
     })
   }
 
@@ -142,7 +142,7 @@ export async function ActivityFeed() {
       icon: UserPlus,
       iconTone: "accent",
       title: `New ${row.status === "qualified" ? "qualified lead" : "lead"}`,
-      meta: `${row.name} · via ${row.source.replace(/_/g, " ")}`,
+      meta: `${row.name} ▪ via ${row.source.replace(/_/g, " ")}`,
     })
   }
 

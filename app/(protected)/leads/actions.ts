@@ -10,9 +10,9 @@ type ProjectProductType =
   Database["public"]["Enums"]["project_product_type"]
 
 const PROJECT_PRODUCT_TITLE: Record<ProjectProductType, string> = {
-  business_website: "Business Website",
+  business_website: "Website",
   mobile_app: "Mobile App",
-  web_app: "Web App & Portal",
+  web_app: "SaaS Product",
   ai_integration: "AI Integration",
 }
 
@@ -141,7 +141,7 @@ function buildDealTitle(
   productLabel: string,
 ) {
   const subject =
-    [lead.company, lead.name].filter(Boolean).join(" · ") || "New client"
+    [lead.company, lead.name].filter(Boolean).join(" ▪ ") || "New client"
   return `${subject} — ${productLabel}`
 }
 

@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils"
 
 /**
  * Inline separator square used between inline metadata items
- * (e.g. "Contact form · 2h" → "Contact form ▪ 2h").
+ * (e.g. "Contact form ▪ 2h").
  */
 export function Dot({ className }: { className?: string }) {
   return (

@@ -50,14 +50,14 @@ const PRODUCT_OPTIONS: Array<{
 }> = [
   {
     value: "business_website",
-    label: "Business Website",
+    label: "Website",
     hint: "One-time website build",
   },
   { value: "mobile_app", label: "Mobile App", hint: "iOS + Android" },
   {
     value: "web_app",
-    label: "Web App & Portal",
-    hint: "Custom tool / dashboard",
+    label: "SaaS Product",
+    hint: "Custom SaaS build",
   },
   { value: "ai_integration", label: "AI Integration", hint: "Custom scope" },
 ]

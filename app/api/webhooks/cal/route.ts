@@ -16,6 +16,8 @@ type CalAttendee = {
   timeZone?: string
 }
 
+type CalResponse = { label?: string; value?: unknown } | string | null
+
 type CalPayload = {
   uid?: string
   rescheduleUid?: string
@@ -26,7 +28,8 @@ type CalPayload = {
   attendees?: CalAttendee[]
   organizer?: CalAttendee
   additionalNotes?: string
-  responses?: Record<string, { label?: string; value?: unknown }>
+  responses?: Record<string, CalResponse>
+  userFieldsResponses?: Record<string, CalResponse>
   location?: string
   videoCallData?: { url?: string }
   cancellationReason?: string
@@ -58,9 +61,30 @@ function firstAttendee(payload: CalPayload): CalAttendee | null {
   return payload.attendees?.[0] ?? null
 }
 
+function readResponse(payload: CalPayload, key: string): string | null {
+  const raw =
+    payload.responses?.[key] ?? payload.userFieldsResponses?.[key] ?? null
+  if (raw == null) return null
+  if (typeof raw === "string") return raw.trim() || null
+  if (typeof raw === "object" && "value" in raw) {
+    const v = raw.value
+    if (typeof v === "string") return v.trim() || null
+    if (typeof v === "number" || typeof v === "boolean") return String(v)
+  }
+  return null
+}
+
 function buildNotes(payload: CalPayload, extraPrefix?: string) {
   const parts: string[] = []
   if (extraPrefix) parts.push(extraPrefix)
+  const projectType = readResponse(payload, "project_type")
+  const budgetRange = readResponse(payload, "budget_range")
+  const projectDetails = readResponse(payload, "project_details")
+  const paymentPreference = readResponse(payload, "payment_preference")
+  if (projectType) parts.push(`Looking to build: ${projectType}`)
+  if (budgetRange) parts.push(`Budget: ${budgetRange}`)
+  if (paymentPreference) parts.push(`Payment preference: ${paymentPreference}`)
+  if (projectDetails) parts.push(projectDetails)
   if (payload.additionalNotes) parts.push(payload.additionalNotes)
   if (payload.location) parts.push(`Location: ${payload.location}`)
   if (payload.videoCallData?.url) parts.push(`Join: ${payload.videoCallData.url}`)
@@ -73,17 +97,47 @@ function buildNotes(payload: CalPayload, extraPrefix?: string) {
 async function findOrCreateClient(
   supabase: ReturnType<typeof createAdminClient>,
   attendee: CalAttendee,
+  enrichment: {
+    intent?: string | null
+    budget?: string | null
+    notes?: string | null
+    paymentPreference?: string | null
+  },
 ) {
   const email = attendee.email?.toLowerCase().trim()
   if (!email) return null
 
   const existing = await supabase
     .from("clients")
-    .select("id")
+    .select("id, intent, budget, notes, intake")
     .eq("email", email)
     .maybeSingle()
 
-  if (existing.data) return existing.data.id
+  if (existing.data) {
+    const patch: {
+      intent?: string
+      budget?: string
+      notes?: string
+      intake?: Json
+    } = {}
+    if (!existing.data.intent && enrichment.intent) patch.intent = enrichment.intent
+    if (!existing.data.budget && enrichment.budget) patch.budget = enrichment.budget
+    if (!existing.data.notes && enrichment.notes) patch.notes = enrichment.notes
+    if (enrichment.paymentPreference) {
+      const currentIntake =
+        (existing.data.intake as Record<string, unknown> | null) ?? {}
+      if (!currentIntake.payment_preference) {
+        patch.intake = {
+          ...currentIntake,
+          payment_preference: enrichment.paymentPreference,
+        } as Json
+      }
+    }
+    if (Object.keys(patch).length > 0) {
+      await supabase.from("clients").update(patch).eq("id", existing.data.id)
+    }
+    return existing.data.id
+  }
 
   const inserted = await supabase
     .from("clients")
@@ -92,6 +146,12 @@ async function findOrCreateClient(
       email,
       source: "contact_form",
       status: "lead",
+      intent: enrichment.intent ?? null,
+      budget: enrichment.budget ?? null,
+      notes: enrichment.notes ?? null,
+      intake: enrichment.paymentPreference
+        ? ({ payment_preference: enrichment.paymentPreference } as Json)
+        : null,
     })
     .select("id")
     .single()
@@ -138,7 +198,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, skipped: "no_attendee" })
   }
 
-  const clientId = await findOrCreateClient(supabase, attendee)
+  const clientId = await findOrCreateClient(supabase, attendee, {
+    intent: readResponse(payload, "project_type"),
+    budget: readResponse(payload, "budget_range"),
+    notes: readResponse(payload, "project_details"),
+    paymentPreference: readResponse(payload, "payment_preference"),
+  })
   if (!clientId) {
     return NextResponse.json({ error: "client_failed" }, { status: 500 })
   }

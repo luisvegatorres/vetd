@@ -172,7 +172,7 @@ export default async function DashboardPage() {
       badgeTone: (revenueDelta != null && revenueDelta >= 0
         ? "positive"
         : "neutral") as "positive" | "neutral",
-      footer: `${fmtMonth.format(now)} · ${thisMonthPayments.length} ${
+      footer: `${fmtMonth.format(now)} ▪ ${thisMonthPayments.length} ${
         thisMonthPayments.length === 1 ? "payment" : "payments"
       }`,
     },
@@ -192,7 +192,7 @@ export default async function DashboardPage() {
       value: winRate != null ? `${Math.round(winRate)}%` : "—",
       badge:
         closedClients.length > 0
-          ? `${wonClients} won · ${lostClients} lost`
+          ? `${wonClients} won ▪ ${lostClients} lost`
           : undefined,
       badgeTone: "neutral" as const,
       footer:

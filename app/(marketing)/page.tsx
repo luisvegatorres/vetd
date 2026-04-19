@@ -21,24 +21,28 @@ import { processSteps, products } from "@/lib/site"
 
 const homeFaq = [
   {
-    q: "Do you work with clients outside Puerto Rico?",
-    a: "Yes. We work with clients worldwide. All communication is remote-friendly via email, WhatsApp, or video call.",
+    q: "How much will my project cost?",
+    a: "Websites start at $97/mo or as a one-time build. Mobile apps and SaaS products are quoted per scope on the discovery call. You'll leave the call with a concrete range — no guesswork, no follow-up pitches.",
   },
   {
-    q: "How long does a project take?",
-    a: "A marketing website takes 5–10 days. A mobile app or web app typically takes 4–12 weeks depending on scope.",
+    q: "Who actually builds my project?",
+    a: "You work directly with the founder and lead developer. No account managers, no offshore subcontractors. Every line of code and every design decision is ours.",
   },
   {
-    q: "What do I own after the project?",
-    a: "Everything. Code, domain, accounts, content. It's yours from day one.",
+    q: "How does payment work?",
+    a: "Every project kicks off with a 30% deposit. For builds $5,000 and up, you can pay the 70% balance on delivery or split it over 12 months at 0% interest — same total either way. No fees, no credit checks.",
   },
   {
-    q: "Do you offer monthly plans?",
-    a: "Yes. Our Growth System is a monthly product. We also offer retainer support for any product we build.",
+    q: "What happens after launch?",
+    a: "Website plans include ongoing hosting, SEO, and content updates. Apps and SaaS launches come with a 30-day warranty on bugs, plus optional monthly retainers if you want us to keep building.",
   },
   {
-    q: "How do I get started?",
-    a: "Fill out the project inquiry form or book a discovery call. We'll respond within 24 hours.",
+    q: "Do I own the code, domain, and accounts?",
+    a: "Yes — everything is yours from day one. Code, domain, design files, hosting accounts, third-party integrations. You're never locked in, and you can take the project anywhere.",
+  },
+  {
+    q: "What do you need from me to start?",
+    a: "Just a 20-minute discovery call or the contact form. We respond within 24 hours with next steps. You don't need wireframes, a spec doc, or existing assets — we handle that.",
   },
 ] as const
 

@@ -11,7 +11,7 @@ import {
 } from "motion/react"
 import { ArrowUpRight } from "lucide-react"
 
-import type { Product } from "@/lib/site"
+import { financing, type Product } from "@/lib/site"
 
 type ProductsScrollAccordionProps = {
   products: readonly Product[]
@@ -153,10 +153,12 @@ function StackCard({
           </div>
 
           <div className="grid content-start gap-6 border-t border-border pt-8 sm:grid-cols-2 lg:grid-cols-1 lg:border-t-0 lg:pt-0 lg:pl-12">
-            <MetaBlock label="Starting at">
-              {product.startingAt ?? "See pricing tiers"}
-            </MetaBlock>
             <MetaBlock label="Timeline">{product.timeline}</MetaBlock>
+            {product.financingEligible ? (
+              <MetaBlock label="Financing">
+                {financing.headlineShort}
+              </MetaBlock>
+            ) : null}
             {product.pricingTiers ? (
               <div className="space-y-2 sm:col-span-2 lg:col-span-1">
                 <p className="text-xs tracking-badge text-muted-foreground uppercase">

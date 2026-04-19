@@ -32,10 +32,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { submitContactForm } from "./actions"
 
 const buildOptions = [
-  "Marketing Website",
+  "Website",
   "Mobile App",
-  "Web App",
-  "Growth System",
+  "SaaS Product",
   "AI Integration",
   "Not sure yet",
 ] as const
@@ -58,16 +57,16 @@ function formatPhone(digits: string) {
 
 const howWeStart = [
   {
-    value: "20 min",
-    label: "Free discovery call · No pitch",
+    value: "Free",
+    label: "20-min call ▪ No pitch, no pressure",
   },
   {
-    value: "24 hr",
-    label: "Response time, usually same day",
+    value: "0%",
+    label: "Financing on $5K+ ▪ 12 months, no interest",
   },
   {
     value: "Fixed",
-    label: "Scope, timeline, and price up front",
+    label: "Price and timeline locked before we start",
   },
 ] as const
 
@@ -80,13 +79,6 @@ export default function ContactPage() {
   const [phone, setPhone] = React.useState("")
   const [projectDetails, setProjectDetails] = React.useState("")
 
-  const prefillNotes = React.useMemo(() => {
-    const parts: string[] = []
-    if (projectType) parts.push(`Looking to build: ${projectType}`)
-    if (budgetRange) parts.push(`Budget: ${budgetRange}`)
-    if (projectDetails) parts.push(projectDetails)
-    return parts.join("\n\n") || undefined
-  }, [projectType, budgetRange, projectDetails])
 
   function handleProjectTypeChange(value: string | null) {
     setProjectType(value ?? "")
@@ -163,7 +155,11 @@ export default function ContactPage() {
                 prefill={{
                   name: name || undefined,
                   email: email || undefined,
-                  notes: prefillNotes,
+                  responses: {
+                    project_type: projectType || undefined,
+                    budget_range: budgetRange || undefined,
+                    project_details: projectDetails || undefined,
+                  },
                 }}
               >
                 Book a discovery call

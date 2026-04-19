@@ -39,8 +39,8 @@ export function HomeHero() {
                 <span className="block">businesses.</span>
               </h1>
               <p className="max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                Websites. Mobile apps. Web apps. AI integrations. Growth
-                systems. Built to perform, designed to convert.
+                Websites. Mobile apps. SaaS products. AI integrations.
+                Built to perform, designed to convert.
               </p>
             </RevealItem>
 
@@ -82,12 +82,12 @@ export function HomeHero() {
               <div className="space-y-6">
                 {[
                   {
-                    value: "5",
+                    value: "4",
                     label: "Core product lines",
                   },
                   {
-                    value: "Global",
-                    label: "Remote delivery from day one",
+                    value: "0%",
+                    label: "Financing on projects $5K+ ▪ 12 monthly payments",
                   },
                   {
                     value: "Fixed",
@@ -113,7 +113,7 @@ export function HomeHero() {
                 className="text-overline tracking-banner text-muted-foreground/70 uppercase"
                 y={12}
               >
-                Websites · Apps · Growth · AI
+                Websites ▪ Apps ▪ SaaS ▪ AI
               </RevealItem>
             </RevealGroup>
           </Reveal>
