@@ -71,11 +71,14 @@ export function LeadDetailPanel({ lead }: { lead: LeadRow | null }) {
           <h2 className="truncate font-heading text-2xl font-medium leading-tight tracking-tight">
             {lead.name}
           </h2>
-          {lead.company ? (
-            <p className="mt-1 truncate text-sm text-muted-foreground">
-              {lead.company}
-            </p>
-          ) : null}
+          <p
+            className={cn(
+              "mt-1 truncate text-sm text-muted-foreground",
+              !lead.company && "italic",
+            )}
+          >
+            {lead.company ?? "No business listed"}
+          </p>
         </div>
 
         <div className="space-y-3">
@@ -113,7 +116,12 @@ export function LeadDetailPanel({ lead }: { lead: LeadRow | null }) {
 
       <CardFooter className="mt-auto flex-col items-stretch gap-3 p-6">
         <ConvertLeadDialog leadId={lead.id} />
-        <div className="grid grid-cols-3 gap-3">
+        <div
+          className={cn(
+            "grid gap-3",
+            lead.owner ? "grid-cols-2" : "grid-cols-3",
+          )}
+        >
           <Button
             variant="outline"
             disabled={!lead.email}
@@ -132,15 +140,17 @@ export function LeadDetailPanel({ lead }: { lead: LeadRow | null }) {
           >
             <Phone aria-hidden /> Call
           </Button>
-          <form action={claimLead.bind(null, lead.id)}>
-            <Button
-              variant="outline"
-              type="submit"
-              className="w-full gap-2 capitalize"
-            >
-              <UserPlus aria-hidden /> Assign
-            </Button>
-          </form>
+          {!lead.owner && (
+            <form action={claimLead.bind(null, lead.id)}>
+              <Button
+                variant="outline"
+                type="submit"
+                className="w-full gap-2 capitalize"
+              >
+                <UserPlus aria-hidden /> Claim
+              </Button>
+            </form>
+          )}
         </div>
       </CardFooter>
     </Card>

@@ -68,7 +68,7 @@ export function LeadsSearch({ q }: { q: string }) {
       <InputGroupInput
         value={local}
         onChange={(e) => setLocal(e.target.value)}
-        placeholder="Search name, company, intent"
+        placeholder="Search name, business, intent"
         className="text-sm"
       />
     </InputGroup>

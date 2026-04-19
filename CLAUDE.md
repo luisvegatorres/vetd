@@ -57,12 +57,13 @@ Expected in `.env.local`:
 
 ### Database
 
-Single source of truth: `supabase/migrations/0001_init_crm.sql`. Generated types live in `lib/supabase/types.ts` — regenerate with Supabase's typegen after schema changes; do not hand-edit.
+Schema lives in `supabase/migrations/` — number-prefixed, applied in order. Start with `0001_init_crm.sql` for the base, then read later migrations for additive changes. Generated types live in `lib/supabase/types.ts` — regenerate with Supabase's typegen after schema changes; do not hand-edit.
 
 Schema summary (all `public`):
 - **profiles** — extends `auth.users`, holds `role` (`admin`/`editor`/`sales_rep`/`viewer`) and `default_commission_rate`.
-- **clients** — lead/client records with `status`, `source`, `assigned_to` → profiles.
-- **projects** — deal/project records with `stage`, `payment_status`, `commission_*`, `stripe_*`, linked to `clients` and `sold_by` → profiles.
+- **clients** — lead/client records with `status`, `source`, `assigned_to` → profiles, plus enrichment fields (`lead_score`, etc. — see migrations 0004/0006).
+- **projects** — one-time deal/project records with `stage`, `payment_status`, `commission_*`, `stripe_*`, linked to `clients` and `sold_by` → profiles. Migration 0007 adds `product_type` (enum: `business_website`/`mobile_app`/`web_app`/`ai_integration`), `deposit_rate` (default 30), generated `deposit_amount`, and `deposit_paid_at`. A `projects_deposit_gate` trigger blocks the move to `stage='active'` until the deposit is paid for any priced project.
+- **subscriptions** — recurring engagements (added in 0002, `sold_by` in 0003). Separate from `projects`; not subject to the deposit gate.
 - **payments** — Stripe payment history per project.
 - **interactions** — timeline entries (call/email/meeting/etc.) on a client, optionally tied to a project.
 - **showcase_projects**, **pitch_slides** — content for the marketing site and the in-app `pitch-mode` presenter.
@@ -75,6 +76,7 @@ RLS is enabled; expect policies keyed on role via the `public.auth_role()` SQL f
 - Feature components are grouped by domain: `components/auth`, `components/home`, `components/layout`, `components/dashboard`, `components/actions`, `components/motion`, `components/typography`, `components/providers`.
 - Theming: dark mode is the canonical canvas (see `DESIGN.md` — Lamborghini-inspired system: absolute black, zero border-radius, uppercase display type, single accent color for CTAs). `app/layout.tsx` sets `defaultTheme="dark"` on `ThemeProvider`. Tokens live in `app/globals.css` (OKLCH vars, including `--primary`/`--primary-hover` for both light and dark).
 - `lib/site.ts` is the single source of truth for site-wide copy, product catalog, nav, and process steps — pull from here instead of hardcoding.
+- `lib/status-colors.ts` is the single source of truth for stage/status/payment colors and labels (project stage, derived lead status, payment status). Use `projectStageTone()`, `leadStatusTone()`, `paymentStatusBadgeClass()`, etc. — do not redefine status palettes inline.
 - Utility helpers: `cn()` in `lib/utils.ts`; Prettier's Tailwind plugin is configured to treat `cn` and `cva` as class-name functions.
 
 ### Styling rules (from `DESIGN.md` and user memory)

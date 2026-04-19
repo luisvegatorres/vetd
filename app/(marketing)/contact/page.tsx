@@ -1,20 +1,18 @@
 "use client"
 
 import * as React from "react"
-import { ArrowRight, Mail, User } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import { toast } from "sonner"
 
 import { BookCallButton } from "@/components/actions/book-call-button"
+import { BusinessInput } from "@/components/forms/business-input"
+import { EmailInput } from "@/components/forms/email-input"
+import { NameInput } from "@/components/forms/name-input"
 import { Section } from "@/components/layout/section"
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group"
 import {
   Select,
   SelectContent,
@@ -25,6 +23,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+
+import { submitContactForm } from "./actions"
 
 const buildOptions = [
   "Marketing Website",
@@ -77,16 +77,16 @@ export default function ContactPage() {
 
     const form = event.currentTarget
     const data = new FormData(form)
-    const payload = {
-      name: data.get("name"),
-      email: data.get("email"),
-      projectType,
-      projectDetails: data.get("projectDetails"),
-      budgetRange,
-    }
+    data.set("projectType", projectType)
+    data.set("budgetRange", budgetRange)
 
-    console.log("[contact-form]", payload)
-    await new Promise((resolve) => setTimeout(resolve, 350))
+    const result = await submitContactForm(data)
+
+    if (!result.ok) {
+      toast.error("Couldn't send inquiry", { description: result.error })
+      setSubmitting(false)
+      return
+    }
 
     toast.success("Inquiry received.", {
       description: "We respond within 24 hours.",
@@ -166,17 +166,13 @@ export default function ContactPage() {
                   >
                     Your name
                   </FieldLabel>
-                  <InputGroup className="rounded-none">
-                    <InputGroupAddon>
-                      <User aria-hidden />
-                    </InputGroupAddon>
-                    <InputGroupInput
-                      id="name"
-                      name="name"
-                      required
-                      placeholder="Jane Smith"
-                    />
-                  </InputGroup>
+                  <NameInput
+                    id="name"
+                    name="name"
+                    required
+                    placeholder="Jane Smith"
+                    groupClassName="rounded-none"
+                  />
                 </Field>
 
                 <Field>
@@ -186,18 +182,28 @@ export default function ContactPage() {
                   >
                     Email
                   </FieldLabel>
-                  <InputGroup className="rounded-none">
-                    <InputGroupAddon>
-                      <Mail aria-hidden />
-                    </InputGroupAddon>
-                    <InputGroupInput
-                      id="email"
-                      name="email"
-                      type="email"
-                      required
-                      placeholder="jane@company.com"
-                    />
-                  </InputGroup>
+                  <EmailInput
+                    id="email"
+                    name="email"
+                    required
+                    placeholder="jane@company.com"
+                    groupClassName="rounded-none"
+                  />
+                </Field>
+
+                <Field>
+                  <FieldLabel
+                    htmlFor="business"
+                    className="text-xs tracking-ui uppercase"
+                  >
+                    Business <span className="text-muted-foreground normal-case">(optional)</span>
+                  </FieldLabel>
+                  <BusinessInput
+                    id="business"
+                    name="business"
+                    placeholder="Greenfield Eats"
+                    groupClassName="rounded-none"
+                  />
                 </Field>
 
                 <Field>
@@ -225,23 +231,6 @@ export default function ContactPage() {
                 </Field>
 
                 <Field>
-                  <FieldLabel
-                    htmlFor="projectDetails"
-                    className="text-xs tracking-ui uppercase"
-                  >
-                    Tell us about your project
-                  </FieldLabel>
-                  <Textarea
-                    id="projectDetails"
-                    name="projectDetails"
-                    rows={5}
-                    required
-                    placeholder="What are you building, who is it for, and what should it achieve?"
-                    className="rounded-none"
-                  />
-                </Field>
-
-                <Field>
                   <FieldLabel className="text-xs tracking-ui uppercase">
                     Budget range
                   </FieldLabel>
@@ -263,6 +252,23 @@ export default function ContactPage() {
                       </SelectGroup>
                     </SelectContent>
                   </Select>
+                </Field>
+
+                <Field>
+                  <FieldLabel
+                    htmlFor="projectDetails"
+                    className="text-xs tracking-ui uppercase"
+                  >
+                    Tell us about your project
+                  </FieldLabel>
+                  <Textarea
+                    id="projectDetails"
+                    name="projectDetails"
+                    rows={5}
+                    required
+                    placeholder="What are you building, who is it for, and what should it achieve?"
+                    className="rounded-none"
+                  />
                 </Field>
 
                 <Button

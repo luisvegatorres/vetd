@@ -68,7 +68,7 @@ export function LeadsTable({
       <DataTableHeader>
         <DataTableHead>Score</DataTableHead>
         <DataTableHead className="gap-2">
-          Name <Dot /> Company
+          Name <Dot /> Business
         </DataTableHead>
         <DataTableHead>Intent</DataTableHead>
         <DataTableHead className="gap-2">

@@ -1,10 +1,13 @@
 "use client"
 
-import { Mail, Pencil, Phone, Plus } from "lucide-react"
+import { Pencil, Phone, Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useId, useState, useTransition } from "react"
 import { toast } from "sonner"
 
+import { BusinessInput } from "@/components/forms/business-input"
+import { EmailInput } from "@/components/forms/email-input"
+import { NameInput } from "@/components/forms/name-input"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -15,7 +18,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
 import {
   InputGroup,
   InputGroupAddon,
@@ -130,39 +132,29 @@ function LeadFormDialog(props: Props) {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
               <Label htmlFor={`${formId}-name`}>Name</Label>
-              <Input
+              <NameInput
                 id={`${formId}-name`}
                 name="name"
                 required
-                autoCapitalize="words"
-                className="capitalize"
                 defaultValue={lead?.name ?? ""}
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor={`${formId}-company`}>Company</Label>
-              <Input
+              <Label htmlFor={`${formId}-company`}>Business</Label>
+              <BusinessInput
                 id={`${formId}-company`}
                 name="company"
-                autoCapitalize="words"
-                className="capitalize"
                 defaultValue={lead?.company ?? ""}
               />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor={`${formId}-email`}>Email</Label>
-              <InputGroup>
-                <InputGroupAddon>
-                  <Mail aria-hidden />
-                </InputGroupAddon>
-                <InputGroupInput
-                  id={`${formId}-email`}
-                  name="email"
-                  type="email"
-                  placeholder="name@company.com"
-                  defaultValue={lead?.email ?? ""}
-                />
-              </InputGroup>
+              <EmailInput
+                id={`${formId}-email`}
+                name="email"
+                placeholder="name@company.com"
+                defaultValue={lead?.email ?? ""}
+              />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor={`${formId}-phone`}>Phone</Label>
