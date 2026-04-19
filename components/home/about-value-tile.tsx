@@ -50,7 +50,7 @@ export function AboutValueTile({
         strokeWidth={1.25}
         aria-hidden
       />
-      <h4 className="font-heading text-lg leading-subheading tracking-wider text-foreground capitalize sm:text-xl">
+      <h4 className="font-heading text-lg leading-subheading text-foreground capitalize sm:text-xl">
         {title}
       </h4>
       <p className="max-w-[32ch] text-sm leading-relaxed text-muted-foreground">

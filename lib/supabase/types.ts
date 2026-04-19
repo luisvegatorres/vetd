@@ -22,9 +22,11 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          industry: string | null
           intake: Json | null
           intent: string | null
           lead_number: number
+          location: string | null
           name: string
           notes: string | null
           phone: string | null
@@ -40,9 +42,11 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          industry?: string | null
           intake?: Json | null
           intent?: string | null
           lead_number?: number
+          location?: string | null
           name: string
           notes?: string | null
           phone?: string | null
@@ -58,9 +62,11 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          industry?: string | null
           intake?: Json | null
           intent?: string | null
           lead_number?: number
+          location?: string | null
           name?: string
           notes?: string | null
           phone?: string | null

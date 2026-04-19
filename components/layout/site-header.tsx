@@ -47,7 +47,7 @@ export function SiteHeader() {
       <div className="flex h-16 w-full items-center justify-between px-6 sm:px-10 lg:px-20">
         <Link
           href="/"
-          className="font-heading text-base font-medium tracking-ui text-foreground uppercase"
+          className="font-heading text-base font-medium text-foreground uppercase"
         >
           {site.name}
         </Link>
@@ -57,7 +57,7 @@ export function SiteHeader() {
             <Link
               key={item.href}
               href={item.href}
-              className="text-xs font-medium tracking-ui text-muted-foreground uppercase transition-colors hover:text-foreground"
+              className="text-xs font-medium text-muted-foreground uppercase transition-colors hover:text-foreground"
             >
               {item.label}
             </Link>
@@ -69,7 +69,7 @@ export function SiteHeader() {
             href="/contact"
             className={cn(
               buttonVariants({ size: "sm" }),
-              "hidden text-xs font-medium tracking-wider lg:inline-flex"
+              "hidden text-xs font-medium lg:inline-flex"
             )}
           >
             Start a project
@@ -146,7 +146,7 @@ export function SiteHeader() {
                     href={item.href}
                     onClick={() => setOpen(false)}
                     className={cn(
-                      "block border-b border-border/40 py-4 font-heading text-2xl tracking-wide transition-colors",
+                      "block border-b border-border/40 py-4 font-heading text-2xl transition-colors",
                       pathname === item.href
                         ? "text-foreground"
                         : "text-muted-foreground hover:text-foreground"
@@ -172,7 +172,7 @@ export function SiteHeader() {
                   onClick={() => setOpen(false)}
                   className={cn(
                     buttonVariants({ size: "lg" }),
-                    "w-full text-xs font-medium tracking-wider"
+                    "w-full text-xs font-medium"
                   )}
                 >
                   Start a project

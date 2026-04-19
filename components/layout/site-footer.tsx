@@ -23,7 +23,7 @@ export function SiteFooter() {
         >
           <RevealItem y={18}>
             <div className="space-y-3">
-              <p className="font-heading text-base font-medium tracking-ui text-foreground uppercase">
+              <p className="font-heading text-base font-medium text-foreground uppercase">
                 {site.name}
               </p>
               <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
@@ -34,7 +34,7 @@ export function SiteFooter() {
 
           <RevealItem y={18}>
             <div>
-              <p className="mb-4 text-xs font-medium tracking-section text-muted-foreground uppercase">
+              <p className="mb-4 text-xs font-medium text-muted-foreground uppercase">
                 Navigate
               </p>
               <ul className="space-y-3">
@@ -42,7 +42,7 @@ export function SiteFooter() {
                   <li key={item.href}>
                     <Link
                       href={item.href}
-                      className="text-sm tracking-ui text-muted-foreground uppercase transition-colors hover:text-foreground"
+                      className="text-sm text-muted-foreground uppercase transition-colors hover:text-foreground"
                     >
                       {item.label}
                     </Link>
@@ -54,7 +54,7 @@ export function SiteFooter() {
 
           <RevealItem y={18}>
             <div>
-              <p className="mb-4 text-xs font-medium tracking-section text-muted-foreground uppercase">
+              <p className="mb-4 text-xs font-medium text-muted-foreground uppercase">
                 Contact
               </p>
               <ul className="space-y-3 text-sm">
@@ -109,7 +109,7 @@ export function SiteFooter() {
         <Separator className="my-12 bg-border/60" />
 
         <RevealGroup
-          className="flex flex-col gap-2 text-xs tracking-ui text-muted-foreground/70 uppercase sm:flex-row sm:items-center sm:justify-between"
+          className="flex flex-col gap-2 text-xs text-muted-foreground/70 uppercase sm:flex-row sm:items-center sm:justify-between"
           delayChildren={0.05}
           stagger={0.06}
           viewport={{ once: true, amount: 0.12 }}

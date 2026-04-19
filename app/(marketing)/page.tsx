@@ -64,11 +64,11 @@ export default function HomePage() {
           products={products}
           header={
             <div className="px-6 pt-16 sm:px-10 sm:pt-24 lg:px-20">
-              <p className="mb-6 text-xs font-medium tracking-section text-muted-foreground uppercase">
+              <p className="mb-6 text-xs font-medium text-muted-foreground uppercase">
                 001 — What we build
               </p>
               <div className="max-w-3xl space-y-4">
-                <h2 className="leading-section font-heading text-4xl tracking-tight text-foreground capitalize sm:text-5xl">
+                <h2 className="leading-section font-heading text-4xl text-foreground capitalize sm:text-5xl">
                   The complete toolkit, under one studio.
                 </h2>
                 <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
@@ -105,7 +105,7 @@ export default function HomePage() {
             stagger={0.08}
           >
             <RevealItem y={20}>
-              <h2 className="leading-section font-heading text-4xl tracking-tight text-foreground capitalize sm:text-5xl">
+              <h2 className="leading-section font-heading text-4xl text-foreground capitalize sm:text-5xl">
                 A studio run like a product — not an agency.
               </h2>
             </RevealItem>
@@ -142,7 +142,7 @@ export default function HomePage() {
           stagger={0.08}
         >
           <RevealItem y={18}>
-            <h2 className="leading-section font-heading text-4xl tracking-tight text-foreground capitalize sm:text-5xl">
+            <h2 className="leading-section font-heading text-4xl text-foreground capitalize sm:text-5xl">
               Products we&apos;ve built and shipped.
             </h2>
           </RevealItem>
@@ -154,7 +154,7 @@ export default function HomePage() {
       <Section size="sm" eyebrow="005 — FAQ">
         <div className="faq-split-grid grid gap-12">
           <Reveal y={18}>
-            <h2 className="leading-section font-heading text-4xl tracking-tight text-foreground capitalize sm:text-5xl">
+            <h2 className="leading-section font-heading text-4xl text-foreground capitalize sm:text-5xl">
               Common questions.
             </h2>
           </Reveal>
@@ -162,7 +162,7 @@ export default function HomePage() {
             <Accordion>
               {homeFaq.map((item) => (
                 <AccordionItem key={item.q} value={item.q}>
-                  <AccordionTrigger className="text-left text-base tracking-wider uppercase">
+                  <AccordionTrigger className="text-left text-base uppercase">
                     {item.q}
                   </AccordionTrigger>
                   <AccordionContent>
@@ -184,7 +184,7 @@ export default function HomePage() {
           stagger={0.08}
         >
           <RevealItem y={18}>
-            <h2 className="leading-section font-heading text-4xl tracking-tight text-foreground capitalize sm:text-5xl">
+            <h2 className="leading-section font-heading text-4xl text-foreground capitalize sm:text-5xl">
               Ready to build something?
             </h2>
           </RevealItem>
@@ -199,7 +199,7 @@ export default function HomePage() {
                 href="/contact"
                 className={cn(
                   buttonVariants({ size: "lg" }),
-                  "tracking-wider"
+                  ""
                 )}
               >
                 Start a project

@@ -8,7 +8,10 @@ export function Dot({ className }: { className?: string }) {
   return (
     <span
       aria-hidden
-      className={cn("inline-block size-1 shrink-0 bg-border", className)}
+      className={cn(
+        "inline-block size-1 shrink-0 align-middle bg-border",
+        className
+      )}
     />
   )
 }

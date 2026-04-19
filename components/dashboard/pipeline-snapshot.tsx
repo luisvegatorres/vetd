@@ -94,7 +94,7 @@ export async function PipelineSnapshot() {
   return (
     <Card className="gap-0 py-0">
       <header className="flex items-center justify-between gap-4 border-b border-border/60 p-6">
-        <h2 className="font-heading text-lg font-medium tracking-tight">
+        <h2 className="font-heading text-lg font-medium">
           Pipeline &amp; opportunities
         </h2>
         <Button
@@ -117,14 +117,14 @@ export async function PipelineSnapshot() {
             <div key={stage} className="flex flex-col gap-3 p-6">
               <p
                 className={cn(
-                  "text-overline font-medium uppercase tracking-ui",
+                  "text-overline font-medium uppercase",
                   tone.text,
                 )}
               >
                 {tone.label}
               </p>
               <div className="flex items-baseline gap-2">
-                <p className="font-heading text-2xl font-medium tracking-tight tabular-nums">
+                <p className="font-heading text-2xl font-medium tabular-nums">
                   {count}
                 </p>
                 <p className="text-sm text-muted-foreground tabular-nums">
@@ -147,16 +147,16 @@ export async function PipelineSnapshot() {
       </div>
 
       <div className="flex items-baseline justify-between px-6 pt-5">
-        <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
+        <p className="text-overline font-medium uppercase text-muted-foreground">
           {money(totalValue)} open
         </p>
-        <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
+        <p className="text-overline font-medium uppercase text-muted-foreground">
           By value
         </p>
       </div>
 
       {opportunities.length === 0 ? (
-        <div className="flex h-32 items-center justify-center text-xs uppercase tracking-ui text-muted-foreground">
+        <div className="flex h-32 items-center justify-center text-xs uppercase text-muted-foreground">
           No open deals
         </div>
       ) : (
@@ -184,7 +184,7 @@ export async function PipelineSnapshot() {
                   <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
                     <span
                       className={cn(
-                        "text-overline font-medium uppercase tracking-ui leading-none",
+                        "text-overline font-medium uppercase leading-none",
                         projectStageTone(o.stage as Stage).text,
                       )}
                     >

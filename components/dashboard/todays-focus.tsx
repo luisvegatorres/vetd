@@ -163,7 +163,7 @@ export async function TodaysFocus() {
   return (
     <Card className="flex flex-col gap-0 py-0">
       <header className="flex items-center justify-between gap-4 border-b border-border/60 p-6">
-        <h2 className="font-heading text-lg font-medium tracking-tight">
+        <h2 className="font-heading text-lg font-medium">
           Today&apos;s focus
         </h2>
       </header>
@@ -185,13 +185,13 @@ export async function TodaysFocus() {
 
         <div className="flex flex-col gap-4 p-6">
           <div className="flex items-baseline justify-between">
-            <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
+            <p className="text-overline font-medium uppercase text-muted-foreground">
               Needs attention ▪ {topAttention.length}
             </p>
           </div>
 
           {topAttention.length === 0 ? (
-            <p className="text-xs uppercase tracking-ui text-muted-foreground">
+            <p className="text-xs uppercase text-muted-foreground">
               Nothing pressing — nice.
             </p>
           ) : (
@@ -218,7 +218,7 @@ export async function TodaysFocus() {
                       <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
                         <span
                           className={cn(
-                            "text-overline font-medium uppercase tracking-ui leading-none",
+                            "text-overline font-medium uppercase leading-none",
                             toneClass[item.tone],
                           )}
                         >
@@ -236,7 +236,7 @@ export async function TodaysFocus() {
                       </p>
                     </div>
                     {item.right ? (
-                      <p className="shrink-0 text-overline font-medium uppercase tracking-ui text-muted-foreground tabular-nums">
+                      <p className="shrink-0 text-overline font-medium uppercase text-muted-foreground tabular-nums">
                         {item.right}
                       </p>
                     ) : null}
@@ -273,7 +273,7 @@ function NextUp({
   if (!booking) {
     return (
       <div className="flex flex-col gap-4 p-6">
-        <p className="inline-flex items-center gap-2 text-overline font-medium uppercase tracking-ui text-muted-foreground">
+        <p className="inline-flex items-center gap-2 text-overline font-medium uppercase text-muted-foreground">
           <CalendarClock className="size-3" aria-hidden />
           Next up
         </p>
@@ -287,17 +287,17 @@ function NextUp({
   return (
     <div className="flex flex-col gap-4 p-6">
       <div className="flex items-baseline justify-between gap-3">
-        <p className="inline-flex items-center gap-2 text-overline font-medium uppercase tracking-ui text-muted-foreground">
+        <p className="inline-flex items-center gap-2 text-overline font-medium uppercase text-muted-foreground">
           <CalendarClock className="size-3" aria-hidden />
           Next up
         </p>
-        <p className="text-overline font-medium uppercase tracking-ui text-primary tabular-nums">
+        <p className="text-overline font-medium uppercase text-primary tabular-nums">
           {timeUntil(booking.startsAt)}
         </p>
       </div>
 
       <div>
-        <p className="font-heading text-xl font-medium tracking-tight">
+        <p className="font-heading text-xl font-medium">
           {booking.title}
         </p>
         <p className="mt-2 inline-flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
@@ -315,7 +315,7 @@ function NextUp({
 
       {lastInteraction ? (
         <div className="border-l-2 border-border/60 pl-3">
-          <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
+          <p className="text-overline font-medium uppercase text-muted-foreground">
             Last touch ▪ {lastInteraction.daysAgo}d ago
           </p>
           <p className="mt-1 truncate text-sm text-foreground">

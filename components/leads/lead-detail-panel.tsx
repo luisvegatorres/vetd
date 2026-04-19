@@ -32,7 +32,7 @@ function Field({
 }) {
   return (
     <div className="space-y-2">
-      <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
+      <p className="text-overline font-medium uppercase text-muted-foreground">
         {label}
       </p>
       <p className="text-sm">{children}</p>
@@ -44,7 +44,7 @@ export function LeadDetailPanel({ lead }: { lead: LeadRow | null }) {
   if (!lead) {
     return (
       <Card className="flex min-h-80 flex-col items-center justify-center gap-0 p-10 text-center">
-        <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
+        <p className="text-overline font-medium uppercase text-muted-foreground">
           No Lead Selected
         </p>
         <p className="mt-4 max-w-xs text-sm text-muted-foreground">
@@ -68,7 +68,7 @@ export function LeadDetailPanel({ lead }: { lead: LeadRow | null }) {
 
       <CardContent className="flex flex-col gap-6 p-6 pt-0">
         <div className="min-w-0">
-          <h2 className="truncate font-heading text-2xl font-medium leading-tight tracking-tight">
+          <h2 className="truncate font-heading text-2xl font-medium leading-tight">
             {lead.name}
           </h2>
           <p
@@ -83,10 +83,10 @@ export function LeadDetailPanel({ lead }: { lead: LeadRow | null }) {
 
         <div className="space-y-3">
           <div className="flex items-baseline gap-3">
-            <p className="font-heading text-3xl font-medium leading-none tracking-tight tabular-nums">
+            <p className="font-heading text-3xl font-medium leading-none tabular-nums">
               {lead.score ?? 0}
             </p>
-            <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
+            <p className="text-overline font-medium uppercase text-muted-foreground">
               Score / 100
             </p>
           </div>

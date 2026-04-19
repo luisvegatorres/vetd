@@ -98,7 +98,7 @@ export function LeadsTable({
                 <DataTableCell>
                   <div className="min-w-0">
                     <p className="truncate font-medium">{row.name}</p>
-                    <p className="mt-1 truncate text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                    <p className="mt-1 truncate text-xs font-medium uppercase text-muted-foreground">
                       {row.company ?? "—"}
                     </p>
                   </div>

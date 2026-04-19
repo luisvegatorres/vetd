@@ -119,20 +119,20 @@ function StackCard({
         <div className="relative grid gap-10 p-8 sm:p-12 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-16 lg:p-16">
           <div className="space-y-6">
             <div className="flex items-center gap-4">
-              <span className="font-heading text-xs tracking-badge text-muted-foreground tabular-nums">
+              <span className="font-heading text-xs text-muted-foreground tabular-nums">
                 / {number}
               </span>
               <span className="h-px w-12 bg-foreground/30" />
-              <span className="text-xs tracking-badge text-muted-foreground uppercase">
+              <span className="text-xs text-muted-foreground uppercase">
                 {index + 1} of {total}
               </span>
             </div>
 
             <div className="space-y-4">
-              <h3 className="font-heading text-xl leading-section tracking-tight text-foreground capitalize sm:text-2xl lg:text-3xl">
+              <h3 className="font-heading text-xl leading-section text-foreground capitalize sm:text-2xl lg:text-3xl">
                 {product.name}
               </h3>
-              <p className="text-xs tracking-badge text-muted-foreground uppercase sm:text-sm">
+              <p className="text-xs text-muted-foreground uppercase sm:text-sm">
                 {product.tagline}
               </p>
             </div>
@@ -142,7 +142,7 @@ function StackCard({
             </p>
 
             {!isLast ? (
-              <div className="flex items-center gap-3 pt-2 text-xs tracking-badge text-muted-foreground uppercase">
+              <div className="flex items-center gap-3 pt-2 text-xs text-muted-foreground uppercase">
                 <ArrowUpRight
                   className="size-4 text-foreground"
                   strokeWidth={1.5}
@@ -161,7 +161,7 @@ function StackCard({
             ) : null}
             {product.pricingTiers ? (
               <div className="space-y-2 sm:col-span-2 lg:col-span-1">
-                <p className="text-xs tracking-badge text-muted-foreground uppercase">
+                <p className="text-xs text-muted-foreground uppercase">
                   Tiers
                 </p>
                 <ul className="space-y-1">
@@ -178,7 +178,7 @@ function StackCard({
             ) : null}
             {product.includes ? (
               <div className="space-y-3 sm:col-span-2 lg:col-span-1">
-                <p className="text-xs tracking-badge text-muted-foreground uppercase">
+                <p className="text-xs text-muted-foreground uppercase">
                   What&apos;s included
                 </p>
                 <ul className="space-y-2">
@@ -199,7 +199,7 @@ function StackCard({
             ) : null}
             {product.tools ? (
               <div className="space-y-3 sm:col-span-2 lg:col-span-1">
-                <p className="text-xs tracking-badge text-muted-foreground uppercase">
+                <p className="text-xs text-muted-foreground uppercase">
                   Built with
                 </p>
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
@@ -230,7 +230,7 @@ function MetaBlock({
 }) {
   return (
     <div className="space-y-2">
-      <p className="text-xs tracking-badge text-muted-foreground uppercase">
+      <p className="text-xs text-muted-foreground uppercase">
         {label}
       </p>
       <p className="font-heading text-lg leading-tight text-foreground sm:text-xl">

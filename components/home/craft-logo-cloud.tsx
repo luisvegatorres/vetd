@@ -105,7 +105,7 @@ export function CraftLogoCloud() {
               className="w-72 rounded-none border border-border bg-popover/95 p-4 panel-blur-soft"
             >
               <div className="flex flex-col gap-2">
-                <p className="font-heading text-base tracking-tight text-foreground">
+                <p className="font-heading text-base text-foreground">
                   {tool.name}
                 </p>
                 <p className="text-sm leading-relaxed text-muted-foreground">

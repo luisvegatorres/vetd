@@ -38,7 +38,7 @@ export function MrrTrendChart() {
           axisLine={false}
           tickMargin={8}
           tickFormatter={(value: string) => value.split(" ")[0]}
-          className="text-overline uppercase tracking-ui"
+          className="text-overline uppercase"
         />
         <ChartTooltip
           cursor={false}

@@ -271,18 +271,18 @@ export function ConvertLeadDialog({ leadId }: { leadId: string }) {
             <div className="flex flex-col gap-2">
               <div className="grid grid-cols-2 divide-x divide-border/60 border border-border/60">
                 <div className="flex flex-col items-center px-4 py-4 text-center">
-                  <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
+                  <p className="text-overline font-medium uppercase text-muted-foreground">
                     30% deposit
                   </p>
-                  <p className="mt-1 font-heading text-2xl font-medium tracking-tight tabular-nums">
+                  <p className="mt-1 font-heading text-2xl font-medium tabular-nums">
                     {hasValidValue ? formatUSD(deposit) : "—"}
                   </p>
                 </div>
                 <div className="flex flex-col items-center px-4 py-4 text-center">
-                  <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
+                  <p className="text-overline font-medium uppercase text-muted-foreground">
                     Remaining
                   </p>
-                  <p className="mt-1 font-heading text-2xl font-medium tracking-tight tabular-nums">
+                  <p className="mt-1 font-heading text-2xl font-medium tabular-nums">
                     {hasValidValue ? formatUSD(parsedValue - deposit) : "—"}
                   </p>
                 </div>

@@ -26,14 +26,14 @@ export function HomeHero() {
             <RevealItem y={18}>
               <Badge
                 variant="outline"
-                className="text-overline rounded-none border-border bg-transparent px-3 py-1 tracking-badge text-muted-foreground uppercase"
+                className="rounded-none border-border bg-transparent px-3 py-1 text-muted-foreground uppercase"
               >
                 Home
               </Badge>
             </RevealItem>
 
             <RevealItem className="space-y-4" y={24}>
-              <h1 className="hero-display-scale leading-hero font-heading text-5xl font-normal tracking-tight text-foreground capitalize sm:text-6xl md:text-7xl">
+              <h1 className="hero-display-scale leading-hero font-heading text-5xl font-normal text-foreground capitalize sm:text-6xl md:text-7xl">
                 <span className="block">We build digital</span>
                 <span className="block">products that grow</span>
                 <span className="block">businesses.</span>
@@ -50,7 +50,7 @@ export function HomeHero() {
             >
               <BookCallButton
                 size="lg"
-                className="group tracking-wider"
+                className="group"
               >
                 Book a discovery call
                 <ArrowRight
@@ -75,7 +75,7 @@ export function HomeHero() {
               viewport={{ once: true, amount: 0.5 }}
             >
               <RevealItem y={14}>
-                <p className="text-overline tracking-banner text-muted-foreground uppercase">
+                <p className="text-overline text-muted-foreground uppercase">
                   / 001 - Digital product studio
                 </p>
               </RevealItem>
@@ -103,14 +103,14 @@ export function HomeHero() {
                     <p className="font-heading text-4xl text-foreground">
                       {item.value}
                     </p>
-                    <p className="mt-1 text-xs tracking-ui text-muted-foreground uppercase">
+                    <p className="mt-1 text-xs text-muted-foreground uppercase">
                       {item.label}
                     </p>
                   </RevealItem>
                 ))}
               </div>
               <RevealItem
-                className="text-overline tracking-banner text-muted-foreground/70 uppercase"
+                className="text-overline text-muted-foreground/70 uppercase"
                 y={12}
               >
                 Websites ▪ Apps ▪ SaaS ▪ AI

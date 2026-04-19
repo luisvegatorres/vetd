@@ -1,16 +1,16 @@
 import { Badge } from "@/components/ui/badge"
-import { leadStatusTone } from "@/lib/status-colors"
+import { clientDirectoryStatusTone } from "@/lib/status-colors"
 import { cn } from "@/lib/utils"
-import type { LeadDerivedStatus } from "./lead-types"
+import type { ClientDerivedStatus } from "./client-types"
 
-export function LeadStatusBadge({
+export function ClientStatusBadge({
   status,
   className,
 }: {
-  status: LeadDerivedStatus
+  status: ClientDerivedStatus
   className?: string
 }) {
-  const tone = leadStatusTone(status)
+  const tone = clientDirectoryStatusTone(status)
   return (
     <Badge
       variant="outline"

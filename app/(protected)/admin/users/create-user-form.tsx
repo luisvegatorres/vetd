@@ -31,6 +31,10 @@ const ROLE_OPTIONS = [
   { value: 'viewer', label: 'Viewer' },
 ] as const
 
+const ROLE_LABEL = Object.fromEntries(
+  ROLE_OPTIONS.map((o) => [o.value, o.label]),
+) as Record<(typeof ROLE_OPTIONS)[number]['value'], string>
+
 export function CreateUserForm() {
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -76,7 +80,13 @@ export function CreateUserForm() {
         <Label htmlFor="role">Role</Label>
         <Select name="role" defaultValue="viewer" required>
           <SelectTrigger id="role" className="w-full">
-            <SelectValue placeholder="Select a role" />
+            <SelectValue placeholder="Select a role">
+              {(value) =>
+                value
+                  ? (ROLE_LABEL[value as keyof typeof ROLE_LABEL] ?? '')
+                  : ''
+              }
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>

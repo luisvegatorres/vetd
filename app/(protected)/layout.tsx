@@ -20,11 +20,22 @@ export default async function ProtectedLayout({
     redirect("/auth/login")
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", auth.user.id)
-    .single()
+  const [{ data: profile }, leadsRes, interactionsRes] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", auth.user.id)
+      .single(),
+    supabase.from("clients").select("id").eq("status", "lead"),
+    supabase.from("interactions").select("client_id"),
+  ])
+
+  const contactedIds = new Set(
+    (interactionsRes.data ?? []).map((r) => r.client_id),
+  )
+  const newLeadsCount = (leadsRes.data ?? []).filter(
+    (r) => !contactedIds.has(r.id),
+  ).length
 
   const cookieStore = await cookies()
   const sidebarCookie = cookieStore.get("sidebar_state")?.value
@@ -32,7 +43,10 @@ export default async function ProtectedLayout({
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
-      <DashboardSidebar isAdmin={profile?.role === "admin"} />
+      <DashboardSidebar
+        isAdmin={profile?.role === "admin"}
+        newLeadsCount={newLeadsCount}
+      />
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-3 border-b border-border/60 bg-background/85 px-4 backdrop-blur-md">
           <SidebarTrigger />

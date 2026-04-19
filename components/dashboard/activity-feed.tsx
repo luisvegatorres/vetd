@@ -152,16 +152,16 @@ export async function ActivityFeed() {
   return (
     <Card className="gap-0 py-0">
       <header className="flex items-center justify-between gap-4 border-b border-border/60 p-6">
-        <h2 className="font-heading text-lg font-medium tracking-tight">
+        <h2 className="font-heading text-lg font-medium">
           Recent activity
         </h2>
-        <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
+        <p className="text-overline font-medium uppercase text-muted-foreground">
           Last {top.length} events
         </p>
       </header>
 
       {top.length === 0 ? (
-        <div className="flex h-48 items-center justify-center text-xs uppercase tracking-ui text-muted-foreground">
+        <div className="flex h-48 items-center justify-center text-xs uppercase text-muted-foreground">
           No activity yet
         </div>
       ) : (
@@ -189,7 +189,7 @@ export async function ActivityFeed() {
                   {event.meta}
                 </p>
               </div>
-              <p className="shrink-0 text-overline font-medium uppercase tracking-ui text-muted-foreground tabular-nums">
+              <p className="shrink-0 text-overline font-medium uppercase text-muted-foreground tabular-nums">
                 {relativeTime(event.at)}
               </p>
             </li>

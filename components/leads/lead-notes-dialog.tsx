@@ -12,7 +12,7 @@ import {
 export function LeadNotesDialog({ notes }: { notes: string | null }) {
   return (
     <div className="space-y-2">
-      <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
+      <p className="text-overline font-medium uppercase text-muted-foreground">
         Notes
       </p>
       {notes ? (

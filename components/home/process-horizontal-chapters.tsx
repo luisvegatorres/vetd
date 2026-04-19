@@ -128,11 +128,11 @@ function HorizontalChapters({
           className="process-grid-overlay pointer-events-none absolute inset-0 opacity-60"
         />
 
-        <p className="pointer-events-none absolute top-20 left-6 z-20 text-xs font-medium tracking-section text-muted-foreground uppercase sm:left-10 lg:left-20">
+        <p className="pointer-events-none absolute top-20 left-6 z-20 text-xs font-medium text-muted-foreground uppercase sm:left-10 lg:left-20">
           {heading.eyebrow}
         </p>
 
-        <h2 className="pointer-events-none absolute top-28 left-6 z-20 max-w-[16ch] font-heading text-4xl leading-section tracking-tight text-foreground capitalize sm:left-10 sm:text-5xl lg:left-20">
+        <h2 className="pointer-events-none absolute top-28 left-6 z-20 max-w-[16ch] font-heading text-4xl leading-section text-foreground capitalize sm:left-10 sm:text-5xl lg:left-20">
           {heading.title}
         </h2>
 
@@ -216,10 +216,10 @@ function ChapterCounter({
 }) {
   return (
     <div className="pointer-events-none absolute right-6 bottom-8 z-20 flex items-center gap-4 sm:right-10 sm:bottom-10 lg:right-20">
-      <span className="text-overline font-heading tracking-badge text-muted-foreground uppercase">
+      <span className="text-overline font-heading text-muted-foreground uppercase">
         {eyebrow}
       </span>
-      <span className="text-overline font-heading tracking-badge text-foreground tabular-nums uppercase">
+      <span className="text-overline font-heading text-foreground tabular-nums uppercase">
         {String(activeIndex + 1).padStart(2, "0")}
         <span className="text-muted-foreground">
           {" "}
@@ -251,7 +251,7 @@ function Chapter({
       <div className="mx-auto grid w-full max-w-7xl items-center gap-10 lg:grid-cols-2 lg:gap-16 xl:gap-24">
         {/* Left: huge display number + step label */}
         <div className="relative flex flex-col gap-4">
-          <p className="text-process-number font-heading tracking-tight text-foreground tabular-nums">
+          <p className="text-process-number font-heading text-foreground tabular-nums">
             {step.number}
           </p>
           <div className="flex items-center gap-3">
@@ -259,7 +259,7 @@ function Chapter({
               aria-hidden
               className="block h-px w-8 bg-foreground/60"
             />
-            <p className="text-overline font-heading tracking-badge text-muted-foreground uppercase">
+            <p className="text-overline font-heading text-muted-foreground uppercase">
               Step {String(index + 1).padStart(2, "0")} of{" "}
               {String(total).padStart(2, "0")}
             </p>
@@ -269,7 +269,7 @@ function Chapter({
         {/* Right: title, copy, deliverable */}
         <div className="flex flex-col gap-8 lg:max-w-xl">
           <div className="space-y-5">
-            <h2 className="leading-process-title font-heading text-4xl tracking-tight text-foreground capitalize sm:text-5xl lg:text-6xl">
+            <h2 className="leading-process-title font-heading text-4xl text-foreground capitalize sm:text-5xl lg:text-6xl">
               {step.title}
             </h2>
             <p className="max-w-md text-base leading-relaxed text-muted-foreground sm:text-lg">
@@ -279,10 +279,10 @@ function Chapter({
 
           {artifact ? (
             <div className="max-w-md bg-card p-6 ring-1 ring-border">
-              <p className="text-overline font-heading tracking-badge text-muted-foreground uppercase">
+              <p className="text-overline font-heading text-muted-foreground uppercase">
                 {artifact.kicker}
               </p>
-              <h3 className="mt-2 font-heading text-xl leading-tight tracking-tight text-foreground capitalize sm:text-2xl">
+              <h3 className="mt-2 font-heading text-xl leading-tight text-foreground capitalize sm:text-2xl">
                 {artifact.title}
               </h3>
               <div className="my-4 h-px bg-border" />
@@ -301,7 +301,7 @@ function Chapter({
                 ))}
               </ul>
               <div className="mt-5 border-t border-border pt-3">
-                <p className="text-overline font-heading tracking-badge text-muted-foreground uppercase">
+                <p className="text-overline font-heading text-muted-foreground uppercase">
                   {artifact.meta}
                 </p>
               </div>
@@ -327,11 +327,11 @@ function VerticalFallback({
   return (
     <div className="border-t border-border">
       <div className="px-6 py-16 sm:px-12 sm:py-24">
-        <p className="mb-6 text-xs font-medium tracking-section text-muted-foreground uppercase">
+        <p className="mb-6 text-xs font-medium text-muted-foreground uppercase">
           {heading.eyebrow}
         </p>
         <div className="max-w-3xl space-y-4">
-          <h2 className="leading-section font-heading text-4xl tracking-tight text-foreground capitalize sm:text-5xl">
+          <h2 className="leading-section font-heading text-4xl text-foreground capitalize sm:text-5xl">
             {heading.title}
           </h2>
           {heading.subtitle ? (
@@ -343,7 +343,7 @@ function VerticalFallback({
       </div>
 
       <div className="px-6 pb-8 sm:px-12">
-        <p className="text-overline font-heading tracking-badge text-muted-foreground uppercase">
+        <p className="text-overline font-heading text-muted-foreground uppercase">
           {eyebrow}
         </p>
       </div>
@@ -358,13 +358,13 @@ function VerticalFallback({
                   <p className="font-heading text-6xl leading-none text-foreground sm:text-7xl">
                     {step.number}
                   </p>
-                  <p className="text-overline font-heading tracking-badge text-muted-foreground uppercase">
+                  <p className="text-overline font-heading text-muted-foreground uppercase">
                     Step {String(index + 1).padStart(2, "0")} of{" "}
                     {String(steps.length).padStart(2, "0")}
                   </p>
                 </div>
                 <div className="space-y-5">
-                  <h2 className="leading-section font-heading text-3xl tracking-tight text-foreground capitalize sm:text-4xl">
+                  <h2 className="leading-section font-heading text-3xl text-foreground capitalize sm:text-4xl">
                     {step.title}
                   </h2>
                   <p className="max-w-2xl text-base leading-relaxed text-muted-foreground">
@@ -372,10 +372,10 @@ function VerticalFallback({
                   </p>
                   {artifact ? (
                     <div className="max-w-md bg-card p-5 ring-1 ring-border">
-                      <p className="text-overline font-heading tracking-badge text-muted-foreground uppercase">
+                      <p className="text-overline font-heading text-muted-foreground uppercase">
                         {artifact.kicker}
                       </p>
-                      <h3 className="mt-1 font-heading text-lg tracking-tight text-foreground capitalize">
+                      <h3 className="mt-1 font-heading text-lg text-foreground capitalize">
                         {artifact.title}
                       </h3>
                       <ul className="mt-3 space-y-1.5">

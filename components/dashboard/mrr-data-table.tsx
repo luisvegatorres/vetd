@@ -87,7 +87,7 @@ const columns: ColumnDef<MrrRow>[] = [
       return (
         <div className="min-w-0">
           <p className="truncate font-medium">{client}</p>
-          <p className="mt-1 flex items-center gap-2 truncate text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+          <p className="mt-1 flex items-center gap-2 truncate text-xs font-medium uppercase text-muted-foreground">
             Sold by <Dot /> {row.original.soldBy}
           </p>
         </div>
@@ -111,7 +111,7 @@ const columns: ColumnDef<MrrRow>[] = [
     cell: ({ row }) => (
       <div>
         <p className="font-medium">{row.original.product}</p>
-        <p className="mt-1 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+        <p className="mt-1 flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
           {row.original.plan} <Dot /> Since {row.original.since}
         </p>
       </div>
@@ -124,7 +124,7 @@ const columns: ColumnDef<MrrRow>[] = [
       <Badge
         variant="outline"
         className={cn(
-          "border-transparent uppercase tracking-ui",
+          "border-transparent uppercase",
           STATUS_CLASS[row.original.status],
         )}
       >
@@ -142,7 +142,7 @@ const columns: ColumnDef<MrrRow>[] = [
     cell: ({ row }) => (
       <span className="inline-flex items-center gap-1 font-medium tabular-nums">
         {fmtMoney.format(row.original.mrr)}
-        <span className="text-xs tracking-[0.12em] text-muted-foreground">
+        <span className="text-xs text-muted-foreground">
           /mo
         </span>
       </span>
@@ -243,7 +243,7 @@ export function MrrDataTable({ rows }: { rows: MrrRow[] }) {
                 <TableHead
                   key={h.id}
                   className={cn(
-                    "flex h-auto items-center px-4 py-2 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground",
+                    "flex h-auto items-center px-4 py-2 text-xs font-medium uppercase text-muted-foreground",
                     h.column.id === "mrr" && "justify-end",
                   )}
                 >
@@ -323,7 +323,7 @@ export function MrrDataTable({ rows }: { rows: MrrRow[] }) {
       </div>
 
       <div className="flex items-center justify-between gap-3 border-t border-border/60 px-4 py-3">
-        <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+        <p className="flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
           <span>
             Page {table.getState().pagination.pageIndex + 1} of{" "}
             {table.getPageCount() || 1}

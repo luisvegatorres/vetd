@@ -24,13 +24,13 @@ export function KpiCard({
   return (
     <Card className="gap-6">
       <CardHeader>
-        <p className="inline-flex items-center gap-2 text-overline font-medium uppercase tracking-ui text-muted-foreground">
+        <p className="inline-flex items-center gap-2 text-overline font-medium uppercase text-muted-foreground">
           {label}
         </p>
         {badge ? (
           <CardAction
             className={cn(
-              "text-overline font-medium uppercase tracking-ui",
+              "text-overline font-medium uppercase",
               badgeTone === "positive"
                 ? "text-emerald-400"
                 : "text-muted-foreground",
@@ -42,14 +42,14 @@ export function KpiCard({
       </CardHeader>
 
       <CardContent className="flex items-end justify-between gap-6">
-        <p className="font-heading text-4xl font-medium tracking-tight tabular-nums">
+        <p className="font-heading text-4xl font-medium tabular-nums">
           {value}
         </p>
         <Sparkline className="max-w-[55%]" />
       </CardContent>
 
       <CardFooter>
-        <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
+        <p className="text-overline font-medium uppercase text-muted-foreground">
           {footer}
         </p>
       </CardFooter>

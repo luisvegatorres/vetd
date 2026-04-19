@@ -41,16 +41,23 @@ type NavItem = {
   badge?: string | number
 }
 
-const workspaceNav: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutGrid },
-  { href: "/leads", label: "Leads", icon: Inbox, badge: 5 },
-  { href: "/pipeline", label: "Pipeline", icon: Layers },
-  { href: "/projects", label: "Projects", icon: Briefcase },
-  { href: "/clients", label: "Clients", icon: Users },
-  { href: "/payments", label: "Payments", icon: CreditCard },
-  { href: "/commissions", label: "Commissions", icon: TrendingUp },
-  { href: "/pitch-mode", label: "Pitch Mode", icon: Presentation },
-]
+function buildWorkspaceNav(newLeadsCount: number): NavItem[] {
+  return [
+    { href: "/dashboard", label: "Dashboard", icon: LayoutGrid },
+    {
+      href: "/leads",
+      label: "Leads",
+      icon: Inbox,
+      badge: newLeadsCount > 0 ? newLeadsCount : undefined,
+    },
+    { href: "/pipeline", label: "Pipeline", icon: Layers },
+    { href: "/projects", label: "Projects", icon: Briefcase },
+    { href: "/clients", label: "Clients", icon: Users },
+    { href: "/payments", label: "Payments", icon: CreditCard },
+    { href: "/commissions", label: "Commissions", icon: TrendingUp },
+    { href: "/pitch-mode", label: "Pitch Mode", icon: Presentation },
+  ]
+}
 
 const accountNav: NavItem[] = [
   { href: "/settings", label: "Settings", icon: Settings },
@@ -61,7 +68,7 @@ const adminNav: NavItem[] = [
   { href: "/admin/users", label: "Users", icon: UserCog },
 ]
 
-const itemClasses = "font-medium tracking-ui text-xs"
+const itemClasses = "font-medium text-xs"
 const inactiveClasses = "text-muted-foreground"
 
 function NavItemLink({
@@ -89,8 +96,15 @@ function NavItemLink({
   )
 }
 
-export function DashboardSidebar({ isAdmin }: { isAdmin: boolean }) {
+export function DashboardSidebar({
+  isAdmin,
+  newLeadsCount,
+}: {
+  isAdmin: boolean
+  newLeadsCount: number
+}) {
   const pathname = usePathname()
+  const workspaceNav = buildWorkspaceNav(newLeadsCount)
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`)
@@ -100,7 +114,7 @@ export function DashboardSidebar({ isAdmin }: { isAdmin: boolean }) {
       <SidebarHeader>
         <Link
           href="/dashboard"
-          className="font-heading text-sm font-medium tracking-ui text-foreground uppercase"
+          className="font-heading text-sm font-medium text-foreground uppercase"
         >
           <span className="group-data-[collapsible=icon]:hidden">
             {site.name}
@@ -113,7 +127,7 @@ export function DashboardSidebar({ isAdmin }: { isAdmin: boolean }) {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="uppercase tracking-ui">
+          <SidebarGroupLabel className="uppercase">
             Workspace
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -131,7 +145,7 @@ export function DashboardSidebar({ isAdmin }: { isAdmin: boolean }) {
 
         {isAdmin ? (
           <SidebarGroup>
-            <SidebarGroupLabel className="uppercase tracking-ui">
+            <SidebarGroupLabel className="uppercase">
               Admin
             </SidebarGroupLabel>
             <SidebarGroupContent>

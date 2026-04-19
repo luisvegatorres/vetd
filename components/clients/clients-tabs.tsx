@@ -4,22 +4,23 @@ import { useRouter, useSearchParams } from "next/navigation"
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
-import type { LeadTab } from "./lead-types"
+import type { ClientTab } from "./client-types"
 
-const TABS: { value: LeadTab; label: string }[] = [
+const TABS: { value: ClientTab; label: string }[] = [
   { value: "all", label: "All" },
-  { value: "new", label: "New" },
-  { value: "contacted", label: "Contacted" },
+  { value: "active", label: "Active" },
+  { value: "lead", label: "Lead" },
   { value: "qualified", label: "Qualified" },
+  { value: "at_risk", label: "At-Risk" },
   { value: "archived", label: "Archived" },
 ]
 
-export function LeadsTabs({
+export function ClientsTabs({
   active,
   counts,
 }: {
-  active: LeadTab
-  counts: Record<LeadTab, number>
+  active: ClientTab
+  counts: Record<ClientTab, number>
 }) {
   const router = useRouter()
   const params = useSearchParams()
@@ -29,9 +30,10 @@ export function LeadsTabs({
     const next = new URLSearchParams(params.toString())
     if (value === "all") next.delete("tab")
     else next.set("tab", value)
-    next.delete("lead")
+    next.delete("client")
+    next.delete("page")
     const qs = next.toString()
-    router.push(qs ? `/leads?${qs}` : "/leads", { scroll: false })
+    router.push(qs ? `/clients?${qs}` : "/clients", { scroll: false })
   }
 
   return (

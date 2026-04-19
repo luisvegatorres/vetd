@@ -192,7 +192,7 @@ export default async function AdminAnalyticsPage() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         <section className="border border-border/60">
           <header className="border-b border-border/60 p-6">
-            <h2 className="font-heading text-lg font-medium tracking-tight">
+            <h2 className="font-heading text-lg font-medium">
               Pipeline progression
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -210,13 +210,13 @@ export default async function AdminAnalyticsPage() {
                 >
                   <p
                     className={cn(
-                      "text-overline font-medium uppercase tracking-ui",
+                      "text-overline font-medium uppercase",
                       tone.text,
                     )}
                   >
                     {b.label}
                   </p>
-                  <p className="font-heading text-xl font-medium tracking-tight tabular-nums">
+                  <p className="font-heading text-xl font-medium tabular-nums">
                     {b.count}
                   </p>
                   <div className="h-1 w-full bg-border/40">
@@ -227,7 +227,7 @@ export default async function AdminAnalyticsPage() {
                       }}
                     />
                   </div>
-                  <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground tabular-nums">
+                  <p className="text-overline font-medium uppercase text-muted-foreground tabular-nums">
                     {fmtMoney.format(b.value)}
                   </p>
                 </li>
@@ -238,7 +238,7 @@ export default async function AdminAnalyticsPage() {
 
         <section className="border border-border/60">
           <header className="border-b border-border/60 p-6">
-            <h2 className="font-heading text-lg font-medium tracking-tight">
+            <h2 className="font-heading text-lg font-medium">
               Recent payments
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -260,7 +260,7 @@ export default async function AdminAnalyticsPage() {
                           <p className="text-sm font-medium tabular-nums">
                             {fmtMoney.format(Number(p.amount))}
                           </p>
-                          <p className="mt-1 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                          <p className="mt-1 flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
                             {fmtDate.format(new Date(p.created_at))}
                             <Dot />
                             {proj?.stage ?? "—"}
@@ -271,7 +271,7 @@ export default async function AdminAnalyticsPage() {
                         <Badge
                           variant="outline"
                           className={cn(
-                            "border-transparent uppercase tracking-ui",
+                            "border-transparent uppercase",
                             paymentStatusBadgeClass(p.status),
                           )}
                         >
@@ -289,7 +289,7 @@ export default async function AdminAnalyticsPage() {
 
       <section className="border border-border/60">
         <header className="border-b border-border/60 p-6">
-          <h2 className="font-heading text-lg font-medium tracking-tight">
+          <h2 className="font-heading text-lg font-medium">
             Team performance
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -304,7 +304,7 @@ export default async function AdminAnalyticsPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm tabular-nums">
-              <thead className="text-overline uppercase tracking-ui text-muted-foreground">
+              <thead className="text-overline uppercase text-muted-foreground">
                 <tr className="border-b border-border/60">
                   <th className="px-6 py-4 text-left font-medium">Rep</th>
                   <th className="px-6 py-4 text-right font-medium">Open</th>
@@ -323,7 +323,7 @@ export default async function AdminAnalyticsPage() {
                   <tr key={r.id} className="border-b border-border/60 last:border-0">
                     <td className="px-6 py-4">
                       <div className="font-medium">{r.name}</div>
-                      <div className="text-overline uppercase tracking-ui text-muted-foreground">
+                      <div className="text-overline uppercase text-muted-foreground">
                         {r.role}
                       </div>
                     </td>

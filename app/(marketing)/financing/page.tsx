@@ -119,14 +119,14 @@ export default function FinancingPage() {
           <RevealItem y={18}>
             <Badge
               variant="outline"
-              className="text-overline rounded-none border-border bg-transparent px-3 py-1 tracking-badge text-muted-foreground uppercase"
+              className="rounded-none border-border bg-transparent px-3 py-1 text-muted-foreground uppercase"
             >
               Financing
             </Badge>
           </RevealItem>
 
           <RevealItem className="space-y-5" y={26}>
-            <h1 className="leading-hero font-heading text-5xl font-normal tracking-tight text-foreground capitalize sm:text-6xl md:text-7xl">
+            <h1 className="leading-hero font-heading text-5xl font-normal text-foreground capitalize sm:text-6xl md:text-7xl">
               <span className="block">Build it this month.</span>
               <span className="block">Pay over 12.</span>
             </h1>
@@ -139,7 +139,7 @@ export default function FinancingPage() {
           </RevealItem>
 
           <RevealItem y={28}>
-            <BookCallButton size="lg" className="group tracking-wider">
+            <BookCallButton size="lg" className="group">
               Talk through your numbers
               <ArrowRight className="size-4 transition-transform duration-300 group-hover/button:translate-x-1" />
             </BookCallButton>
@@ -156,7 +156,7 @@ export default function FinancingPage() {
           {trustPoints.map((point) => (
             <RevealItem key={point.title} y={18} className="h-full">
               <div className="flex h-full flex-col gap-4 bg-background p-8">
-                <p className="text-xs tracking-badge text-muted-foreground uppercase">
+                <p className="text-xs text-muted-foreground uppercase">
                   {point.title}
                 </p>
                 <p className="text-sm leading-relaxed text-muted-foreground">
@@ -175,7 +175,7 @@ export default function FinancingPage() {
           stagger={0.08}
         >
           <RevealItem y={18}>
-            <h2 className="leading-section font-heading text-4xl tracking-tight text-foreground capitalize sm:text-5xl">
+            <h2 className="leading-section font-heading text-4xl text-foreground capitalize sm:text-5xl">
               Four steps, one signature.
             </h2>
           </RevealItem>
@@ -193,7 +193,7 @@ export default function FinancingPage() {
                   {step.number}
                 </p>
                 <div className="space-y-3">
-                  <p className="text-xs tracking-badge text-foreground uppercase">
+                  <p className="text-xs text-foreground uppercase">
                     {step.title}
                   </p>
                   <p className="text-sm leading-relaxed text-muted-foreground">
@@ -213,7 +213,7 @@ export default function FinancingPage() {
           stagger={0.08}
         >
           <RevealItem y={18}>
-            <h2 className="leading-section font-heading text-4xl tracking-tight text-foreground capitalize sm:text-5xl">
+            <h2 className="leading-section font-heading text-4xl text-foreground capitalize sm:text-5xl">
               Same total. Your pace.
             </h2>
           </RevealItem>
@@ -229,7 +229,7 @@ export default function FinancingPage() {
             <Reveal key={path.tag} y={20} className="h-full">
               <div className="flex h-full flex-col gap-8 bg-background p-10">
                 <div className="flex items-center gap-3">
-                  <span className="text-xs tracking-badge text-muted-foreground uppercase">
+                  <span className="text-xs text-muted-foreground uppercase">
                     {path.tag}
                   </span>
                   <span className="h-px w-12 bg-foreground/30" />
@@ -238,7 +238,7 @@ export default function FinancingPage() {
                   <h3 className="font-heading text-3xl leading-tight text-foreground capitalize sm:text-4xl">
                     {path.title}
                   </h3>
-                  <p className="text-sm tracking-badge text-foreground uppercase">
+                  <p className="text-sm text-foreground uppercase">
                     {path.price}
                   </p>
                 </div>
@@ -247,25 +247,25 @@ export default function FinancingPage() {
                 </p>
                 {path.tag === "Path A" ? (
                   <div className="mt-auto space-y-2 border-t border-border pt-6">
-                    <p className="text-xs tracking-badge text-muted-foreground uppercase">
+                    <p className="text-xs text-muted-foreground uppercase">
                       $10,000 project
                     </p>
                     <p className="font-heading text-2xl text-foreground">
                       $3,000 deposit + $7,000 on delivery
                     </p>
-                    <p className="text-xs tracking-badge text-muted-foreground uppercase">
+                    <p className="text-xs text-muted-foreground uppercase">
                       Two payments ▪ $10,000 total
                     </p>
                   </div>
                 ) : (
                   <div className="mt-auto space-y-2 border-t border-border pt-6">
-                    <p className="text-xs tracking-badge text-muted-foreground uppercase">
+                    <p className="text-xs text-muted-foreground uppercase">
                       $10,000 project
                     </p>
                     <p className="font-heading text-2xl text-foreground">
                       $3,000 deposit + $583.33/mo
                     </p>
-                    <p className="text-xs tracking-badge text-muted-foreground uppercase">
+                    <p className="text-xs text-muted-foreground uppercase">
                       12 months ▪ $10,000 total
                     </p>
                   </div>
@@ -279,7 +279,7 @@ export default function FinancingPage() {
       <Section size="md" eyebrow="004 — FAQ">
         <div className="faq-split-grid grid gap-12">
           <Reveal y={18}>
-            <h2 className="leading-section font-heading text-4xl tracking-tight text-foreground capitalize sm:text-5xl">
+            <h2 className="leading-section font-heading text-4xl text-foreground capitalize sm:text-5xl">
               Answers, up front.
             </h2>
           </Reveal>
@@ -287,7 +287,7 @@ export default function FinancingPage() {
             <Accordion>
               {financingFaq.map((item) => (
                 <AccordionItem key={item.q} value={item.q}>
-                  <AccordionTrigger className="text-left text-base tracking-wider uppercase">
+                  <AccordionTrigger className="text-left text-base uppercase">
                     {item.q}
                   </AccordionTrigger>
                   <AccordionContent>
@@ -309,7 +309,7 @@ export default function FinancingPage() {
           stagger={0.08}
         >
           <RevealItem y={18}>
-            <h2 className="leading-section font-heading text-4xl tracking-tight text-foreground capitalize sm:text-5xl">
+            <h2 className="leading-section font-heading text-4xl text-foreground capitalize sm:text-5xl">
               Run the numbers together.
             </h2>
           </RevealItem>
@@ -321,7 +321,7 @@ export default function FinancingPage() {
           </RevealItem>
           <RevealItem y={26}>
             <div className="flex justify-center">
-              <BookCallButton size="lg" className="group tracking-wider">
+              <BookCallButton size="lg" className="group">
                 Book a discovery call
                 <ArrowRight className="size-4 transition-transform duration-300 group-hover/button:translate-x-1" />
               </BookCallButton>

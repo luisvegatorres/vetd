@@ -84,7 +84,7 @@ export function DataTableHead({
     <TableHead
       className={cn(
         "flex h-auto min-w-0 items-center p-0",
-        "text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground",
+        "text-xs font-medium uppercase text-muted-foreground",
         align === "end" && "justify-end",
         className,
       )}
@@ -182,7 +182,7 @@ export function DataTablePagination({
         className,
       )}
     >
-      <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+      <p className="flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
         <span>Page {page} of {safeCount}</span>
         <Dot />
         <span>{total} {total === 1 ? "result" : "results"}</span>

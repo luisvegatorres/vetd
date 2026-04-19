@@ -90,6 +90,58 @@ export function leadStatusTone(status: LeadDerivedStatus): StatusTone {
   return { label: LEAD_STATUS_LABEL[status], ...LEAD_STATUS_TONE[status] }
 }
 
+export type ClientDirectoryStatus =
+  | "active"
+  | "lead"
+  | "qualified"
+  | "at_risk"
+  | "archived"
+
+const CLIENT_STATUS_LABEL: Record<ClientDirectoryStatus, string> = {
+  active: "Active",
+  lead: "Lead",
+  qualified: "Qualified",
+  at_risk: "At-Risk",
+  archived: "Archived",
+}
+
+const CLIENT_STATUS_TONE: Record<
+  ClientDirectoryStatus,
+  Omit<StatusTone, "label">
+> = {
+  active: {
+    text: "text-emerald-400",
+    bar: "bg-emerald-500",
+    badge: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  },
+  lead: {
+    text: "text-sky-400",
+    bar: "bg-sky-500",
+    badge: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
+  },
+  qualified: {
+    text: "text-teal-400",
+    bar: "bg-teal-500",
+    badge: "bg-teal-500/10 text-teal-600 dark:text-teal-400",
+  },
+  at_risk: {
+    text: "text-orange-500",
+    bar: "bg-orange-500",
+    badge: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+  },
+  archived: {
+    text: "text-muted-foreground",
+    bar: "bg-muted-foreground/60",
+    badge: "bg-muted text-muted-foreground",
+  },
+}
+
+export function clientDirectoryStatusTone(
+  status: ClientDirectoryStatus,
+): StatusTone {
+  return { label: CLIENT_STATUS_LABEL[status], ...CLIENT_STATUS_TONE[status] }
+}
+
 export const PAYMENT_STATUS_LABEL: Record<PaymentStatus | "succeeded", string> =
   {
     paid: "Paid",

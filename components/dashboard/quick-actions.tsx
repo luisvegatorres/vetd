@@ -32,7 +32,7 @@ export function QuickActions() {
   return (
     <section>
       <div className="mb-4 flex items-baseline justify-between">
-        <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
+        <p className="text-overline font-medium uppercase text-muted-foreground">
           Quick actions
         </p>
       </div>

@@ -92,7 +92,7 @@ export async function MrrPanel() {
     <Card className="gap-0 py-0">
       <header className="flex items-center justify-between gap-4 border-b border-border/60 p-6">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h2 className="font-heading text-lg font-medium tracking-tight">
+          <h2 className="font-heading text-lg font-medium">
             Recurring products
           </h2>
           <p className="text-sm text-muted-foreground">
@@ -137,25 +137,25 @@ function MrrSummary({
   return (
     <div className="grid grid-rows-[auto_auto_auto] divide-y divide-border/60 lg:border-r lg:border-border/60">
       <div className="p-6">
-        <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
+        <p className="text-overline font-medium uppercase text-muted-foreground">
           Current MRR
         </p>
         <div className="mt-3 flex items-baseline gap-3">
-          <p className="font-heading text-4xl font-medium tracking-tight tabular-nums">
+          <p className="font-heading text-4xl font-medium tabular-nums">
             {fmtMoney.format(currentMrr)}
           </p>
         </div>
-        <p className="mt-2 text-overline font-medium uppercase tracking-ui text-muted-foreground">
+        <p className="mt-2 text-overline font-medium uppercase text-muted-foreground">
           Annualised ▪ {fmtMoney.format(arr)} ARR
         </p>
       </div>
 
       <div className="p-6">
         <div className="flex items-baseline justify-between">
-          <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
+          <p className="text-overline font-medium uppercase text-muted-foreground">
             11-month trend
           </p>
-          <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
+          <p className="text-overline font-medium uppercase text-muted-foreground">
             {nowLabel} ▪ ${mrrK}
           </p>
         </div>
@@ -192,12 +192,12 @@ function SummaryStat({
 }) {
   return (
     <div className="p-6">
-      <p className="text-overline font-medium uppercase tracking-ui text-muted-foreground">
+      <p className="text-overline font-medium uppercase text-muted-foreground">
         {label}
       </p>
       <p
         className={cn(
-          "mt-3 font-heading text-2xl font-medium tracking-tight tabular-nums",
+          "mt-3 font-heading text-2xl font-medium tabular-nums",
           valueClass,
         )}
       >

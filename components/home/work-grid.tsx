@@ -85,7 +85,7 @@ export function WorkGrid() {
                 onClick={() => setActive(filter)}
                 variant={isActive ? "default" : "outline"}
                 className={cn(
-                  "tracking-wider",
+                  "",
                   !isActive &&
                     "bg-card text-muted-foreground hover:text-foreground"
                 )}
@@ -116,7 +116,7 @@ export function WorkGrid() {
                   }}
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="font-heading text-6xl leading-none tracking-tight text-muted-foreground/40 uppercase sm:text-7xl">
+                  <span className="font-heading text-6xl leading-none text-muted-foreground/40 uppercase sm:text-7xl">
                     {project.title
                       .split(" ")
                       .map((word) => word[0])
@@ -124,17 +124,17 @@ export function WorkGrid() {
                   </span>
                 </div>
                 <div className="absolute top-4 left-4">
-                  <span className="inline-flex items-center bg-background/80 px-2 py-1 text-xs font-medium tracking-section text-muted-foreground uppercase backdrop-blur-sm">
+                  <span className="inline-flex items-center bg-background/80 px-2 py-1 text-xs font-medium text-muted-foreground uppercase backdrop-blur-sm">
                     {project.category}
                   </span>
                 </div>
                 <ArrowUpRight className="absolute top-4 right-4 size-5 text-muted-foreground transition-colors group-hover/project:text-foreground" />
               </div>
               <CardContent className="space-y-3 px-6 py-6">
-                <p className="text-xs font-medium tracking-section text-muted-foreground uppercase">
+                <p className="text-xs font-medium text-muted-foreground uppercase">
                   {project.meta}
                 </p>
-                <h3 className="font-heading text-2xl leading-subheading tracking-tight text-foreground capitalize">
+                <h3 className="font-heading text-2xl leading-subheading text-foreground capitalize">
                   {project.title}
                 </h3>
                 <p className="text-sm leading-relaxed text-muted-foreground">
