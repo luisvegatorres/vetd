@@ -7,9 +7,22 @@ import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { site } from "@/lib/site"
 
-type BookCallButtonProps = React.ComponentProps<typeof Button>
+export type BookCallPrefill = {
+  name?: string
+  email?: string
+  notes?: string
+  guests?: string[]
+}
 
-export function BookCallButton({ children, ...props }: BookCallButtonProps) {
+type BookCallButtonProps = React.ComponentProps<typeof Button> & {
+  prefill?: BookCallPrefill
+}
+
+export function BookCallButton({
+  children,
+  prefill,
+  ...props
+}: BookCallButtonProps) {
   const { resolvedTheme } = useTheme()
 
   React.useEffect(() => {
@@ -24,13 +37,22 @@ export function BookCallButton({ children, ...props }: BookCallButtonProps) {
     })()
   }, [resolvedTheme])
 
+  const config = React.useMemo(() => {
+    const base: Record<string, unknown> = { layout: "month_view" }
+    if (prefill?.name) base.name = prefill.name
+    if (prefill?.email) base.email = prefill.email
+    if (prefill?.notes) base.notes = prefill.notes
+    if (prefill?.guests?.length) base.guests = prefill.guests
+    return JSON.stringify(base)
+  }, [prefill])
+
   if (!site.calLink) return null
 
   return (
     <Button
       data-cal-namespace="discovery"
       data-cal-link={site.calLink}
-      data-cal-config='{"layout":"month_view"}'
+      data-cal-config={config}
       {...props}
     >
       {children}

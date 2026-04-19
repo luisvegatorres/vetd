@@ -88,6 +88,9 @@ export type Database = {
           logged_by: string | null
           occurred_at: string
           project_id: string | null
+          source: string | null
+          source_payload: Json | null
+          source_ref: string | null
           title: string
           type: Database["public"]["Enums"]["interaction_type"]
         }
@@ -99,6 +102,9 @@ export type Database = {
           logged_by?: string | null
           occurred_at?: string
           project_id?: string | null
+          source?: string | null
+          source_payload?: Json | null
+          source_ref?: string | null
           title: string
           type: Database["public"]["Enums"]["interaction_type"]
         }
@@ -110,6 +116,9 @@ export type Database = {
           logged_by?: string | null
           occurred_at?: string
           project_id?: string | null
+          source?: string | null
+          source_payload?: Json | null
+          source_ref?: string | null
           title?: string
           type?: Database["public"]["Enums"]["interaction_type"]
         }
@@ -268,6 +277,7 @@ export type Database = {
           created_at?: string
           currency?: string
           deadline?: string | null
+          deposit_amount?: number | null
           deposit_paid_at?: string | null
           deposit_rate?: number
           description?: string | null
@@ -294,6 +304,7 @@ export type Database = {
           created_at?: string
           currency?: string
           deadline?: string | null
+          deposit_amount?: number | null
           deposit_paid_at?: string | null
           deposit_rate?: number
           description?: string | null
@@ -449,6 +460,7 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      calculate_lead_score: { Args: { p_client_id: string }; Returns: number }
     }
     Enums: {
       client_source:

@@ -54,6 +54,7 @@ Expected in `.env.local`:
 - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — public browser/SSR client
 - `SUPABASE_SERVICE_ROLE_KEY` — admin client only
 - `NEXT_PUBLIC_CALENDLY_URL`, `NEXT_PUBLIC_CAL_LINK`, `NEXT_PUBLIC_WHATSAPP_DISPLAY`/`NEXT_PUBLIC_WHATSAPP_NUMBER` — marketing-site CTAs; `lib/site.ts` falls back to defaults when missing.
+- `CAL_WEBHOOK_SECRET` — HMAC-SHA256 secret used by `app/api/webhooks/cal/route.ts` to verify Cal.com webhook payloads. Set the same value in the Cal.com webhook config. The route handles `BOOKING_CREATED` / `BOOKING_RESCHEDULED` / `BOOKING_CANCELLED` and upserts `interactions` rows keyed on `(source, source_ref)`.
 
 ### Database
 

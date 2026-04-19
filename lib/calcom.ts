@@ -15,6 +15,12 @@ export type CalBooking = {
   clientId: string | null
 }
 
+type CalSourcePayload = {
+  endTime?: string
+  videoCallData?: { url?: string }
+  location?: string
+}
+
 export async function getUpcomingBookings(limit = 5): Promise<CalBooking[]> {
   const supabase = await createClient()
   const nowIso = new Date().toISOString()
@@ -27,11 +33,13 @@ export async function getUpcomingBookings(limit = 5): Promise<CalBooking[]> {
         title,
         occurred_at,
         client_id,
+        source_payload,
         clients ( name, email )
       `,
     )
     .eq("type", "meeting")
     .gte("occurred_at", nowIso)
+    .not("title", "ilike", "[Cancelled]%")
     .order("occurred_at", { ascending: true })
     .limit(limit)
 
@@ -39,12 +47,17 @@ export async function getUpcomingBookings(limit = 5): Promise<CalBooking[]> {
 
   return data.map((row) => {
     const client = Array.isArray(row.clients) ? row.clients[0] : row.clients
+    const payload = (row.source_payload ?? null) as CalSourcePayload | null
+    const joinUrl =
+      payload?.videoCallData?.url ??
+      (payload?.location?.startsWith("http") ? payload.location : null) ??
+      null
     return {
       id: row.id,
       title: row.title,
       startsAt: row.occurred_at,
-      endsAt: null,
-      joinUrl: null,
+      endsAt: payload?.endTime ?? null,
+      joinUrl,
       attendee: {
         name: client?.name ?? "Unknown",
         email: client?.email ?? null,

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, Phone } from "lucide-react"
 import { toast } from "sonner"
 
 import { BookCallButton } from "@/components/actions/book-call-button"
@@ -13,6 +13,11 @@ import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group"
 import {
   Select,
   SelectContent,
@@ -43,6 +48,14 @@ const budgetOptions = [
   "Monthly plan",
 ] as const
 
+function formatPhone(digits: string) {
+  const d = digits.slice(0, 10)
+  if (d.length === 0) return ""
+  if (d.length <= 3) return `(${d}`
+  if (d.length <= 6) return `(${d.slice(0, 3)}) ${d.slice(3)}`
+  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`
+}
+
 const howWeStart = [
   {
     value: "20 min",
@@ -62,6 +75,18 @@ export default function ContactPage() {
   const [projectType, setProjectType] = React.useState<string>("")
   const [budgetRange, setBudgetRange] = React.useState<string>("")
   const [submitting, setSubmitting] = React.useState(false)
+  const [name, setName] = React.useState("")
+  const [email, setEmail] = React.useState("")
+  const [phone, setPhone] = React.useState("")
+  const [projectDetails, setProjectDetails] = React.useState("")
+
+  const prefillNotes = React.useMemo(() => {
+    const parts: string[] = []
+    if (projectType) parts.push(`Looking to build: ${projectType}`)
+    if (budgetRange) parts.push(`Budget: ${budgetRange}`)
+    if (projectDetails) parts.push(projectDetails)
+    return parts.join("\n\n") || undefined
+  }, [projectType, budgetRange, projectDetails])
 
   function handleProjectTypeChange(value: string | null) {
     setProjectType(value ?? "")
@@ -95,15 +120,19 @@ export default function ContactPage() {
     form.reset()
     setProjectType("")
     setBudgetRange("")
+    setName("")
+    setEmail("")
+    setPhone("")
+    setProjectDetails("")
     setSubmitting(false)
   }
 
   return (
     <>
       <Section size="md">
-        <div className="contact-split-grid grid items-start gap-12">
+        <div className="contact-split-grid grid items-stretch gap-12">
           <RevealGroup
-            className="space-y-8 lg:pt-6"
+            className="flex h-full flex-col gap-8 lg:pt-6"
             delayChildren={0.1}
             stagger={0.08}
           >
@@ -131,10 +160,33 @@ export default function ContactPage() {
               <BookCallButton
                 size="lg"
                 className="group tracking-wider"
+                prefill={{
+                  name: name || undefined,
+                  email: email || undefined,
+                  notes: prefillNotes,
+                }}
               >
                 Book a discovery call
                 <ArrowRight className="size-4 transition-transform duration-300 group-hover/button:translate-x-1" />
               </BookCallButton>
+            </RevealItem>
+
+            <RevealItem y={20} className="mt-auto pt-4">
+              <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-3">
+                {howWeStart.map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex h-full flex-col justify-between gap-6 bg-background p-6"
+                  >
+                    <p className="font-heading text-4xl leading-none text-foreground sm:text-5xl">
+                      {item.value}
+                    </p>
+                    <p className="text-xs tracking-ui text-muted-foreground uppercase">
+                      {item.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </RevealItem>
           </RevealGroup>
 
@@ -151,7 +203,7 @@ export default function ContactPage() {
             >
               <div className="space-y-2">
                 <p className="text-overline tracking-banner text-muted-foreground uppercase">
-                  / 001 — Inquiry form
+                  Inquiry form
                 </p>
                 <h2 className="leading-form-title font-heading text-3xl tracking-tight text-foreground capitalize">
                   Tell us about it
@@ -172,6 +224,8 @@ export default function ContactPage() {
                     required
                     placeholder="Jane Smith"
                     groupClassName="rounded-none"
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
                   />
                 </Field>
 
@@ -188,7 +242,39 @@ export default function ContactPage() {
                     required
                     placeholder="jane@company.com"
                     groupClassName="rounded-none"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
                   />
+                </Field>
+
+                <Field>
+                  <FieldLabel
+                    htmlFor="phone"
+                    className="text-xs tracking-ui uppercase"
+                  >
+                    Phone
+                  </FieldLabel>
+                  <InputGroup className="rounded-none">
+                    <InputGroupAddon>
+                      <Phone aria-hidden />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      inputMode="numeric"
+                      autoComplete="tel"
+                      required
+                      placeholder="(555) 123-4567"
+                      maxLength={14}
+                      value={formatPhone(phone)}
+                      onChange={(event) =>
+                        setPhone(
+                          event.target.value.replace(/\D/g, "").slice(0, 10),
+                        )
+                      }
+                    />
+                  </InputGroup>
                 </Field>
 
                 <Field>
@@ -268,6 +354,8 @@ export default function ContactPage() {
                     required
                     placeholder="What are you building, who is it for, and what should it achieve?"
                     className="rounded-none"
+                    value={projectDetails}
+                    onChange={(event) => setProjectDetails(event.target.value)}
                   />
                 </Field>
 
@@ -286,27 +374,6 @@ export default function ContactPage() {
             </form>
           </Reveal>
         </div>
-      </Section>
-
-      <Section eyebrow="/ 002 — How we start" size="md">
-        <RevealGroup
-          className="grid grid-cols-1 gap-px bg-border sm:grid-cols-3"
-          delayChildren={0.08}
-          stagger={0.08}
-        >
-          {howWeStart.map((item) => (
-            <RevealItem key={item.label} y={18} className="h-full">
-              <div className="flex h-full flex-col justify-between gap-8 bg-background p-8">
-                <p className="font-heading text-5xl leading-none text-foreground sm:text-6xl">
-                  {item.value}
-                </p>
-                <p className="text-xs tracking-ui text-muted-foreground uppercase">
-                  {item.label}
-                </p>
-              </div>
-            </RevealItem>
-          ))}
-        </RevealGroup>
       </Section>
     </>
   )
