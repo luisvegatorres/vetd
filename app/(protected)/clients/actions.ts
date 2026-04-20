@@ -22,12 +22,29 @@ function titleCase(v: string) {
   return v.replace(/\b(\p{Ll})/gu, (c) => c.toUpperCase())
 }
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function parseAssignedTo(formData: FormData): string | null | undefined {
+  if (!formData.has("assigned_to")) return undefined
+  const raw = String(formData.get("assigned_to") ?? "").trim()
+  if (!raw || raw === "__unassigned__") return null
+  return UUID_RE.test(raw) ? raw : undefined
+}
+
 export async function createNewClient(
   formData: FormData,
 ): Promise<CreateClientResult> {
   const supabase = await createClient()
   const { data: auth } = await supabase.auth.getUser()
   if (!auth.user) return { ok: false, error: "Not authenticated" }
+
+  const { data: me } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", auth.user.id)
+    .maybeSingle()
+  const canReassign = me?.role === "admin" || me?.role === "editor"
 
   const name = titleCase(String(formData.get("name") ?? "").trim())
   if (!name) return { ok: false, error: "Name is required" }
@@ -55,6 +72,10 @@ export async function createNewClient(
       ? rawIndustry
       : null
 
+  const assignedOverride = canReassign ? parseAssignedTo(formData) : undefined
+  const assignedTo =
+    assignedOverride !== undefined ? assignedOverride : auth.user.id
+
   const { data, error } = await supabase
     .from("clients")
     .insert({
@@ -66,7 +87,7 @@ export async function createNewClient(
       location: str("location"),
       notes: str("notes"),
       status,
-      assigned_to: auth.user.id,
+      assigned_to: assignedTo,
     })
     .select("id")
     .single()
@@ -113,21 +134,79 @@ export async function updateClient(
       ? rawIndustry
       : null
 
+  const { data: me } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", auth.user.id)
+    .maybeSingle()
+  const canReassign = me?.role === "admin" || me?.role === "editor"
+
+  const assignedOverride = canReassign ? parseAssignedTo(formData) : undefined
+
+  const updatePayload: {
+    name: string
+    company: string | null
+    email: string | null
+    phone: string | null
+    industry: string | null
+    location: string | null
+    notes: string | null
+    status: ClientStatus
+    assigned_to?: string | null
+  } = {
+    name,
+    company: rawCompany ? titleCase(rawCompany) : null,
+    email,
+    phone: str("phone"),
+    industry,
+    location: str("location"),
+    notes: str("notes"),
+    status,
+  }
+  if (assignedOverride !== undefined) {
+    updatePayload.assigned_to = assignedOverride
+  }
+
+  const { data: existing } = await supabase
+    .from("clients")
+    .select("assigned_to")
+    .eq("id", clientId)
+    .maybeSingle()
+
   const { error } = await supabase
     .from("clients")
-    .update({
-      name,
-      company: rawCompany ? titleCase(rawCompany) : null,
-      email,
-      phone: str("phone"),
-      industry,
-      location: str("location"),
-      notes: str("notes"),
-      status,
-    })
+    .update(updatePayload)
     .eq("id", clientId)
 
   if (error) return { ok: false, error: error.message }
+
+  // When an admin/editor reassigns the client, carry the ownership through to
+  // the client's open deals so `sold_by` (and therefore commission) stays in
+  // sync with the rep who now owns the relationship.
+  if (
+    assignedOverride !== undefined
+    && existing?.assigned_to !== assignedOverride
+  ) {
+    const [projectsUpdate, subsUpdate] = await Promise.all([
+      supabase
+        .from("projects")
+        .update({ sold_by: assignedOverride })
+        .eq("client_id", clientId),
+      supabase
+        .from("subscriptions")
+        .update({ sold_by: assignedOverride })
+        .eq("client_id", clientId),
+    ])
+    if (projectsUpdate.error) {
+      return { ok: false, error: projectsUpdate.error.message }
+    }
+    if (subsUpdate.error) {
+      return { ok: false, error: subsUpdate.error.message }
+    }
+    revalidatePath("/pipeline")
+    revalidatePath("/projects")
+    revalidatePath("/commissions")
+  }
 
   revalidatePath("/clients")
   return { ok: true }

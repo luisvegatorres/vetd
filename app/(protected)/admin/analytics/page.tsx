@@ -22,9 +22,13 @@ import {
 import { createClient } from "@/lib/supabase/server"
 import { cn } from "@/lib/utils"
 
+// `negotiation` is hidden from the analytics grid — its rows roll up into the
+// Proposal bucket below. The DB enum is untouched for legacy rows.
 const STAGES: { key: ProjectStage; label: string }[] = (
   Object.keys(PROJECT_STAGE_LABEL) as ProjectStage[]
-).map((key) => ({ key, label: PROJECT_STAGE_LABEL[key] }))
+)
+  .filter((key) => key !== "negotiation")
+  .map((key) => ({ key, label: PROJECT_STAGE_LABEL[key] }))
 
 const OPEN_STAGES: ProjectStage[] = ["proposal", "negotiation", "active"]
 
@@ -100,7 +104,11 @@ export default async function AdminAnalyticsPage() {
     .reduce((sum, s) => sum + Number(s.monthly_rate), 0)
 
   const stageBuckets = STAGES.map((s) => {
-    const inStage = projectList.filter((p) => p.stage === s.key)
+    const inStage = projectList.filter((p) =>
+      s.key === "proposal"
+        ? p.stage === "proposal" || p.stage === "negotiation"
+        : p.stage === s.key,
+    )
     return {
       ...s,
       count: inStage.length,

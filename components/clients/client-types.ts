@@ -35,6 +35,7 @@ export type ClientSubscriptionSummary = {
   monthly_rate: number
   status: SubscriptionStatus
   started_at: string
+  stripe_subscription_id: string | null
 }
 
 export type ClientRow = {

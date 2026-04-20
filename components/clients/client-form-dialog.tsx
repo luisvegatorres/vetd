@@ -51,6 +51,10 @@ const STATUS_OPTIONS = Object.entries(STATUS_LABEL) as [
   string,
 ][]
 
+const UNASSIGNED_VALUE = "__unassigned__"
+
+export type RepOption = { id: string; full_name: string | null }
+
 function formatPhone(digits: string) {
   const d = digits.slice(0, 10)
   if (d.length === 0) return ""
@@ -64,12 +68,19 @@ function phoneDigits(v: string | null | undefined) {
 }
 
 type Props =
-  | { mode: "create" }
-  | { mode: "edit"; client: ClientRow }
+  | { mode: "create"; reps?: RepOption[]; canReassign?: boolean }
+  | {
+      mode: "edit"
+      client: ClientRow
+      reps?: RepOption[]
+      canReassign?: boolean
+    }
 
 function ClientFormDialog(props: Props) {
   const isEdit = props.mode === "edit"
   const client = isEdit ? props.client : null
+  const reps = props.reps ?? []
+  const canReassign = Boolean(props.canReassign && reps.length > 0)
   const formId = useId()
 
   const [open, setOpen] = useState(false)
@@ -210,6 +221,43 @@ function ClientFormDialog(props: Props) {
                 />
               </InputGroup>
             </div>
+            {canReassign ? (
+              <div className="flex flex-col gap-2 sm:col-span-2">
+                <Label htmlFor={`${formId}-assigned-to`}>Rep</Label>
+                <Select
+                  name="assigned_to"
+                  defaultValue={client?.owner?.id ?? UNASSIGNED_VALUE}
+                >
+                  <SelectTrigger
+                    id={`${formId}-assigned-to`}
+                    className="w-full"
+                  >
+                    <SelectValue>
+                      {(value) => {
+                        if (!value || value === UNASSIGNED_VALUE) {
+                          return "Unassigned"
+                        }
+                        const rep = reps.find((r) => r.id === value)
+                        return rep?.full_name ?? "Unassigned"
+                      }}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Rep</SelectLabel>
+                      <SelectItem value={UNASSIGNED_VALUE}>
+                        Unassigned
+                      </SelectItem>
+                      {reps.map((rep) => (
+                        <SelectItem key={rep.id} value={rep.id}>
+                          {rep.full_name ?? "Unnamed"}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
             <div className="flex flex-col gap-2 sm:col-span-2">
               <Label htmlFor={`${formId}-status`}>Status</Label>
               <Select
@@ -265,10 +313,33 @@ function ClientFormDialog(props: Props) {
   )
 }
 
-export function NewClientDialog() {
-  return <ClientFormDialog mode="create" />
+export function NewClientDialog({
+  reps,
+  canReassign,
+}: {
+  reps?: RepOption[]
+  canReassign?: boolean
+} = {}) {
+  return (
+    <ClientFormDialog mode="create" reps={reps} canReassign={canReassign} />
+  )
 }
 
-export function EditClientDialog({ client }: { client: ClientRow }) {
-  return <ClientFormDialog mode="edit" client={client} />
+export function EditClientDialog({
+  client,
+  reps,
+  canReassign,
+}: {
+  client: ClientRow
+  reps?: RepOption[]
+  canReassign?: boolean
+}) {
+  return (
+    <ClientFormDialog
+      mode="edit"
+      client={client}
+      reps={reps}
+      canReassign={canReassign}
+    />
+  )
 }

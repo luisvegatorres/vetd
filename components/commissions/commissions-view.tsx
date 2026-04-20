@@ -44,7 +44,12 @@ type LedgerRow = {
   subscription_id: string
 }
 
-type ProfileRow = { id: string; full_name: string | null }
+type ProfileRow = {
+  id: string
+  full_name: string | null
+  role?: string | null
+  employment_status?: "active" | "terminated" | null
+}
 
 type SubscriptionRow = {
   id: string
@@ -106,6 +111,7 @@ export function CommissionsView({
   profiles,
   subscriptions,
   clients,
+  assignedClientsCount = 0,
   currentUserId,
   isAdmin,
 }: {
@@ -113,6 +119,7 @@ export function CommissionsView({
   profiles: ProfileRow[]
   subscriptions: SubscriptionRow[]
   clients: ClientRow[]
+  assignedClientsCount?: number
   currentUserId: string
   isAdmin: boolean
 }) {
@@ -159,6 +166,63 @@ export function CommissionsView({
     return { pending, paid }
   }, [ledger, isAdmin, currentUserId])
 
+  const myActiveSubs = useMemo(
+    () =>
+      subscriptions.filter(
+        (s) => s.sold_by === currentUserId && s.status === "active",
+      ),
+    [subscriptions, currentUserId],
+  )
+  const myMrc = useMemo(
+    () =>
+      myActiveSubs.reduce(
+        (sum, s) => sum + Number(s.monthly_residual_amount ?? 0),
+        0,
+      ),
+    [myActiveSubs],
+  )
+
+  // Admin-only team rollup: one row per rep with active subs, MRC, and ledger
+  // totals. Terminated reps keep their ledger history but MRC projects to $0
+  // because residuals stop accruing on termination.
+  const teamRollup = useMemo(() => {
+    if (!isAdmin) return []
+    return profiles
+      .map((p) => {
+        const repSubs = subscriptions.filter((s) => s.sold_by === p.id)
+        const activeSubs = repSubs.filter((s) => s.status === "active")
+        const mrc = activeSubs.reduce(
+          (sum, s) => sum + Number(s.monthly_residual_amount ?? 0),
+          0,
+        )
+        const repLedger = ledger.filter((l) => l.rep_id === p.id)
+        const pending = repLedger
+          .filter((l) => l.status === "pending")
+          .reduce((sum, l) => sum + Number(l.amount), 0)
+        const paid = repLedger
+          .filter((l) => l.status === "paid")
+          .reduce((sum, l) => sum + Number(l.amount), 0)
+        return {
+          id: p.id,
+          name: p.full_name ?? "Unnamed",
+          role: p.role ?? null,
+          employment: p.employment_status ?? null,
+          activeSubsCount: activeSubs.length,
+          mrc: p.employment_status === "terminated" ? 0 : mrc,
+          pending,
+          paid,
+          touched: repSubs.length > 0 || repLedger.length > 0,
+        }
+      })
+      .filter((r) => r.touched || r.employment === "active")
+      .sort((a, b) => b.mrc + b.pending - (a.mrc + a.pending))
+  }, [isAdmin, profiles, subscriptions, ledger])
+
+  const teamMrc = useMemo(
+    () => teamRollup.reduce((sum, r) => sum + r.mrc, 0),
+    [teamRollup],
+  )
+
   // Rep book-of-business: roll up subscriptions they sold.
   const myBook = useMemo(() => {
     const myId = currentUserId
@@ -204,7 +268,32 @@ export function CommissionsView({
 
   return (
     <div className="space-y-8">
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div
+        className={cn(
+          "grid gap-4 sm:grid-cols-2",
+          isAdmin ? "xl:grid-cols-3" : "xl:grid-cols-4",
+        )}
+      >
+        {isAdmin ? (
+          <KpiCard
+            label="Team MRC"
+            value={fmtMoney.format(teamMrc)}
+            footer="Projected residual payout next cycle."
+          />
+        ) : (
+          <>
+            <KpiCard
+              label="Clients assigned"
+              value={String(assignedClientsCount)}
+              footer="Everyone in your pipeline, leads through closed."
+            />
+            <KpiCard
+              label="Active subscriptions"
+              value={String(myActiveSubs.length)}
+              footer={`Projects MRC of ${fmtMoney.format(myMrc)} next cycle.`}
+            />
+          </>
+        )}
         <KpiCard
           label={isAdmin ? "Pending payouts" : "Owed to you"}
           value={fmtMoney.format(totals.pending)}
@@ -216,6 +305,95 @@ export function CommissionsView({
           footer="Across all paid ledger rows."
         />
       </div>
+
+      {isAdmin ? (
+        <section className="border border-border/60">
+          <header className="border-b border-border/60 p-6">
+            <h2 className="font-heading text-lg font-medium">Team roster</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Per-rep breakdown of active subscriptions, monthly recurring
+              commission, and payouts. Residuals freeze when a rep flips to
+              terminated.
+            </p>
+          </header>
+
+          <DataTable cols="minmax(200px,1.6fr) minmax(110px,0.8fr) minmax(90px,0.6fr) minmax(110px,1fr) minmax(110px,1fr) minmax(110px,1fr)">
+            <DataTableHeader>
+              <DataTableHead>Rep</DataTableHead>
+              <DataTableHead>Employment</DataTableHead>
+              <DataTableHead align="end">Active subs</DataTableHead>
+              <DataTableHead align="end">MRC</DataTableHead>
+              <DataTableHead align="end">Pending</DataTableHead>
+              <DataTableHead align="end">Paid</DataTableHead>
+            </DataTableHeader>
+            {teamRollup.length === 0 ? (
+              <DataTableEmpty>No team members yet.</DataTableEmpty>
+            ) : (
+              <DataTableBody>
+                {teamRollup.map((r) => (
+                  <DataTableRow key={r.id}>
+                    <DataTableCell>
+                      <div className="flex min-w-0 flex-col">
+                        <span className="truncate text-sm font-medium">
+                          {r.name}
+                        </span>
+                        {r.role ? (
+                          <span className="truncate text-xs uppercase text-muted-foreground">
+                            {r.role.replace("_", " ")}
+                          </span>
+                        ) : null}
+                      </div>
+                    </DataTableCell>
+                    <DataTableCell>
+                      {r.employment ? (
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "border-transparent uppercase",
+                            r.employment === "active" &&
+                              "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+                            r.employment === "terminated" &&
+                              "bg-muted text-muted-foreground",
+                          )}
+                        >
+                          {r.employment}
+                        </Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </DataTableCell>
+                    <DataTableCell align="end">
+                      <span className="text-sm tabular-nums">
+                        {r.activeSubsCount}
+                      </span>
+                    </DataTableCell>
+                    <DataTableCell align="end">
+                      <span className="text-sm font-medium tabular-nums">
+                        {fmtMoney.format(r.mrc)}
+                      </span>
+                    </DataTableCell>
+                    <DataTableCell align="end">
+                      <span
+                        className={cn(
+                          "text-sm tabular-nums",
+                          r.pending > 0 && "font-medium",
+                        )}
+                      >
+                        {fmtMoney.format(r.pending)}
+                      </span>
+                    </DataTableCell>
+                    <DataTableCell align="end">
+                      <span className="text-sm tabular-nums text-muted-foreground">
+                        {fmtMoney.format(r.paid)}
+                      </span>
+                    </DataTableCell>
+                  </DataTableRow>
+                ))}
+              </DataTableBody>
+            )}
+          </DataTable>
+        </section>
+      ) : null}
 
       {!isAdmin ? (
         <section className="border border-border/60">
@@ -362,12 +540,13 @@ export function CommissionsView({
         <DataTable
           cols={
             isAdmin
-              ? "minmax(0,1fr) auto auto auto auto auto"
-              : "minmax(0,1fr) auto auto auto auto"
+              ? "minmax(180px,1.6fr) minmax(100px,0.7fr) minmax(140px,1.2fr) minmax(120px,1fr) minmax(110px,1fr) minmax(70px,0.6fr) minmax(120px,1fr)"
+              : "minmax(180px,1.6fr) minmax(100px,0.7fr) minmax(120px,1fr) minmax(110px,1fr) minmax(70px,0.6fr) minmax(120px,1fr)"
           }
         >
           <DataTableHeader>
-            <DataTableHead>Client / Subscription</DataTableHead>
+            <DataTableHead>Client</DataTableHead>
+            <DataTableHead>Subscription</DataTableHead>
             {isAdmin ? <DataTableHead>Rep</DataTableHead> : null}
             <DataTableHead>Type</DataTableHead>
             <DataTableHead>Period</DataTableHead>
@@ -387,12 +566,18 @@ export function CommissionsView({
                 return (
                   <DataTableRow key={row.id}>
                     <DataTableCell>
-                      <p className="text-sm font-medium">
+                      <span className="truncate text-sm font-medium">
                         {clientLabel(client)}
-                      </p>
-                      <p className="mt-1 text-xs uppercase text-muted-foreground">
-                        {sub?.plan ?? "Subscription"}
-                      </p>
+                      </span>
+                    </DataTableCell>
+                    <DataTableCell>
+                      {sub?.plan ? (
+                        <Badge variant="outline" className="uppercase">
+                          {sub.plan}
+                        </Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
                     </DataTableCell>
                     {isAdmin ? (
                       <DataTableCell>

@@ -76,10 +76,12 @@ type Props =
       reps: { id: string; full_name: string | null }[]
     }
 
-const STAGE_OPTIONS = Object.entries(PROJECT_STAGE_LABEL) as [
-  ProjectStage,
-  string,
-][]
+// `negotiation` is hidden from the form — reps only pick between the real
+// three pipeline states. Legacy rows in that stage still render their label
+// via PROJECT_STAGE_LABEL until they're resolved.
+const STAGE_OPTIONS = (
+  Object.entries(PROJECT_STAGE_LABEL) as [ProjectStage, string][]
+).filter(([value]) => value !== "negotiation")
 
 const PAYMENT_OPTIONS: [PaymentStatus, string][] = [
   ["unpaid", PAYMENT_STATUS_LABEL.unpaid],
@@ -186,11 +188,20 @@ function ProjectFormDialog(props: Props) {
   // commission with the selected plan's signing bonus ($100 / $250 / $150
   // fallback for Custom). Rep can still override or switch back to rate mode.
   const bundledBonus = bundledSigningBonus(planId)
-  React.useEffect(() => {
-    if (!websiteBundledRecurring) return
-    setCommissionMode("flat")
-    setCommissionFlatStr((prev) => (prev ? prev : String(bundledBonus)))
-  }, [websiteBundledRecurring, bundledBonus])
+  // Adjust state during render on transitions (enter bundled mode or change
+  // plan while bundled) instead of in an effect. Re-renders bail out when the
+  // "flat" mode and prefilled value are already applied, so this is a no-op
+  // in the steady state. See https://react.dev/learn/you-might-not-need-an-effect#adjusting-state-based-on-other-state
+  const bundledPlanKey = websiteBundledRecurring ? planId : null
+  const [prevBundledPlanKey, setPrevBundledPlanKey] =
+    React.useState(bundledPlanKey)
+  if (prevBundledPlanKey !== bundledPlanKey) {
+    setPrevBundledPlanKey(bundledPlanKey)
+    if (bundledPlanKey !== null) {
+      setCommissionMode("flat")
+      setCommissionFlatStr((prev) => (prev ? prev : String(bundledBonus)))
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>

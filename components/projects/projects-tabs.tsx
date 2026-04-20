@@ -9,7 +9,6 @@ import type { ProjectTab } from "./project-types"
 const TABS: { value: ProjectTab; label: string }[] = [
   { value: "all", label: "All" },
   { value: "proposal", label: "Proposal" },
-  { value: "negotiation", label: "Negotiation" },
   { value: "active", label: "Active" },
   { value: "completed", label: "Completed" },
   { value: "cancelled", label: "Cancelled" },

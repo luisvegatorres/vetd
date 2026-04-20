@@ -10,7 +10,11 @@ import {
 } from "@/lib/status-colors"
 import { cn } from "@/lib/utils"
 
-const PIPELINE_STAGES: Stage[] = ["proposal", "negotiation", "active"]
+// Stages we *load* from Postgres — legacy negotiation rows still exist in
+// the DB and roll up into the Proposal column.
+const PIPELINE_LOAD_STAGES: Stage[] = ["proposal", "negotiation", "active"]
+// Stages we *display* in the snapshot grid.
+const PIPELINE_DISPLAY_STAGES: Stage[] = ["proposal", "active"]
 
 const fmtCompact = new Intl.NumberFormat("en-US", {
   notation: "compact",
@@ -34,7 +38,7 @@ export async function PipelineSnapshot() {
     supabase
       .from("projects")
       .select("stage, value")
-      .in("stage", PIPELINE_STAGES),
+      .in("stage", PIPELINE_LOAD_STAGES),
     supabase
       .from("projects")
       .select(
@@ -47,7 +51,7 @@ export async function PipelineSnapshot() {
           clients ( name )
         `,
       )
-      .in("stage", PIPELINE_STAGES)
+      .in("stage", PIPELINE_LOAD_STAGES)
       .order("value", { ascending: false, nullsFirst: false })
       .limit(5),
   ])
@@ -61,12 +65,13 @@ export async function PipelineSnapshot() {
   }
 
   for (const row of projectsRes.data ?? []) {
-    const stage = row.stage as Stage
+    // Fold legacy negotiation rows into the Proposal bucket.
+    const stage = (row.stage === "negotiation" ? "proposal" : row.stage) as Stage
     stageTotals[stage].count += 1
     stageTotals[stage].value += Number(row.value ?? 0)
   }
 
-  const totalValue = PIPELINE_STAGES.reduce(
+  const totalValue = PIPELINE_DISPLAY_STAGES.reduce(
     (sum, s) => sum + stageTotals[s].value,
     0,
   )
@@ -108,8 +113,8 @@ export async function PipelineSnapshot() {
         </Button>
       </header>
 
-      <div className="grid grid-cols-3 divide-x divide-border/60 border-b border-border/60">
-        {PIPELINE_STAGES.map((stage) => {
+      <div className="grid grid-cols-2 divide-x divide-border/60 border-b border-border/60">
+        {PIPELINE_DISPLAY_STAGES.map((stage) => {
           const { count, value } = stageTotals[stage]
           const share = totalValue > 0 ? value / totalValue : 0
           const tone = projectStageTone(stage)
@@ -182,14 +187,22 @@ export async function PipelineSnapshot() {
                     </p>
                   </Link>
                   <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                    <span
-                      className={cn(
-                        "text-overline font-medium uppercase leading-none",
-                        projectStageTone(o.stage as Stage).text,
-                      )}
-                    >
-                      {projectStageTone(o.stage as Stage).label}
-                    </span>
+                    {(() => {
+                      const displayStage = (
+                        o.stage === "negotiation" ? "proposal" : o.stage
+                      ) as Stage
+                      const tone = projectStageTone(displayStage)
+                      return (
+                        <span
+                          className={cn(
+                            "text-overline font-medium uppercase leading-none",
+                            tone.text,
+                          )}
+                        >
+                          {tone.label}
+                        </span>
+                      )
+                    })()}
                     <span
                       aria-hidden
                       className="inline-block size-1 shrink-0 bg-border"

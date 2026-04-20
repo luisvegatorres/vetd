@@ -16,10 +16,13 @@ const PROJECT_PRODUCT_TITLE: Record<ProjectProductType, string> = {
   ai_integration: "AI Integration",
 }
 
-type SubscriptionPlan = "presence" | "growth"
-const SUBSCRIPTION_PLAN_RATE: Record<SubscriptionPlan, number> = {
-  presence: 97,
-  growth: 247,
+type SubscriptionPlanId = "presence" | "growth"
+const SUBSCRIPTION_PLAN: Record<
+  SubscriptionPlanId,
+  { label: string; monthlyRate: number }
+> = {
+  presence: { label: "Presence", monthlyRate: 97 },
+  growth: { label: "Growth", monthlyRate: 247 },
 }
 
 export type CreateLeadResult =
@@ -63,6 +66,16 @@ export async function createLead(
     return { ok: false, error: "Enter a valid email address" }
   }
 
+  // Sales reps auto-claim leads they enter themselves. Admin/editor-created
+  // leads drop into the unassigned pool so any active rep can claim them.
+  const { data: creatorProfile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", auth.user.id)
+    .maybeSingle()
+  const assignedTo =
+    creatorProfile?.role === "sales_rep" ? auth.user.id : null
+
   const { data, error } = await supabase
     .from("clients")
     .insert({
@@ -75,7 +88,7 @@ export async function createLead(
       notes: str("notes"),
       source,
       status: "lead",
-      assigned_to: auth.user.id,
+      assigned_to: assignedTo,
     })
     .select("id")
     .single()
@@ -145,14 +158,24 @@ function buildDealTitle(
   return `${subject} — ${productLabel}`
 }
 
-export type ConvertToProjectResult =
-  | { ok: true; projectId: string }
+export type ConvertLeadInput = {
+  productType: ProjectProductType
+  build: { value: number } | null
+  plan: { id: SubscriptionPlanId } | null
+}
+
+export type ConvertLeadResult =
+  | {
+      ok: true
+      projectId: string
+      subscriptionId: string | null
+    }
   | { ok: false; error: string }
 
-export async function convertLeadToProject(
+export async function convertLead(
   clientId: string,
-  input: { productType: ProjectProductType; value: number },
-): Promise<ConvertToProjectResult> {
+  input: ConvertLeadInput,
+): Promise<ConvertLeadResult> {
   const supabase = await createClient()
   const { data: auth } = await supabase.auth.getUser()
   if (!auth.user) return { ok: false, error: "Not authenticated" }
@@ -162,8 +185,22 @@ export async function convertLeadToProject(
   if (!products.includes(input.productType)) {
     return { ok: false, error: "Invalid product type" }
   }
-  if (!Number.isFinite(input.value) || input.value <= 0) {
-    return { ok: false, error: "Project value must be greater than 0" }
+
+  if (!input.build && !input.plan) {
+    return {
+      ok: false,
+      error: "Pick a one-time build, a monthly plan, or both",
+    }
+  }
+
+  if (input.build) {
+    if (!Number.isFinite(input.build.value) || input.build.value <= 0) {
+      return { ok: false, error: "Project value must be greater than 0" }
+    }
+  }
+
+  if (input.plan && !(input.plan.id in SUBSCRIPTION_PLAN)) {
+    return { ok: false, error: "Invalid plan" }
   }
 
   const { data: lead, error: leadError } = await supabase
@@ -178,15 +215,19 @@ export async function convertLeadToProject(
   const productLabel = PROJECT_PRODUCT_TITLE[input.productType]
   const title = buildDealTitle(lead, productLabel)
 
+  // Build-only → proposal (deposit gate). Plan-only → active (nothing to build).
+  // Both → proposal; subscription is still created but project awaits deposit.
+  const stage = input.build ? "proposal" : "active"
+
   const { data: project, error: projectError } = await supabase
     .from("projects")
     .insert({
       client_id: clientId,
       title,
-      stage: "proposal",
+      stage,
       sold_by: auth.user.id,
       product_type: input.productType,
-      value: input.value,
+      value: input.build ? input.build.value : null,
     })
     .select("id")
     .single()
@@ -197,65 +238,46 @@ export async function convertLeadToProject(
     }
   }
 
+  let subscriptionId: string | null = null
+  if (input.plan) {
+    const planConfig = SUBSCRIPTION_PLAN[input.plan.id]
+    const today = new Date().toISOString().slice(0, 10)
+
+    const { data: sub, error: subError } = await supabase
+      .from("subscriptions")
+      .insert({
+        client_id: clientId,
+        project_id: project.id,
+        product: "growth-system",
+        plan: planConfig.label,
+        monthly_rate: planConfig.monthlyRate,
+        status: "active",
+        started_at: today,
+        sold_by: auth.user.id,
+      })
+      .select("id")
+      .single()
+    if (subError || !sub) {
+      return {
+        ok: false,
+        error: subError?.message ?? "Failed to create subscription",
+      }
+    }
+    subscriptionId = sub.id
+  }
+
+  // Client becomes active as soon as a recurring plan is attached; otherwise
+  // they're in proposal for a one-time build and count as qualified.
   await supabase
     .from("clients")
-    .update({ status: "qualified" })
+    .update({ status: input.plan ? "active_client" : "qualified" })
     .eq("id", clientId)
 
   revalidatePath("/leads")
   revalidatePath("/pipeline")
   revalidatePath("/projects")
-  return { ok: true, projectId: project.id }
-}
-
-export type ConvertToSubscriptionResult =
-  | { ok: true; subscriptionId: string }
-  | { ok: false; error: string }
-
-export async function convertLeadToSubscription(
-  clientId: string,
-  input: { plan: SubscriptionPlan },
-): Promise<ConvertToSubscriptionResult> {
-  const supabase = await createClient()
-  const { data: auth } = await supabase.auth.getUser()
-  if (!auth.user) return { ok: false, error: "Not authenticated" }
-
-  if (!(input.plan in SUBSCRIPTION_PLAN_RATE)) {
-    return { ok: false, error: "Invalid plan" }
-  }
-  const monthlyRate = SUBSCRIPTION_PLAN_RATE[input.plan]
-  const planLabel = input.plan === "presence" ? "Presence" : "Growth"
-
-  const today = new Date().toISOString().slice(0, 10)
-
-  const { data: sub, error: subError } = await supabase
-    .from("subscriptions")
-    .insert({
-      client_id: clientId,
-      product: "growth-system",
-      plan: planLabel,
-      monthly_rate: monthlyRate,
-      status: "active",
-      started_at: today,
-      sold_by: auth.user.id,
-    })
-    .select("id")
-    .single()
-  if (subError || !sub) {
-    return {
-      ok: false,
-      error: subError?.message ?? "Failed to create subscription",
-    }
-  }
-
-  await supabase
-    .from("clients")
-    .update({ status: "active_client" })
-    .eq("id", clientId)
-
-  revalidatePath("/leads")
-  revalidatePath("/clients")
-  return { ok: true, subscriptionId: sub.id }
+  if (input.plan) revalidatePath("/clients")
+  return { ok: true, projectId: project.id, subscriptionId }
 }
 
 

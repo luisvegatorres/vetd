@@ -47,7 +47,9 @@ export default async function CommissionsPage() {
   const [{ data: ledger }, { data: profiles }, { data: subscriptions }] =
     await Promise.all([
       ledgerQuery,
-      supabase.from("profiles").select("id, full_name"),
+      supabase
+        .from("profiles")
+        .select("id, full_name, role, employment_status"),
       supabase
         .from("subscriptions")
         .select(
@@ -64,6 +66,17 @@ export default async function CommissionsPage() {
         .select("id, name, company")
         .in("id", clientIds)
     : { data: [] }
+
+  // Book of business — clients the rep has been assigned (includes active,
+  // closed_won, and anyone else in their pipeline). Admins don't need this.
+  let assignedClientsCount = 0
+  if (isRep) {
+    const { count } = await supabase
+      .from("clients")
+      .select("id", { count: "exact", head: true })
+      .eq("assigned_to", auth.user.id)
+    assignedClientsCount = count ?? 0
+  }
 
   return (
     <div className="space-y-6">
@@ -82,6 +95,7 @@ export default async function CommissionsPage() {
         profiles={profiles ?? []}
         subscriptions={subscriptions ?? []}
         clients={clients ?? []}
+        assignedClientsCount={assignedClientsCount}
         currentUserId={auth.user.id}
         isAdmin={isAdmin}
       />

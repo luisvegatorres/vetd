@@ -7,7 +7,15 @@ export type ProjectProductType =
 export type InteractionType =
   Database["public"]["Enums"]["interaction_type"]
 
-export type ProjectTab = "all" | ProjectStage
+// Projects UI collapses the legacy `negotiation` stage into `proposal` so reps
+// only see three pipeline states. Existing negotiation rows are still visible
+// under the Proposal tab until they're manually resolved.
+export type ProjectTab =
+  | "all"
+  | "proposal"
+  | "active"
+  | "completed"
+  | "cancelled"
 
 export const PRODUCT_TYPE_LABEL: Record<ProjectProductType, string> = {
   business_website: "Website",
@@ -45,6 +53,7 @@ export type ProjectSubscription = {
   monthly_rate: number
   status: Database["public"]["Enums"]["subscription_status"]
   started_at: string
+  stripe_subscription_id: string | null
 }
 
 export type ProjectRow = {

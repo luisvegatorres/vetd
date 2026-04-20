@@ -68,6 +68,22 @@ function parsePlanId(raw: string | null): WebsitePlanId | "none" {
 }
 
 /**
+ * A project's deposit has cleared (payment_status='paid') or the stage has
+ * advanced past proposal — the client is paying and should leave the leads
+ * list. Guarded so we never downgrade active_client/at_risk/canceled.
+ */
+async function promoteClientToActive(
+  supabase: SupabaseServerClient,
+  clientId: string,
+) {
+  await supabase
+    .from("clients")
+    .update({ status: "active_client" })
+    .eq("id", clientId)
+    .in("status", ["lead", "qualified", "archived", "lost"])
+}
+
+/**
  * Sync the recurring plan attached to a website project.
  * - "none" → remove any attached subscription.
  * - presence/growth → upsert a subscription with the catalog rate.
@@ -211,6 +227,17 @@ export async function createNewProject(
   )
   if (!subSync.ok) return { ok: false, error: subSync.error }
 
+  if (
+    paymentStatus === "paid" ||
+    stage === "active" ||
+    stage === "completed" ||
+    planId !== "none"
+  ) {
+    await promoteClientToActive(supabase, clientId)
+    revalidatePath("/leads")
+    revalidatePath("/clients")
+  }
+
   revalidatePath("/projects")
   return { ok: true, projectId: data.id }
 }
@@ -288,6 +315,14 @@ export async function updateProject(
     startDate,
   )
   if (!subSync.ok) return { ok: false, error: subSync.error }
+
+  // Deposit cleared / project is running → promote the client off the leads
+  // list. `active` stage implies the deposit gate trigger passed.
+  if (paymentStatus === "paid" || stage === "active" || stage === "completed") {
+    await promoteClientToActive(supabase, clientId)
+    revalidatePath("/leads")
+    revalidatePath("/clients")
+  }
 
   revalidatePath("/projects")
   return { ok: true }

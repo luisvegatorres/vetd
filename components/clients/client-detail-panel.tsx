@@ -1,6 +1,6 @@
 import {
   Calendar,
-  ChevronRight,
+  CalendarClock,
   FolderKanban,
   Mail,
   MousePointerSquareDashed,
@@ -8,6 +8,12 @@ import {
   Repeat,
 } from "lucide-react"
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -17,23 +23,13 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 import { Dot } from "@/components/ui/dot"
-import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemDescription,
-  ItemMedia,
-  ItemTitle,
-} from "@/components/ui/item"
 import { Separator } from "@/components/ui/separator"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { site } from "@/lib/site"
 import { cn } from "@/lib/utils"
 import {
@@ -41,15 +37,13 @@ import {
   paymentStatusLabel,
   projectStageTone,
 } from "@/lib/status-colors"
-import { SendSubscriptionLink } from "@/components/subscriptions/send-subscription-link"
 import { ClientStatusBadge } from "./client-status-badge"
-import { EditClientDialog } from "./client-form-dialog"
+import { EditClientDialog, type RepOption } from "./client-form-dialog"
 import {
   clientDisplayName,
   deriveClientStatus,
   formatClientNumber,
   formatMonthYear,
-  formatUsdFull,
   formatUsdShort,
   type ClientRow,
 } from "./client-types"
@@ -85,7 +79,7 @@ function StatBlock({
   value: React.ReactNode
 }) {
   return (
-    <div className="flex-1 space-y-2 px-6 py-5">
+    <div className="flex-1 space-y-2 px-6 py-6">
       <FieldLabel>{label}</FieldLabel>
       <p className="font-heading text-2xl font-medium leading-none tabular-nums">
         {value}
@@ -94,7 +88,15 @@ function StatBlock({
   )
 }
 
-export function ClientDetailPanel({ client }: { client: ClientRow | null }) {
+export function ClientDetailPanel({
+  client,
+  reps,
+  canReassign,
+}: {
+  client: ClientRow | null
+  reps?: RepOption[]
+  canReassign?: boolean
+}) {
   if (!client) {
     return (
       <Card className="flex min-h-80 flex-col items-center justify-center gap-0 p-10 text-center">
@@ -118,58 +120,72 @@ export function ClientDetailPanel({ client }: { client: ClientRow | null }) {
 
   return (
     <Card className="flex min-h-80 flex-col gap-0 py-0">
-      <CardHeader className="items-center p-6">
+      <CardHeader className="flex-col items-start gap-4 p-6">
         <ClientStatusBadge status={derived} />
-        <CardAction>
-          <EditClientDialog client={client} />
-        </CardAction>
-      </CardHeader>
-
-      <CardContent className="flex flex-col gap-6 p-0 pb-6">
-        <div className="min-w-0 px-6">
-          <h2 className="truncate font-heading text-2xl font-medium leading-tight">
+        <div className="min-w-0 space-y-1">
+          <h2 className="truncate font-heading text-xl font-medium leading-tight">
             {display}
           </h2>
-          <p className="mt-1 flex items-center gap-2 truncate text-sm text-muted-foreground">
+          <p className="flex items-center gap-2 truncate text-sm text-muted-foreground">
             {client.industry ?? "Industry not set"}
             <Dot />
             {client.location ?? "Location not set"}
           </p>
         </div>
+        <CardAction className="self-start">
+          <EditClientDialog
+            client={client}
+            reps={reps}
+            canReassign={canReassign}
+          />
+        </CardAction>
+      </CardHeader>
 
-        <div>
-          <Separator />
-          <div className="flex">
-            <StatBlock
-              label="Lifetime"
-              value={formatUsdFull(client.lifetime)}
-            />
-            <Separator orientation="vertical" />
-            <StatBlock
-              label="MRR"
-              value={
-                client.mrr > 0 ? formatUsdFull(client.mrr) : (
-                  <span className="text-muted-foreground">—</span>
-                )
-              }
-            />
-            <Separator orientation="vertical" />
-            <StatBlock
-              label="Projects"
-              value={
-                client.projects.length > 0 ? (
-                  client.projects.length
-                ) : (
-                  <span className="text-muted-foreground">—</span>
-                )
-              }
-            />
-          </div>
-          <Separator />
+      <CardContent className="flex flex-col p-0">
+        <Separator />
+        <div className="flex items-stretch">
+          <StatBlock
+            label="Lifetime"
+            value={
+              client.lifetime > 0 ? (
+                formatUsdShort(client.lifetime)
+              ) : (
+                <span className="text-muted-foreground">—</span>
+              )
+            }
+          />
+          <Separator orientation="vertical" />
+          <StatBlock
+            label="MRR"
+            value={
+              client.mrr > 0 ? (
+                formatUsdShort(client.mrr)
+              ) : (
+                <span className="text-muted-foreground">—</span>
+              )
+            }
+          />
+          <Separator orientation="vertical" />
+          <StatBlock
+            label="Projects"
+            value={
+              client.projects.length > 0 ? (
+                client.projects.length
+              ) : (
+                <span className="text-muted-foreground">—</span>
+              )
+            }
+          />
         </div>
+        <Separator />
 
-        <div className="grid grid-cols-2 gap-6 px-6">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-5 px-6 py-6">
           <Field label="Primary Contact">{client.name}</Field>
+          <Field label="Rep">
+            {client.owner?.full_name ?? (
+              <span className="text-muted-foreground">Unassigned</span>
+            )}
+          </Field>
           <Field label="Email">
             {client.email ? (
               <a
@@ -182,175 +198,161 @@ export function ClientDetailPanel({ client }: { client: ClientRow | null }) {
               <span className="text-muted-foreground">—</span>
             )}
           </Field>
-          <Field label="Rep">
-            {client.owner?.full_name ?? (
-              <span className="text-muted-foreground">Unassigned</span>
-            )}
-          </Field>
-          <Field label="Client Since">
-            {formatMonthYear(client.created_at)}
-          </Field>
           <Field label="Phone">
             {client.phone ?? (
               <span className="text-muted-foreground">—</span>
             )}
           </Field>
-          <Field label="Client ID">
-            {formatClientNumber(client.client_number)}
-          </Field>
         </div>
 
-        <div className="flex flex-col gap-2 px-6">
-          <Dialog>
-            <DialogTrigger
-              nativeButton={false}
+        <Separator />
+        <div className="flex items-center justify-between gap-4 px-6 py-4">
+          <FieldLabel>Timeline</FieldLabel>
+          <Tooltip>
+            <TooltipTrigger
               render={
-                <Item
-                  variant="outline"
-                  size="sm"
-                  className="cursor-pointer hover:bg-muted"
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="View client dates"
+                  className="size-7"
                 />
               }
             >
-              <ItemMedia variant="icon">
-                <FolderKanban />
-              </ItemMedia>
-              <ItemContent>
-                <ItemTitle>Projects</ItemTitle>
-                <ItemDescription>
-                  Deal stages, values, and payment status
-                </ItemDescription>
-              </ItemContent>
-              <ItemActions>
-                <span className="tabular-nums text-muted-foreground">
+              <CalendarClock aria-hidden className="size-4" />
+            </TooltipTrigger>
+            <TooltipContent side="left" className="p-0">
+              <dl className="grid grid-cols-[auto_auto] gap-x-4 gap-y-1 px-3 py-2 text-xs">
+                <dt className="uppercase tracking-wide opacity-70">Since</dt>
+                <dd className="tabular-nums">
+                  {formatMonthYear(client.created_at)}
+                </dd>
+                <dt className="uppercase tracking-wide opacity-70">
+                  Client ID
+                </dt>
+                <dd className="tabular-nums">
+                  {formatClientNumber(client.client_number)}
+                </dd>
+              </dl>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+
+        <Separator />
+        <Accordion>
+          <AccordionItem value="projects" className="border-b">
+            <AccordionTrigger className="px-6 py-5 hover:no-underline">
+              <div className="flex items-center gap-3">
+                <FolderKanban
+                  aria-hidden
+                  className="size-4 text-muted-foreground"
+                />
+                <span className="text-sm font-medium">Projects</span>
+                <span className="text-xs tabular-nums text-muted-foreground">
                   {client.projects.length > 0 ? client.projects.length : "—"}
                 </span>
-                <ChevronRight aria-hidden className="size-4" />
-              </ItemActions>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Projects — {display}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                {client.projects.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    No projects yet.
-                  </p>
-                ) : (
-                  client.projects.map((p) => {
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pt-0 pb-0">
+              {client.projects.length === 0 ? (
+                <p className="border-t px-6 py-6 text-sm text-muted-foreground italic">
+                  No projects yet.
+                </p>
+              ) : (
+                <ul className="flex flex-col divide-y divide-border border-t">
+                  {client.projects.map((p) => {
                     const tone = projectStageTone(p.stage)
                     return (
-                      <div
+                      <li
                         key={p.id}
-                        className="flex items-start justify-between gap-4"
+                        className="flex items-center gap-4 px-6 py-4"
                       >
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium">
+                        <div className="min-w-0 flex-1 space-y-2">
+                          <FieldLabel>{tone.label}</FieldLabel>
+                          <p className="truncate text-sm">
                             {p.title}
-                          </p>
-                          <p className="mt-2 truncate text-overline font-medium uppercase text-muted-foreground">
-                            <span className={tone.text}>{tone.label}</span>
+                            {p.value != null ? (
+                              <>
+                                <span className="mx-2 text-muted-foreground opacity-50">
+                                  ·
+                                </span>
+                                <span className="tabular-nums text-muted-foreground">
+                                  {formatUsdShort(Number(p.value))}
+                                </span>
+                              </>
+                            ) : null}
                           </p>
                         </div>
-                        <div className="shrink-0 text-right">
-                          <p className="text-sm tabular-nums">
-                            {p.value != null
-                              ? formatUsdShort(Number(p.value))
-                              : "—"}
-                          </p>
-                          <Badge
-                            variant="outline"
-                            className={cn(
-                              "mt-2 border-transparent uppercase",
-                              paymentStatusBadgeClass(p.payment_status),
-                            )}
-                          >
-                            {paymentStatusLabel(p.payment_status)}
-                          </Badge>
-                        </div>
-                      </div>
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "shrink-0 border-transparent uppercase",
+                            paymentStatusBadgeClass(p.payment_status),
+                          )}
+                        >
+                          {paymentStatusLabel(p.payment_status)}
+                        </Badge>
+                      </li>
                     )
-                  })
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
+                  })}
+                </ul>
+              )}
+            </AccordionContent>
+          </AccordionItem>
 
-          <Dialog>
-            <DialogTrigger
-              nativeButton={false}
-              render={
-                <Item
-                  variant="outline"
-                  size="sm"
-                  className="cursor-pointer hover:bg-muted"
-                />
-              }
-            >
-              <ItemMedia variant="icon">
-                <Repeat />
-              </ItemMedia>
-              <ItemContent>
-                <ItemTitle>Recurring</ItemTitle>
-                <ItemDescription>
-                  Active subscriptions and monthly rate
-                </ItemDescription>
-              </ItemContent>
-              <ItemActions>
-                <span className="tabular-nums text-muted-foreground">
+          <AccordionItem value="recurring" className="border-none">
+            <AccordionTrigger className="px-6 py-5 hover:no-underline">
+              <div className="flex items-center gap-3">
+                <Repeat aria-hidden className="size-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Recurring</span>
+                <span className="text-xs tabular-nums text-muted-foreground">
                   {client.subscriptions.length > 0
                     ? client.subscriptions.length
                     : "—"}
                 </span>
-                <ChevronRight aria-hidden className="size-4" />
-              </ItemActions>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Recurring — {display}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                {client.subscriptions.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    No recurring engagements yet.
-                  </p>
-                ) : (
-                  client.subscriptions.map((s) => (
-                    <div
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pt-0 pb-0">
+              {client.subscriptions.length === 0 ? (
+                <p className="border-t px-6 py-6 text-sm text-muted-foreground italic">
+                  No recurring engagements yet.
+                </p>
+              ) : (
+                <ul className="flex flex-col divide-y divide-border border-t">
+                  {client.subscriptions.map((s) => (
+                    <li
                       key={s.id}
-                      className="flex items-start justify-between gap-4"
+                      className="flex items-center gap-4 px-6 py-4"
                     >
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">
-                          {s.product}
-                        </p>
-                        <p className="mt-2 truncate text-overline font-medium uppercase text-muted-foreground">
-                          {s.plan} <Dot /> Since{" "}
-                          {formatMonthYear(s.started_at)}
-                        </p>
+                      <div className="min-w-0 flex-1 space-y-2">
+                        <FieldLabel>
+                          {s.plan}
+                          <Dot className="mx-2" />
+                          Since {formatMonthYear(s.started_at)}
+                        </FieldLabel>
+                        <p className="truncate text-sm">{s.product}</p>
                       </div>
-                      <div className="shrink-0 text-right text-sm tabular-nums">
+                      <div className="shrink-0 text-sm tabular-nums">
                         {formatUsdShort(Number(s.monthly_rate))}
                         <span className="text-xs text-muted-foreground">
                           /mo
                         </span>
                       </div>
-                    </div>
-                  ))
-                )}
-                <SendSubscriptionLink clientId={client.id} />
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </CardContent>
 
-      <CardFooter className="mt-auto flex-col items-stretch gap-3 p-6">
+      <Separator />
+      <CardFooter className="mt-auto flex-col items-stretch gap-2 p-6">
         <Button className="gap-2" disabled>
           <Plus aria-hidden /> New Project
         </Button>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2">
           <Button
             variant="outline"
             disabled={!client.email}

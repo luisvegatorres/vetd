@@ -8,6 +8,7 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 import { claimLead } from "@/app/(protected)/leads/actions"
 import { ConvertLeadDialog } from "./convert-lead-dialog"
 import { EditLeadDialog } from "./lead-form-dialog"
@@ -23,6 +24,14 @@ import {
 } from "./lead-types"
 import { cn } from "@/lib/utils"
 
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-overline font-medium uppercase text-muted-foreground">
+      {children}
+    </p>
+  )
+}
+
 function Field({
   label,
   children,
@@ -31,11 +40,9 @@ function Field({
   children: React.ReactNode
 }) {
   return (
-    <div className="space-y-2">
-      <p className="text-overline font-medium uppercase text-muted-foreground">
-        {label}
-      </p>
-      <p className="text-sm">{children}</p>
+    <div className="min-w-0 space-y-2">
+      <FieldLabel>{label}</FieldLabel>
+      <p className="truncate text-sm">{children}</p>
     </div>
   )
 }
@@ -59,36 +66,36 @@ export function LeadDetailPanel({ lead }: { lead: LeadRow | null }) {
 
   return (
     <Card className="flex min-h-80 flex-col gap-0 py-0">
-      <CardHeader className="items-center p-6">
+      <CardHeader className="flex-col items-start gap-4 p-6">
         <LeadStatusBadge status={derived} />
-        <CardAction>
-          <EditLeadDialog lead={lead} />
-        </CardAction>
-      </CardHeader>
-
-      <CardContent className="flex flex-col gap-6 p-6 pt-0">
-        <div className="min-w-0">
-          <h2 className="truncate font-heading text-2xl font-medium leading-tight">
+        <div className="min-w-0 space-y-1">
+          <h2 className="truncate font-heading text-xl font-medium leading-tight">
             {lead.name}
           </h2>
           <p
             className={cn(
-              "mt-1 truncate text-sm text-muted-foreground",
+              "truncate text-sm text-muted-foreground",
               !lead.company && "italic",
             )}
           >
             {lead.company ?? "No business listed"}
           </p>
         </div>
+        <CardAction className="self-start">
+          <EditLeadDialog lead={lead} />
+        </CardAction>
+      </CardHeader>
 
-        <div className="space-y-3">
-          <div className="flex items-baseline gap-3">
-            <p className="font-heading text-3xl font-medium leading-none tabular-nums">
-              {lead.score ?? 0}
-            </p>
-            <p className="text-overline font-medium uppercase text-muted-foreground">
-              Score / 100
-            </p>
+      <CardContent className="flex flex-col p-0">
+        <Separator />
+        <div className="space-y-3 px-6 py-6">
+          <div className="flex items-baseline justify-between gap-3">
+            <div className="flex items-baseline gap-3">
+              <p className="font-heading text-2xl font-medium leading-none tabular-nums">
+                {lead.score ?? 0}
+              </p>
+              <FieldLabel>Score / 100</FieldLabel>
+            </div>
           </div>
           <div className="h-0.5 bg-border/60" aria-hidden role="presentation">
             <div
@@ -98,11 +105,17 @@ export function LeadDetailPanel({ lead }: { lead: LeadRow | null }) {
           </div>
         </div>
 
-        <Field label="Intent">{lead.intent ?? "—"}</Field>
+        <Separator />
+        <div className="space-y-3 px-6 py-6">
+          <FieldLabel>Intent</FieldLabel>
+          <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+            {lead.intent ?? "—"}
+          </p>
+        </div>
 
-        <div className="grid grid-cols-2 gap-6">
+        <Separator />
+        <div className="grid grid-cols-2 gap-x-6 gap-y-5 px-6 py-6">
           <Field label="Source">{SOURCE_LABEL[lead.source]}</Field>
-          <Field label="Age">{formatAge(lead.created_at)} ago</Field>
           <Field label="Budget">{lead.budget ?? "—"}</Field>
           <Field label="Rep">
             {lead.owner?.full_name ?? (
@@ -110,15 +123,29 @@ export function LeadDetailPanel({ lead }: { lead: LeadRow | null }) {
             )}
           </Field>
           <LeadNotesDialog notes={lead.notes} />
-          <Field label="Lead ID">{formatLeadNumber(lead.lead_number)}</Field>
+        </div>
+
+        <Separator />
+        <div className="grid grid-cols-2 gap-x-6 gap-y-5 px-6 py-6">
+          <Field label="Age">
+            <span className="tabular-nums">
+              {formatAge(lead.created_at)} ago
+            </span>
+          </Field>
+          <Field label="Lead ID">
+            <span className="tabular-nums">
+              {formatLeadNumber(lead.lead_number)}
+            </span>
+          </Field>
         </div>
       </CardContent>
 
-      <CardFooter className="mt-auto flex-col items-stretch gap-3 p-6">
+      <Separator />
+      <CardFooter className="mt-auto flex-col items-stretch gap-2 p-6">
         <ConvertLeadDialog leadId={lead.id} />
         <div
           className={cn(
-            "grid gap-3",
+            "grid gap-2",
             lead.owner ? "grid-cols-2" : "grid-cols-3",
           )}
         >

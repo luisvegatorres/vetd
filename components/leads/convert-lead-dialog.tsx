@@ -32,38 +32,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  convertLeadToProject,
-  convertLeadToSubscription,
-} from "@/app/(protected)/leads/actions"
+import { Switch } from "@/components/ui/switch"
+import { convertLead } from "@/app/(protected)/leads/actions"
 import type { Database } from "@/lib/supabase/types"
 
 type ProjectProductType =
   Database["public"]["Enums"]["project_product_type"]
-type SubscriptionPlan = "presence" | "growth"
+type SubscriptionPlanId = "presence" | "growth"
 
 const PRODUCT_OPTIONS: Array<{
   value: ProjectProductType
   label: string
-  hint: string
 }> = [
-  {
-    value: "business_website",
-    label: "Website",
-    hint: "One-time website build",
-  },
-  { value: "mobile_app", label: "Mobile App", hint: "iOS + Android" },
-  {
-    value: "web_app",
-    label: "SaaS Product",
-    hint: "Custom SaaS build",
-  },
-  { value: "ai_integration", label: "AI Integration", hint: "Custom scope" },
+  { value: "business_website", label: "Website" },
+  { value: "mobile_app", label: "Mobile App" },
+  { value: "web_app", label: "SaaS Product" },
+  { value: "ai_integration", label: "AI Integration" },
 ]
 
+const PRODUCT_LABEL: Record<ProjectProductType, string> = {
+  business_website: "Website",
+  mobile_app: "Mobile App",
+  web_app: "SaaS Product",
+  ai_integration: "AI Integration",
+}
+
 const PLAN_OPTIONS: Array<{
-  value: SubscriptionPlan
+  value: SubscriptionPlanId
   label: string
   rate: number
 }> = [
@@ -71,13 +66,12 @@ const PLAN_OPTIONS: Array<{
   { value: "growth", label: "Growth", rate: 247 },
 ]
 
-const DEPOSIT_RATE = 0.3
-
-function humanize(value: string) {
-  return value
-    .replace(/_/g, " ")
-    .replace(/\b\p{Ll}/gu, (c) => c.toUpperCase())
+const PLAN_LABEL: Record<SubscriptionPlanId, string> = {
+  presence: "Presence",
+  growth: "Growth",
 }
+
+const DEPOSIT_RATE = 0.3
 
 function formatUSD(amount: number) {
   return new Intl.NumberFormat("en-US", {
@@ -91,11 +85,16 @@ export function ConvertLeadDialog({ leadId }: { leadId: string }) {
   const router = useRouter()
   const formId = useId()
   const [open, setOpen] = useState(false)
-  const [mode, setMode] = useState<"subscription" | "project">("subscription")
-  const [plan, setPlan] = useState<SubscriptionPlan>("presence")
+
   const [product, setProduct] =
     useState<ProjectProductType>("business_website")
+
+  const [planEnabled, setPlanEnabled] = useState(true)
+  const [plan, setPlan] = useState<SubscriptionPlanId>("presence")
+
+  const [buildEnabled, setBuildEnabled] = useState(false)
   const [valueInput, setValueInput] = useState("")
+
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
@@ -107,9 +106,10 @@ export function ConvertLeadDialog({ leadId }: { leadId: string }) {
   )
 
   function reset() {
-    setMode("subscription")
-    setPlan("presence")
     setProduct("business_website")
+    setPlanEnabled(true)
+    setPlan("presence")
+    setBuildEnabled(false)
     setValueInput("")
     setError(null)
   }
@@ -119,36 +119,50 @@ export function ConvertLeadDialog({ leadId }: { leadId: string }) {
     setOpen(next)
   }
 
+  function handleProductChange(next: ProjectProductType) {
+    setProduct(next)
+    // Smart defaults: website leans recurring, others lean one-time build.
+    if (next === "business_website") {
+      setPlanEnabled(true)
+      setBuildEnabled(false)
+    } else {
+      setPlanEnabled(false)
+      setBuildEnabled(true)
+    }
+  }
+
+  const canSubmit =
+    (planEnabled || buildEnabled) && (!buildEnabled || hasValidValue)
+
   function handleSubmit() {
     setError(null)
-    if (mode === "subscription") {
-      startTransition(async () => {
-        const result = await convertLeadToSubscription(leadId, { plan })
-        if (result.ok) {
-          toast.success("Subscription started")
-          setOpen(false)
-          router.push(`/clients`)
-          router.refresh()
-        } else {
-          setError(result.error)
-        }
-      })
+    if (!planEnabled && !buildEnabled) {
+      setError("Pick a monthly plan, a one-time build, or both")
       return
     }
-
-    if (!hasValidValue) {
+    if (buildEnabled && !hasValidValue) {
       setError("Enter a project value greater than 0")
       return
     }
+
     startTransition(async () => {
-      const result = await convertLeadToProject(leadId, {
+      const result = await convertLead(leadId, {
         productType: product,
-        value: parsedValue,
+        build: buildEnabled ? { value: parsedValue } : null,
+        plan: planEnabled ? { id: plan } : null,
       })
       if (result.ok) {
-        toast.success("Project created — deposit invoice next")
+        toast.success(
+          buildEnabled
+            ? "Project created — deposit invoice next"
+            : "Project created — subscription active",
+        )
         setOpen(false)
-        router.push(`/pipeline?project=${result.projectId}`)
+        if (buildEnabled) {
+          router.push(`/pipeline?project=${result.projectId}`)
+        } else {
+          router.push(`/clients`)
+        }
         router.refresh()
       } else {
         setError(result.error)
@@ -169,131 +183,170 @@ export function ConvertLeadDialog({ leadId }: { leadId: string }) {
         <DialogHeader>
           <DialogTitle>Convert lead</DialogTitle>
           <DialogDescription>
-            Pick how the client is paying. Subscriptions start immediately.
-            Custom projects require a 30% deposit before work begins.
+            Turn this lead into a project. Add a monthly plan, a one-time
+            build, or both.
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs
-          value={mode}
-          onValueChange={(v) =>
-            setMode((v as "subscription" | "project") ?? "subscription")
-          }
-        >
-          <TabsList className="w-full">
-            <TabsTrigger value="subscription" className="flex-1">
-              Subscription
-            </TabsTrigger>
-            <TabsTrigger value="project" className="flex-1">
-              Custom project
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="subscription" className="mt-6 space-y-6">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor={`${formId}-plan`}>Plan</Label>
-              <Select
-                value={plan}
-                onValueChange={(v) => setPlan(v as SubscriptionPlan)}
-              >
-                <SelectTrigger id={`${formId}-plan`} className="w-full">
-                  <SelectValue>{(value) => humanize(value ?? "")}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Growth System plans</SelectLabel>
-                    {PLAN_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label} — ${option.rate}/mo
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Growth System — website, hosting, and monthly SEO. Charged
-              monthly, no contract. Client status becomes active.
-            </p>
-          </TabsContent>
-
-          <TabsContent value="project" className="mt-6 space-y-6">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor={`${formId}-product`}>Product</Label>
-              <Select
-                value={product}
-                onValueChange={(v) => setProduct(v as ProjectProductType)}
-              >
-                <SelectTrigger id={`${formId}-product`} className="w-full">
-                  <SelectValue>{(value) => humanize(value ?? "")}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Custom products</SelectLabel>
-                    {PRODUCT_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                {
-                  PRODUCT_OPTIONS.find((o) => o.value === product)
-                    ?.hint
-                }
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor={`${formId}-value`}>Project value</Label>
-              <InputGroup>
-                <InputGroupAddon>
-                  <InputGroupText>$</InputGroupText>
-                </InputGroupAddon>
-                <InputGroupInput
-                  id={`${formId}-value`}
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  placeholder="8000"
-                  value={valueInput}
-                  onChange={(e) =>
-                    setValueInput(e.target.value.replace(/\D/g, ""))
+        <div className="space-y-6">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor={`${formId}-product`}>Product</Label>
+            <Select
+              value={product}
+              onValueChange={(v) =>
+                handleProductChange(v as ProjectProductType)
+              }
+            >
+              <SelectTrigger id={`${formId}-product`} className="w-full">
+                <SelectValue>
+                  {(value) =>
+                    value
+                      ? PRODUCT_LABEL[value as ProjectProductType]
+                      : ""
                   }
-                />
-                <InputGroupAddon align="inline-end">
-                  <InputGroupText>USD</InputGroupText>
-                </InputGroupAddon>
-              </InputGroup>
-            </div>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Products</SelectLabel>
+                  {PRODUCT_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div className="flex flex-col gap-2">
-              <div className="grid grid-cols-2 divide-x divide-border/60 border border-border/60">
-                <div className="flex flex-col items-center px-4 py-4 text-center">
-                  <p className="text-overline font-medium uppercase text-muted-foreground">
-                    30% deposit
-                  </p>
-                  <p className="mt-1 font-heading text-2xl font-medium tabular-nums">
-                    {hasValidValue ? formatUSD(deposit) : "—"}
-                  </p>
-                </div>
-                <div className="flex flex-col items-center px-4 py-4 text-center">
-                  <p className="text-overline font-medium uppercase text-muted-foreground">
-                    Remaining
-                  </p>
-                  <p className="mt-1 font-heading text-2xl font-medium tabular-nums">
-                    {hasValidValue ? formatUSD(parsedValue - deposit) : "—"}
-                  </p>
+          <div className="border border-border/60">
+            <div className="flex items-center justify-between gap-4 px-4 py-4">
+              <div className="flex flex-col gap-1">
+                <Label
+                  htmlFor={`${formId}-plan-toggle`}
+                  className="text-sm font-medium"
+                >
+                  Monthly plan
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Recurring engagement. Client becomes active immediately.
+                </p>
+              </div>
+              <Switch
+                id={`${formId}-plan-toggle`}
+                checked={planEnabled}
+                onCheckedChange={setPlanEnabled}
+              />
+            </div>
+            {planEnabled ? (
+              <div className="border-t border-border/60 px-4 py-4">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor={`${formId}-plan`}>Plan</Label>
+                  <Select
+                    value={plan}
+                    onValueChange={(v) => setPlan(v as SubscriptionPlanId)}
+                  >
+                    <SelectTrigger
+                      id={`${formId}-plan`}
+                      className="w-full"
+                    >
+                      <SelectValue>
+                        {(value) =>
+                          value
+                            ? PLAN_LABEL[value as SubscriptionPlanId]
+                            : ""
+                        }
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Growth System plans</SelectLabel>
+                        {PLAN_OPTIONS.map((option) => (
+                          <SelectItem
+                            key={option.value}
+                            value={option.value}
+                          >
+                            {option.label} — ${option.rate}/mo
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Deal starts in Proposal. It cannot move to Active until the
-                deposit clears.
-              </p>
+            ) : null}
+          </div>
+
+          <div className="border border-border/60">
+            <div className="flex items-center justify-between gap-4 px-4 py-4">
+              <div className="flex flex-col gap-1">
+                <Label
+                  htmlFor={`${formId}-build-toggle`}
+                  className="text-sm font-medium"
+                >
+                  One-time build
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Fixed-scope project. 30% deposit before work begins.
+                </p>
+              </div>
+              <Switch
+                id={`${formId}-build-toggle`}
+                checked={buildEnabled}
+                onCheckedChange={setBuildEnabled}
+              />
             </div>
-          </TabsContent>
-        </Tabs>
+            {buildEnabled ? (
+              <div className="space-y-4 border-t border-border/60 px-4 py-4">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor={`${formId}-value`}>Project value</Label>
+                  <InputGroup>
+                    <InputGroupAddon>
+                      <InputGroupText>$</InputGroupText>
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      id={`${formId}-value`}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      placeholder="8000"
+                      value={valueInput}
+                      onChange={(e) =>
+                        setValueInput(e.target.value.replace(/\D/g, ""))
+                      }
+                    />
+                    <InputGroupAddon align="inline-end">
+                      <InputGroupText>USD</InputGroupText>
+                    </InputGroupAddon>
+                  </InputGroup>
+                </div>
+                <div className="grid grid-cols-2 divide-x divide-border/60 border border-border/60">
+                  <div className="flex flex-col items-center px-4 py-4 text-center">
+                    <p className="text-overline font-medium uppercase text-muted-foreground">
+                      30% deposit
+                    </p>
+                    <p className="mt-1 font-heading text-2xl font-medium tabular-nums">
+                      {hasValidValue ? formatUSD(deposit) : "—"}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-center px-4 py-4 text-center">
+                    <p className="text-overline font-medium uppercase text-muted-foreground">
+                      Remaining
+                    </p>
+                    <p className="mt-1 font-heading text-2xl font-medium tabular-nums">
+                      {hasValidValue
+                        ? formatUSD(parsedValue - deposit)
+                        : "—"}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Deal starts in Proposal. It cannot move to Active until
+                  the deposit clears.
+                </p>
+              </div>
+            ) : null}
+          </div>
+        </div>
 
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
@@ -304,15 +357,9 @@ export function ConvertLeadDialog({ leadId }: { leadId: string }) {
           <Button
             type="button"
             onClick={handleSubmit}
-            disabled={
-              pending || (mode === "project" && !hasValidValue)
-            }
+            disabled={pending || !canSubmit}
           >
-            {pending
-              ? "Saving…"
-              : mode === "subscription"
-                ? "Start subscription"
-                : "Create project"}
+            {pending ? "Saving…" : "Convert"}
           </Button>
         </DialogFooter>
       </DialogContent>

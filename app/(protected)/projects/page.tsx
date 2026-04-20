@@ -27,16 +27,15 @@ const PAGE_SIZE = 10
 
 const STAGE_ORDER: Record<ProjectStage, number> = {
   proposal: 0,
-  negotiation: 1,
-  active: 2,
-  completed: 3,
-  cancelled: 4,
+  negotiation: 0,
+  active: 1,
+  completed: 2,
+  cancelled: 3,
 }
 
 const VALID_TABS: ProjectTab[] = [
   "all",
   "proposal",
-  "negotiation",
   "active",
   "completed",
   "cancelled",
@@ -138,7 +137,9 @@ export default async function ProjectsPage({
       .order("created_at", { ascending: false }),
     supabase
       .from("subscriptions")
-      .select("id, project_id, plan, product, monthly_rate, status, started_at")
+      .select(
+        "id, project_id, plan, product, monthly_rate, status, started_at, stripe_subscription_id",
+      )
       .not("project_id", "is", null),
   ])
 
@@ -182,6 +183,7 @@ export default async function ProjectsPage({
       monthly_rate: Number(s.monthly_rate),
       status: s.status,
       started_at: s.started_at,
+      stripe_subscription_id: s.stripe_subscription_id,
     })
   }
 
@@ -248,17 +250,26 @@ export default async function ProjectsPage({
   const counts: Record<ProjectTab, number> = {
     all: filteredBase.length,
     proposal: 0,
-    negotiation: 0,
     active: 0,
     completed: 0,
     cancelled: 0,
   }
-  for (const row of filteredBase) counts[row.stage] += 1
+  // Legacy `negotiation` rows fold into the Proposal tab so reps only see the
+  // three real pipeline states (Proposal / Won / Lost equivalents here).
+  for (const row of filteredBase) {
+    const bucket: ProjectTab =
+      row.stage === "negotiation" ? "proposal" : row.stage
+    counts[bucket] += 1
+  }
 
   const tabFiltered =
     tab === "all"
       ? filteredBase
-      : filteredBase.filter((r) => r.stage === tab)
+      : tab === "proposal"
+        ? filteredBase.filter(
+            (r) => r.stage === "proposal" || r.stage === "negotiation",
+          )
+        : filteredBase.filter((r) => r.stage === tab)
 
   const sorted = [...tabFiltered].sort((a, b) => {
     if (sort === "value") {
@@ -363,11 +374,7 @@ export default async function ProjectsPage({
             className="mt-auto"
           />
         </div>
-        <ProjectDetailPanel
-          project={selectedProject}
-          clients={clientOptions}
-          reps={repOptions}
-        />
+        <ProjectDetailPanel project={selectedProject} />
       </div>
     </div>
   )

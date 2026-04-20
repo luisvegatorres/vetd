@@ -1,10 +1,12 @@
 "use client"
 
-import { Copy, Send } from "lucide-react"
+import { ArrowUpRight, Check, Copy, ExternalLink } from "lucide-react"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
+import { Dot } from "@/components/ui/dot"
+import { Spinner } from "@/components/ui/spinner"
 import {
   Select,
   SelectContent,
@@ -25,7 +27,13 @@ const PLAN_LABEL: Record<BillablePlanId, string> = {
   growth: subscriptionPlans.growth.label,
 }
 
-export function SendSubscriptionLink({ clientId }: { clientId: string }) {
+export function SendSubscriptionLink({
+  clientId,
+  subscriptionId,
+}: {
+  clientId: string
+  subscriptionId?: string
+}) {
   const [planId, setPlanId] = useState<BillablePlanId>("presence")
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -38,6 +46,7 @@ export function SendSubscriptionLink({ clientId }: { clientId: string }) {
       const result = await createSubscriptionCheckoutSession({
         clientId,
         planId,
+        subscriptionId,
       })
       if (result.ok) {
         setCheckoutUrl(result.url)
@@ -55,64 +64,90 @@ export function SendSubscriptionLink({ clientId }: { clientId: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-3 border-t border-border pt-4">
-      <p className="text-overline font-medium uppercase text-muted-foreground">
-        Send checkout link
-      </p>
+    <div className="flex flex-col gap-4">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Select
+            value={planId}
+            onValueChange={(value) => setPlanId(value as BillablePlanId)}
+          >
+            <SelectTrigger className="flex-1">
+              <SelectValue>
+                {(value) =>
+                  value
+                    ? `${PLAN_LABEL[value as BillablePlanId]} — $${subscriptionPlans[value as BillablePlanId].monthlyRate}/mo`
+                    : ""
+                }
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Plan</SelectLabel>
+                <SelectItem value="presence">
+                  Presence — ${subscriptionPlans.presence.monthlyRate}/mo
+                </SelectItem>
+                <SelectItem value="growth">
+                  Growth — ${subscriptionPlans.growth.monthlyRate}/mo
+                </SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <Button
+            onClick={handleGenerate}
+            disabled={isPending}
+            className="gap-2"
+          >
+            {isPending ? (
+              <>
+                <Spinner />
+                Generating…
+              </>
+            ) : (
+              <>
+                <ArrowUpRight aria-hidden />
+                Generate link
+              </>
+            )}
+          </Button>
+        </div>
 
-      <div className="grid grid-cols-[1fr_auto] gap-2">
-        <Select
-          value={planId}
-          onValueChange={(value) => setPlanId(value as BillablePlanId)}
-        >
-          <SelectTrigger>
-            <SelectValue>
-              {(value) =>
-                value
-                  ? `${PLAN_LABEL[value as BillablePlanId]} — $${subscriptionPlans[value as BillablePlanId].monthlyRate}/mo`
-                  : ""
-              }
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Plan</SelectLabel>
-              <SelectItem value="presence">
-                Presence — ${subscriptionPlans.presence.monthlyRate}/mo
-              </SelectItem>
-              <SelectItem value="growth">
-                Growth — ${subscriptionPlans.growth.monthlyRate}/mo
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-        <Button
-          onClick={handleGenerate}
-          disabled={isPending}
-          className="gap-2"
-        >
-          <Send aria-hidden />
-          {isPending ? "Generating…" : "Generate"}
-        </Button>
+        <p className="text-xs text-muted-foreground tabular-nums">
+          ${plan.signingBonus} bonus
+          <Dot className="mx-2" />${plan.monthlyResidual}/mo residual
+        </p>
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        ${plan.signingBonus} signing bonus + ${plan.monthlyResidual}/mo residual
-        on this sale.
-      </p>
-
       {checkoutUrl ? (
-        <div className="flex flex-col gap-2 border border-border bg-muted/40 p-3">
-          <p className="break-all font-mono text-xs text-muted-foreground">
-            {checkoutUrl}
-          </p>
+        <div className="flex items-center gap-2 border border-border bg-muted/40 px-3 py-2">
+          <Check
+            aria-hidden
+            className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400"
+          />
+          <span className="flex-1 truncate text-xs text-muted-foreground">
+            Link ready
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2"
+            onClick={handleCopy}
+          >
+            <Copy aria-hidden /> Copy
+          </Button>
           <Button
             variant="outline"
             size="sm"
-            className="gap-2 self-start"
-            onClick={handleCopy}
+            className="gap-2"
+            nativeButton={false}
+            render={
+              <a
+                href={checkoutUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              />
+            }
           >
-            <Copy aria-hidden /> Copy link
+            <ExternalLink aria-hidden /> Open
           </Button>
         </div>
       ) : null}

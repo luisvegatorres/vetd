@@ -66,6 +66,31 @@ export default async function ClientsPage({
 
   const supabase = await createClient()
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const { data: me } = user
+    ? await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle()
+    : { data: null }
+  const canReassign = me?.role === "admin" || me?.role === "editor"
+
+  const { data: repRows } = canReassign
+    ? await supabase
+        .from("profiles")
+        .select("id, full_name, role, employment_status")
+        .in("role", ["admin", "editor", "sales_rep"])
+        .eq("employment_status", "active")
+        .order("full_name", { ascending: true })
+    : { data: null }
+  const reps = (repRows ?? []).map((r) => ({
+    id: r.id,
+    full_name: r.full_name,
+  }))
+
   const [clientsRes, projectsRes, subsRes, paymentsRes] = await Promise.all([
     supabase
       .from("clients")
@@ -85,7 +110,7 @@ export default async function ClientsPage({
     supabase
       .from("subscriptions")
       .select(
-        "id, client_id, product, plan, monthly_rate, status, started_at",
+        "id, client_id, product, plan, monthly_rate, status, started_at, stripe_subscription_id",
       )
       .order("started_at", { ascending: false }),
     supabase
@@ -135,6 +160,7 @@ export default async function ClientsPage({
       monthly_rate: Number(s.monthly_rate),
       status: s.status as SubscriptionStatus,
       started_at: s.started_at,
+      stripe_subscription_id: s.stripe_subscription_id,
     })
     subsByClient.set(s.client_id, list)
     if (s.status === "active" || s.status === "at_risk") {
@@ -259,7 +285,7 @@ export default async function ClientsPage({
             <span>{totalFiltered} showing</span>
           </span>
         }
-        action={<NewClientDialog />}
+        action={<NewClientDialog reps={reps} canReassign={canReassign} />}
       />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
@@ -287,7 +313,11 @@ export default async function ClientsPage({
             className="mt-auto"
           />
         </div>
-        <ClientDetailPanel client={selectedClient} />
+        <ClientDetailPanel
+          client={selectedClient}
+          reps={reps}
+          canReassign={canReassign}
+        />
       </div>
     </div>
   )

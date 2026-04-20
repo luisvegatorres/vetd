@@ -107,13 +107,29 @@ async function isRepActive(
   return data.employment_status === "active"
 }
 
+async function promoteClientToActive(
+  supabase: AdminClient,
+  clientId: string,
+) {
+  const { error } = await supabase
+    .from("clients")
+    .update({ status: "active_client" })
+    .eq("id", clientId)
+    .in("status", ["lead", "qualified", "archived", "lost"])
+  if (error) {
+    console.error("[stripe webhook] client status promote failed", error)
+  }
+}
+
 async function findSubscriptionByStripeId(
   supabase: AdminClient,
   stripeSubscriptionId: string,
 ) {
   const { data, error } = await supabase
     .from("subscriptions")
-    .select("id, sold_by, status, first_payment_at, stripe_price_id")
+    .select(
+      "id, client_id, sold_by, status, first_payment_at, stripe_price_id",
+    )
     .eq("stripe_subscription_id", stripeSubscriptionId)
     .maybeSingle()
   if (error) {
@@ -182,6 +198,7 @@ async function handleCheckoutCompleted(
     if (error) {
       console.error("[stripe webhook] subscription update failed", error)
     }
+    await promoteClientToActive(supabase, meta.client_id)
     return
   }
 
@@ -201,6 +218,74 @@ async function handleCheckoutCompleted(
   })
   if (error) {
     console.error("[stripe webhook] subscription insert failed", error)
+  }
+  await promoteClientToActive(supabase, meta.client_id)
+}
+
+async function handleDepositCompleted(
+  supabase: AdminClient,
+  session: Stripe.Checkout.Session,
+) {
+  if (session.mode !== "payment") return
+  if (session.metadata?.kind !== "project_deposit") return
+
+  const projectId = session.metadata?.project_id?.trim()
+  const clientId = session.metadata?.client_id?.trim()
+  if (!projectId) {
+    console.warn(
+      `[stripe webhook] deposit ${session.id} missing project_id metadata`,
+    )
+    return
+  }
+
+  const piId =
+    typeof session.payment_intent === "string"
+      ? session.payment_intent
+      : (session.payment_intent?.id ?? null)
+  const amount = session.amount_total != null ? session.amount_total / 100 : 0
+
+  const { error: paymentError } = await supabase.from("payments").upsert(
+    {
+      project_id: projectId,
+      stripe_payment_intent_id: piId,
+      amount,
+      currency: (session.currency ?? "usd").toUpperCase(),
+      status: "paid",
+      raw: session as unknown as Json,
+    },
+    { onConflict: "stripe_payment_intent_id" },
+  )
+  if (paymentError) {
+    console.error("[stripe webhook] deposit payment upsert failed", paymentError)
+  }
+
+  const paidAt = new Date().toISOString()
+  const { error: projectError } = await supabase
+    .from("projects")
+    .update({
+      deposit_paid_at: paidAt,
+      paid_at: paidAt,
+      payment_status: "paid",
+    })
+    .eq("id", projectId)
+  if (projectError) {
+    console.error("[stripe webhook] deposit project update failed", projectError)
+  }
+
+  // Auto-advance pipeline stage: a paid deposit is the hard signal that the
+  // deal is won. Only advance pre-sale rows — don't clobber completed or
+  // cancelled projects (e.g. a late payment on a refunded deal).
+  const { error: stageError } = await supabase
+    .from("projects")
+    .update({ stage: "active" })
+    .eq("id", projectId)
+    .in("stage", ["proposal", "negotiation"])
+  if (stageError) {
+    console.error("[stripe webhook] deposit stage advance failed", stageError)
+  }
+
+  if (clientId) {
+    await promoteClientToActive(supabase, clientId)
   }
 }
 
@@ -269,6 +354,11 @@ async function handleInvoicePaid(
     .from("subscriptions")
     .update({ status: "active", stripe_status: "active" })
     .eq("id", sub.id)
+
+  // A paid invoice proves the client is paying — promote them off the leads
+  // list. Skip if already active_client/at_risk/canceled to avoid redundant
+  // writes and to preserve downstream lifecycle states.
+  await promoteClientToActive(supabase, sub.client_id)
 
   // First invoice: set first_payment_at + insert signing bonus ledger row.
   if (invoice.billing_reason === "subscription_create") {
@@ -425,12 +515,12 @@ export async function POST(request: Request) {
 
   try {
     switch (event.type) {
-      case "checkout.session.completed":
-        await handleCheckoutCompleted(
-          supabase,
-          event.data.object as Stripe.Checkout.Session,
-        )
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session
+        await handleCheckoutCompleted(supabase, session)
+        await handleDepositCompleted(supabase, session)
         break
+      }
       case "invoice.payment_succeeded":
         await handleInvoicePaid(supabase, event.data.object as Stripe.Invoice)
         break
