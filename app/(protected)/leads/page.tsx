@@ -196,10 +196,10 @@ export default async function LeadsPage({
         <div className="flex min-h-0 flex-col border border-border/60">
           <div className="flex flex-wrap items-center gap-3 border-b border-border/60 px-4 py-3">
             <LeadsTabs active={tab} counts={counts} />
-            <div className="flex flex-1 justify-center">
+            <div className="ml-auto flex items-center gap-2">
               <LeadsSearch q={q} />
+              <LeadsFilters source={source} sort={sort} />
             </div>
-            <LeadsFilters source={source} sort={sort} />
           </div>
           <LeadsTable
             rows={visibleRows}

@@ -49,6 +49,82 @@ export const financing = {
   eligibilityNote: "Projects $5K+",
 } as const
 
+export type WebsitePlanId = "presence" | "growth" | "custom"
+
+export type WebsitePlan = {
+  id: WebsitePlanId
+  label: string
+  monthlyRate: number | null
+  blurb: string
+}
+
+export const websitePlans: WebsitePlan[] = [
+  {
+    id: "presence",
+    label: "Presence",
+    monthlyRate: 97,
+    blurb: "Website, hosting, basic SEO",
+  },
+  {
+    id: "growth",
+    label: "Growth",
+    monthlyRate: 247,
+    blurb: "Full SEO, content, reviews, monthly reports",
+  },
+  {
+    id: "custom",
+    label: "Custom",
+    monthlyRate: null,
+    blurb: "Bespoke monthly retainer",
+  },
+] as const
+
+export type BillablePlanId = Exclude<WebsitePlanId, "custom">
+
+export type SubscriptionPlanConfig = {
+  id: BillablePlanId
+  label: string
+  monthlyRate: number
+  signingBonus: number
+  monthlyResidual: number
+  stripePriceId: string | undefined
+}
+
+export const subscriptionPlans: Record<BillablePlanId, SubscriptionPlanConfig> = {
+  presence: {
+    id: "presence",
+    label: "Presence",
+    monthlyRate: 97,
+    signingBonus: 100,
+    monthlyResidual: 10,
+    stripePriceId: process.env.STRIPE_PRICE_ID_PRESENCE,
+  },
+  growth: {
+    id: "growth",
+    label: "Growth",
+    monthlyRate: 247,
+    signingBonus: 250,
+    monthlyResidual: 25,
+    stripePriceId: process.env.STRIPE_PRICE_ID_GROWTH,
+  },
+} as const
+
+export function findPlanByStripePriceId(
+  priceId: string,
+): SubscriptionPlanConfig | undefined {
+  return Object.values(subscriptionPlans).find(
+    (plan) => plan.stripePriceId === priceId,
+  )
+}
+
+export function findPlanByMonthlyRate(
+  rate: number,
+): SubscriptionPlanConfig | undefined {
+  return Object.values(subscriptionPlans).find(
+    (plan) => plan.monthlyRate === rate,
+  )
+}
+
 export const products: Product[] = [
   {
     id: "marketing-website",

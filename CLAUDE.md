@@ -55,17 +55,24 @@ Expected in `.env.local`:
 - `SUPABASE_SERVICE_ROLE_KEY` — admin client only
 - `NEXT_PUBLIC_CALENDLY_URL`, `NEXT_PUBLIC_CAL_LINK`, `NEXT_PUBLIC_WHATSAPP_DISPLAY`/`NEXT_PUBLIC_WHATSAPP_NUMBER` — marketing-site CTAs; `lib/site.ts` falls back to defaults when missing.
 - `CAL_WEBHOOK_SECRET` — HMAC-SHA256 secret used by `app/api/webhooks/cal/route.ts` to verify Cal.com webhook payloads. Set the same value in the Cal.com webhook config. The route handles `BOOKING_CREATED` / `BOOKING_RESCHEDULED` / `BOOKING_CANCELLED` and upserts `interactions` rows keyed on `(source, source_ref)`.
+- `STRIPE_SECRET_KEY` (`sk_test_...` / `sk_live_...`) — server-only Stripe Node SDK client; used by `lib/stripe/server.ts`, the checkout server action, and the webhook route. **Do not expose to the client.**
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (`pk_test_...` / `pk_live_...`) — public; only needed if/when we use Stripe Elements. Hosted Checkout (current flow) does not require it.
+- `STRIPE_WEBHOOK_SECRET` (`whsec_...`) — signing secret for `app/api/webhooks/stripe/route.ts`. Get from Stripe Dashboard → Developers → Webhooks for production, or from `stripe listen --forward-to localhost:3000/api/webhooks/stripe` for local dev.
+- `STRIPE_PRICE_ID_PRESENCE`, `STRIPE_PRICE_ID_GROWTH` — Stripe Price IDs for the two recurring plans. Test mode and live mode have separate IDs; swap these env vars when deploying. Sourced by `lib/site.ts` `subscriptionPlans` and used by the checkout flow + webhook to map Stripe events back to the right CRM plan.
 
 ### Database
 
 Schema lives in `supabase/migrations/` — number-prefixed, applied in order. Start with `0001_init_crm.sql` for the base, then read later migrations for additive changes. Generated types live in `lib/supabase/types.ts` — regenerate with Supabase's typegen after schema changes; do not hand-edit.
 
 Schema summary (all `public`):
-- **profiles** — extends `auth.users`, holds `role` (`admin`/`editor`/`sales_rep`/`viewer`) and `default_commission_rate`.
+- **profiles** — extends `auth.users`, holds `role` (`admin`/`editor`/`sales_rep`/`viewer`), `default_commission_rate` (default 10 as of 0012), and `employment_status` (`active`/`terminated`, added in 0012). Residual commissions stop the moment a rep flips to `terminated`.
 - **clients** — lead/client records with `status`, `source`, `assigned_to` → profiles, plus enrichment fields (`lead_score`, etc. — see migrations 0004/0006).
 - **projects** — one-time deal/project records with `stage`, `payment_status`, `commission_*`, `stripe_*`, linked to `clients` and `sold_by` → profiles. Migration 0007 adds `product_type` (enum: `business_website`/`mobile_app`/`web_app`/`ai_integration`), `deposit_rate` (default 30), generated `deposit_amount`, and `deposit_paid_at`. A `projects_deposit_gate` trigger blocks the move to `stage='active'` until the deposit is paid for any priced project.
-- **subscriptions** — recurring engagements (added in 0002, `sold_by` in 0003). Separate from `projects`; not subject to the deposit gate.
-- **payments** — Stripe payment history per project.
+- **subscriptions** — recurring engagements (added in 0002, `sold_by` in 0003). Migration 0012 adds `signing_bonus_amount`, `monthly_residual_amount`, `first_payment_at`. Migration 0013 adds Stripe identifiers (`stripe_customer_id`, `stripe_subscription_id`, `stripe_price_id`, `stripe_status`). Separate from `projects`; not subject to the deposit gate.
+- **subscription_invoices** — recurring billing audit log (added in 0013). One row per Stripe invoice; `billing_reason` distinguishes first invoice (signing bonus trigger) from recurring (monthly residual trigger).
+- **subscription_commission_ledger** — per-payout ledger for sales rep residuals (added in 0012). One row per `(subscription_id, kind, period_month)`; `kind` is `signing_bonus` or `monthly_residual`. Webhook generates rows; admin marks them `paid`.
+- **processed_stripe_events** — webhook idempotency log keyed on Stripe event ID (added in 0013). Insert before processing; `ON CONFLICT DO NOTHING` skips duplicates.
+- **payments** — Stripe payment history per project (one-time payments only; subscription invoices live in `subscription_invoices`).
 - **interactions** — timeline entries (call/email/meeting/etc.) on a client, optionally tied to a project.
 - **showcase_projects**, **pitch_slides** — content for the marketing site and the in-app `pitch-mode` presenter.
 

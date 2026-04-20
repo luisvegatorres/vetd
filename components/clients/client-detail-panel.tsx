@@ -1,9 +1,9 @@
 import {
   Calendar,
   ChevronRight,
-  CreditCard,
   FolderKanban,
   Mail,
+  MousePointerSquareDashed,
   Plus,
   Repeat,
 } from "lucide-react"
@@ -41,6 +41,7 @@ import {
   paymentStatusLabel,
   projectStageTone,
 } from "@/lib/status-colors"
+import { SendSubscriptionLink } from "@/components/subscriptions/send-subscription-link"
 import { ClientStatusBadge } from "./client-status-badge"
 import { EditClientDialog } from "./client-form-dialog"
 import {
@@ -97,10 +98,14 @@ export function ClientDetailPanel({ client }: { client: ClientRow | null }) {
   if (!client) {
     return (
       <Card className="flex min-h-80 flex-col items-center justify-center gap-0 p-10 text-center">
-        <p className="text-overline font-medium uppercase text-muted-foreground">
-          No Client Selected
-        </p>
-        <p className="mt-4 max-w-xs text-sm text-muted-foreground">
+        <MousePointerSquareDashed
+          aria-hidden
+          className="size-6 text-muted-foreground"
+        />
+        <h2 className="mt-4 font-heading text-base font-medium">
+          No client selected
+        </h2>
+        <p className="mt-2 max-w-xs text-sm text-muted-foreground">
           Pick a row to see contact info, projects, and recurring revenue.
         </p>
       </Card>
@@ -149,7 +154,16 @@ export function ClientDetailPanel({ client }: { client: ClientRow | null }) {
               }
             />
             <Separator orientation="vertical" />
-            <StatBlock label="Projects" value={client.projects.length} />
+            <StatBlock
+              label="Projects"
+              value={
+                client.projects.length > 0 ? (
+                  client.projects.length
+                ) : (
+                  <span className="text-muted-foreground">—</span>
+                )
+              }
+            />
           </div>
           <Separator />
         </div>
@@ -209,7 +223,7 @@ export function ClientDetailPanel({ client }: { client: ClientRow | null }) {
               </ItemContent>
               <ItemActions>
                 <span className="tabular-nums text-muted-foreground">
-                  {client.projects.length}
+                  {client.projects.length > 0 ? client.projects.length : "—"}
                 </span>
                 <ChevronRight aria-hidden className="size-4" />
               </ItemActions>
@@ -285,7 +299,9 @@ export function ClientDetailPanel({ client }: { client: ClientRow | null }) {
               </ItemContent>
               <ItemActions>
                 <span className="tabular-nums text-muted-foreground">
-                  {client.subscriptions.length}
+                  {client.subscriptions.length > 0
+                    ? client.subscriptions.length
+                    : "—"}
                 </span>
                 <ChevronRight aria-hidden className="size-4" />
               </ItemActions>
@@ -323,6 +339,7 @@ export function ClientDetailPanel({ client }: { client: ClientRow | null }) {
                     </div>
                   ))
                 )}
+                <SendSubscriptionLink clientId={client.id} />
               </div>
             </DialogContent>
           </Dialog>
@@ -331,14 +348,14 @@ export function ClientDetailPanel({ client }: { client: ClientRow | null }) {
 
       <CardFooter className="mt-auto flex-col items-stretch gap-3 p-6">
         <Button className="gap-2" disabled>
-          <Plus aria-hidden /> New Project for {display}
+          <Plus aria-hidden /> New Project
         </Button>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <Button
             variant="outline"
             disabled={!client.email}
             nativeButton={!client.email}
-            className="gap-2 capitalize"
+            className="gap-2"
             render={
               client.email ? <a href={`mailto:${client.email}`} /> : undefined
             }
@@ -349,7 +366,7 @@ export function ClientDetailPanel({ client }: { client: ClientRow | null }) {
             variant="outline"
             disabled={!calHref}
             nativeButton={!calHref}
-            className="gap-2 capitalize"
+            className="gap-2"
             render={
               calHref ? (
                 <a href={calHref} target="_blank" rel="noopener noreferrer" />
@@ -357,14 +374,6 @@ export function ClientDetailPanel({ client }: { client: ClientRow | null }) {
             }
           >
             <Calendar aria-hidden /> Meet
-          </Button>
-          <Button
-            variant="outline"
-            disabled
-            nativeButton
-            className="gap-2 capitalize"
-          >
-            <CreditCard aria-hidden /> Stripe
           </Button>
         </div>
       </CardFooter>

@@ -223,10 +223,29 @@ export type Database = {
         }
         Relationships: []
       }
+      processed_stripe_events: {
+        Row: {
+          event_type: string
+          id: string
+          processed_at: string
+        }
+        Insert: {
+          event_type: string
+          id: string
+          processed_at?: string
+        }
+        Update: {
+          event_type?: string
+          id?: string
+          processed_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
           default_commission_rate: number | null
+          employment_status: Database["public"]["Enums"]["employment_status"]
           full_name: string | null
           id: string
           role: Database["public"]["Enums"]["user_role"]
@@ -234,6 +253,7 @@ export type Database = {
         Insert: {
           created_at?: string
           default_commission_rate?: number | null
+          employment_status?: Database["public"]["Enums"]["employment_status"]
           full_name?: string | null
           id: string
           role?: Database["public"]["Enums"]["user_role"]
@@ -241,6 +261,7 @@ export type Database = {
         Update: {
           created_at?: string
           default_commission_rate?: number | null
+          employment_status?: Database["public"]["Enums"]["employment_status"]
           full_name?: string | null
           id?: string
           role?: Database["public"]["Enums"]["user_role"]
@@ -251,6 +272,7 @@ export type Database = {
         Row: {
           client_id: string
           commission_amount: number | null
+          commission_flat: number | null
           commission_rate: number | null
           completed_at: string | null
           created_at: string
@@ -260,6 +282,7 @@ export type Database = {
           deposit_paid_at: string | null
           deposit_rate: number
           description: string | null
+          financing_enabled: boolean
           id: string
           paid_at: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
@@ -278,6 +301,7 @@ export type Database = {
         Insert: {
           client_id: string
           commission_amount?: number | null
+          commission_flat?: number | null
           commission_rate?: number | null
           completed_at?: string | null
           created_at?: string
@@ -287,6 +311,7 @@ export type Database = {
           deposit_paid_at?: string | null
           deposit_rate?: number
           description?: string | null
+          financing_enabled?: boolean
           id?: string
           paid_at?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
@@ -305,6 +330,7 @@ export type Database = {
         Update: {
           client_id?: string
           commission_amount?: number | null
+          commission_flat?: number | null
           commission_rate?: number | null
           completed_at?: string | null
           created_at?: string
@@ -314,6 +340,7 @@ export type Database = {
           deposit_paid_at?: string | null
           deposit_rate?: number
           description?: string | null
+          financing_enabled?: boolean
           id?: string
           paid_at?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
@@ -394,20 +421,141 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_commission_ledger: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["commission_kind"]
+          notes: string | null
+          paid_at: string | null
+          period_month: string | null
+          rep_id: string
+          status: Database["public"]["Enums"]["commission_ledger_status"]
+          subscription_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["commission_kind"]
+          notes?: string | null
+          paid_at?: string | null
+          period_month?: string | null
+          rep_id: string
+          status?: Database["public"]["Enums"]["commission_ledger_status"]
+          subscription_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["commission_kind"]
+          notes?: string | null
+          paid_at?: string | null
+          period_month?: string | null
+          rep_id?: string
+          status?: Database["public"]["Enums"]["commission_ledger_status"]
+          subscription_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_commission_ledger_rep_id_fkey"
+            columns: ["rep_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_commission_ledger_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_invoices: {
+        Row: {
+          amount_paid: number
+          billing_reason: string | null
+          created_at: string
+          currency: string
+          id: string
+          paid_at: string | null
+          period_end: string | null
+          period_start: string | null
+          raw: Json | null
+          status: string
+          stripe_invoice_id: string
+          stripe_payment_intent_id: string | null
+          subscription_id: string
+        }
+        Insert: {
+          amount_paid: number
+          billing_reason?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          paid_at?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          raw?: Json | null
+          status: string
+          stripe_invoice_id: string
+          stripe_payment_intent_id?: string | null
+          subscription_id: string
+        }
+        Update: {
+          amount_paid?: number
+          billing_reason?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          paid_at?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          raw?: Json | null
+          status?: string
+          stripe_invoice_id?: string
+          stripe_payment_intent_id?: string | null
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_invoices_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           canceled_at: string | null
           client_id: string
           created_at: string
           currency: string
+          first_payment_at: string | null
           id: string
           monthly_rate: number
+          monthly_residual_amount: number | null
           notes: string | null
           plan: string
           product: string
+          project_id: string | null
+          signing_bonus_amount: number | null
           sold_by: string | null
           started_at: string
           status: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id: string | null
+          stripe_price_id: string | null
+          stripe_status: string | null
+          stripe_subscription_id: string | null
           updated_at: string
         }
         Insert: {
@@ -415,14 +563,22 @@ export type Database = {
           client_id: string
           created_at?: string
           currency?: string
+          first_payment_at?: string | null
           id?: string
           monthly_rate: number
+          monthly_residual_amount?: number | null
           notes?: string | null
           plan: string
           product: string
+          project_id?: string | null
+          signing_bonus_amount?: number | null
           sold_by?: string | null
           started_at: string
           status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_status?: string | null
+          stripe_subscription_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -430,14 +586,22 @@ export type Database = {
           client_id?: string
           created_at?: string
           currency?: string
+          first_payment_at?: string | null
           id?: string
           monthly_rate?: number
+          monthly_residual_amount?: number | null
           notes?: string | null
           plan?: string
           product?: string
+          project_id?: string | null
+          signing_bonus_amount?: number | null
           sold_by?: string | null
           started_at?: string
           status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_status?: string | null
+          stripe_subscription_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -446,6 +610,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
           {
@@ -483,6 +654,9 @@ export type Database = {
         | "active_client"
         | "archived"
         | "lost"
+      commission_kind: "signing_bonus" | "monthly_residual"
+      commission_ledger_status: "pending" | "paid" | "voided"
+      employment_status: "active" | "terminated"
       interaction_type:
         | "call"
         | "email"
@@ -641,6 +815,9 @@ export const Constants = {
         "other",
       ],
       client_status: ["lead", "qualified", "active_client", "archived", "lost"],
+      commission_kind: ["signing_bonus", "monthly_residual"],
+      commission_ledger_status: ["pending", "paid", "voided"],
+      employment_status: ["active", "terminated"],
       interaction_type: [
         "call",
         "email",

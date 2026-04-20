@@ -266,14 +266,14 @@ export default async function ClientsPage({
         <div className="flex min-h-0 flex-col border border-border/60">
           <div className="flex flex-wrap items-center gap-3 border-b border-border/60 px-4 py-3">
             <ClientsTabs active={tab} counts={counts} />
-            <div className="flex flex-1 justify-center">
+            <div className="ml-auto flex items-center gap-2">
               <ClientsSearch q={q} />
+              <ClientsFilters
+                industry={industry}
+                sort={sort}
+                industries={industries}
+              />
             </div>
-            <ClientsFilters
-              industry={industry}
-              sort={sort}
-              industries={industries}
-            />
           </div>
           <ClientsTable
             rows={visibleRows}
