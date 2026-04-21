@@ -116,12 +116,14 @@ export function ProjectDetailView({
   reps,
   invoices,
   tasks,
+  currentUserId,
 }: {
   project: ProjectRow
   clients: { id: string; name: string; company: string | null }[]
   reps: { id: string; full_name: string | null }[]
   invoices: SubscriptionInvoiceRow[]
   tasks: ProjectTaskRow[]
+  currentUserId: string | null
 }) {
   const clientDisplay = projectDisplayClient(project)
   const productLabel = project.product_type
@@ -260,7 +262,12 @@ export function ProjectDetailView({
       </div>
 
       <div className="space-y-10">
-        <ProjectBoard projectId={project.id} tasks={tasks} reps={reps} />
+        <ProjectBoard
+          projectId={project.id}
+          tasks={tasks}
+          reps={reps}
+          currentUserId={currentUserId}
+        />
 
         {project.subscription ? (
           <Section

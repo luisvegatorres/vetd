@@ -3,6 +3,12 @@ import "server-only"
 import { NextResponse } from "next/server"
 import type Stripe from "stripe"
 
+import {
+  appendProjectTask,
+  formatPeriodMonth,
+  markProjectTaskDoneByTitle,
+  TASK_TITLES,
+} from "@/lib/projects/task-automations"
 import { findPlanByStripePriceId } from "@/lib/site"
 import { stripe } from "@/lib/stripe/server"
 import { verifyStripeWebhook } from "@/lib/stripe/webhook"
@@ -84,8 +90,33 @@ function priceIdFromInvoiceLine(line: Stripe.InvoiceLineItem): string | null {
   return typeof priceRef === "string" ? priceRef : priceRef.id
 }
 
-function periodMonthFromInvoice(invoice: Stripe.Invoice): string | null {
-  const periodStart = invoice.lines.data[0]?.period?.start
+// Under API 2026-03-25.dahlia, invoice.lines is paginated and webhook events
+// don't always inline the line items — leaving invoice.lines.data empty. Fall
+// back to an explicit listLineItems call so we can always resolve period/price.
+async function resolveFirstInvoiceLine(
+  invoice: Stripe.Invoice,
+): Promise<Stripe.InvoiceLineItem | null> {
+  const inlined = invoice.lines?.data?.[0]
+  if (inlined) return inlined
+  if (!invoice.id) return null
+  try {
+    const { data } = await stripe.invoices.listLineItems(invoice.id, {
+      limit: 1,
+    })
+    return data[0] ?? null
+  } catch (err) {
+    console.error(
+      `[stripe webhook] listLineItems failed for ${invoice.id}`,
+      err,
+    )
+    return null
+  }
+}
+
+function periodMonthFromLine(
+  line: Stripe.InvoiceLineItem | null,
+): string | null {
+  const periodStart = line?.period?.start
   if (!periodStart) return null
   const date = new Date(periodStart * 1000)
   // First-of-month UTC, ISO date format (YYYY-MM-DD) for the date column.
@@ -149,7 +180,7 @@ async function findSubscriptionByStripeId(
   const { data, error } = await supabase
     .from("subscriptions")
     .select(
-      "id, client_id, sold_by, status, first_payment_at, stripe_price_id",
+      "id, client_id, project_id, sold_by, status, first_payment_at, stripe_price_id",
     )
     .eq("stripe_subscription_id", stripeSubscriptionId)
     .maybeSingle()
@@ -314,6 +345,14 @@ async function handleDepositCompleted(
   if (clientId) {
     await promoteClientToActive(supabase, clientId)
   }
+
+  // Tick the "Send Stripe deposit invoice" task on the board — the deposit
+  // just landed, so the deliverable is done.
+  await markProjectTaskDoneByTitle(
+    supabase,
+    projectId,
+    TASK_TITLES.sendDepositInvoice,
+  )
 }
 
 async function handleInvoicePaid(
@@ -341,7 +380,7 @@ async function handleInvoicePaid(
     ? new Date(invoice.status_transitions.paid_at * 1000).toISOString()
     : new Date().toISOString()
   const piId = paymentIntentIdFromInvoice(invoice)
-  const lineItem = invoice.lines.data[0]
+  const lineItem = await resolveFirstInvoiceLine(invoice)
 
   const { error: invoiceError } = await supabase
     .from("subscription_invoices")
@@ -418,6 +457,18 @@ async function handleInvoicePaid(
         )
       }
     }
+
+    // Subscription just went live — append onboarding tasks to the project
+    // board so the rep has the recurring workstream in front of them.
+    if (sub.project_id) {
+      await appendProjectTask(supabase, {
+        projectId: sub.project_id,
+        title: `${plan.label} subscription active`,
+        description:
+          "Confirm deliverables with client and set the monthly cadence.",
+        dueInDays: 3,
+      })
+    }
     return
   }
 
@@ -427,7 +478,7 @@ async function handleInvoicePaid(
     invoice.billing_reason === "subscription_cycle" ||
     invoice.billing_reason === "subscription_update"
   ) {
-    const periodMonth = periodMonthFromInvoice(invoice)
+    const periodMonth = periodMonthFromLine(lineItem)
     if (!periodMonth) return
     if (!sub.sold_by || !(await isRepEligibleForCommission(supabase, sub.sold_by))) return
 
@@ -445,6 +496,25 @@ async function handleInvoicePaid(
         "[stripe webhook] monthly residual ledger insert failed",
         ledgerError,
       )
+    }
+
+    // Renewal landed — drop a monthly check-in task on the board. Idempotent
+    // by title so Stripe retries of the same cycle don't double-insert.
+    if (sub.project_id) {
+      const label = formatPeriodMonth(
+        lineItem?.period?.start
+          ? new Date(lineItem.period.start * 1000).toISOString()
+          : null,
+      )
+      if (label) {
+        await appendProjectTask(supabase, {
+          projectId: sub.project_id,
+          title: `Monthly check-in — ${label}`,
+          description:
+            "Recurring invoice paid. Schedule the check-in and deliverables for this month.",
+          dueInDays: 7,
+        })
+      }
     }
   }
 }

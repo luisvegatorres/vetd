@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useOptimistic, useState, useTransition } from "react"
+import { useId, useMemo, useOptimistic, useState, useTransition } from "react"
 import { toast } from "sonner"
 import {
   DndContext,
@@ -99,6 +99,7 @@ export function PipelineBoard({ projects }: { projects: ProjectRow[] }) {
   const [state, dispatch] = useOptimistic(initial, reducer)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [, startTransition] = useTransition()
+  const dndId = useId()
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -173,6 +174,7 @@ export function PipelineBoard({ projects }: { projects: ProjectRow[] }) {
 
   return (
     <DndContext
+      id={dndId}
       sensors={sensors}
       collisionDetection={closestCorners}
       onDragStart={handleDragStart}

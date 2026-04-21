@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 
+import { seedProjectTasks } from "@/lib/projects/seed-tasks"
 import { createClient } from "@/lib/supabase/server"
 import { financing, websitePlans, type WebsitePlanId } from "@/lib/site"
 import { Constants, type Database } from "@/lib/supabase/types"
@@ -215,6 +216,12 @@ export async function createNewProject(
   if (error || !data) {
     return { ok: false, error: error?.message ?? "Failed to create project" }
   }
+
+  await seedProjectTasks({
+    projectId: data.id,
+    productType,
+    createdBy: auth.user.id,
+  })
 
   const subSync = await syncWebsiteSubscription(
     supabase,

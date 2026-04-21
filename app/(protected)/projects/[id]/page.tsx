@@ -20,6 +20,8 @@ export default async function ProjectDetailPage({
   if (!UUID_RE.test(id)) notFound()
 
   const supabase = await createClient()
+  const { data: authData } = await supabase.auth.getUser()
+  const currentUserId = authData.user?.id ?? null
 
   const [
     projectRes,
@@ -204,6 +206,7 @@ export default async function ProjectDetailPage({
       reps={repOptions}
       invoices={invoices}
       tasks={tasks}
+      currentUserId={currentUserId}
     />
   )
 }

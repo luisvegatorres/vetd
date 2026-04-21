@@ -84,11 +84,45 @@ export default async function PipelinePage({
 
   const uiCutoff = terminalCutoff(range)
 
-  const rows: ProjectRow[] = (data ?? [])
-    .filter((p) => {
-      if (p.stage === "proposal" || p.stage === "negotiation") return true
-      return effectiveWonAt(p) >= uiCutoff
+  const visible = (data ?? []).filter((p) => {
+    if (p.stage === "proposal" || p.stage === "negotiation") return true
+    return effectiveWonAt(p) >= uiCutoff
+  })
+
+  const projectIds = visible.map((p) => p.id)
+  const subscriptionsRes =
+    projectIds.length > 0
+      ? await supabase
+          .from("subscriptions")
+          .select(
+            "id, project_id, plan, product, monthly_rate, status, started_at, stripe_subscription_id",
+          )
+          .in("project_id", projectIds)
+      : null
+
+  if (subscriptionsRes?.error) throw subscriptionsRes.error
+
+  const subscriptionByProject = new Map<
+    string,
+    NonNullable<ProjectRow["subscription"]>
+  >()
+  for (const s of subscriptionsRes?.data ?? []) {
+    if (!s.project_id) continue
+    subscriptionByProject.set(s.project_id, {
+      id: s.id,
+      plan: s.plan,
+      product: s.product,
+      monthly_rate: Number(s.monthly_rate),
+      status: s.status,
+      started_at: s.started_at,
+      stripe_subscription_id: s.stripe_subscription_id,
+      payment_count: 0,
+      paid_payment_count: 0,
+      paid_total: 0,
     })
+  }
+
+  const rows: ProjectRow[] = visible
     .map((p) => {
       const clientObj = Array.isArray(p.client) ? p.client[0] : p.client
       const repObj = Array.isArray(p.rep) ? p.rep[0] : p.rep
@@ -128,7 +162,7 @@ export default async function PipelinePage({
         rep: repObj ? { id: repObj.id, full_name: repObj.full_name } : null,
         payments: [],
         interactions: [],
-        subscription: null,
+        subscription: subscriptionByProject.get(p.id) ?? null,
       }
     })
 
@@ -145,11 +179,11 @@ export default async function PipelinePage({
         eyebrow="Pipeline"
         title={
           <span className="flex flex-wrap items-center gap-3">
-            <span>{liveCount} open</span>
+            <span>{liveCount} Open</span>
             <Dot />
-            <span>{formatUsdShort(liveValue)} in play</span>
+            <span>{formatUsdShort(liveValue)} In play</span>
             <Dot />
-            <span>{depositPendingCount} deposit pending</span>
+            <span>{depositPendingCount} Deposit pending</span>
           </span>
         }
         action={<PipelineRangeTabs active={range} />}

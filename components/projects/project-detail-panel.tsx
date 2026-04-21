@@ -5,10 +5,11 @@ import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
 import {
   Card,
-  CardAction,
   CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
+  CardTitle,
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
@@ -87,15 +88,6 @@ function DetailRow({
   )
 }
 
-function subscriptionBillingHint(
-  subscription: NonNullable<ProjectRow["subscription"]>
-) {
-  if (subscription.paid_total > 0) {
-    return `${formatUsdShortWithZero(subscription.paid_total)} collected`
-  }
-  return null
-}
-
 function billablePlanIdForSubscription(
   subscription: NonNullable<ProjectRow["subscription"]>
 ): BillablePlanId | null {
@@ -145,43 +137,19 @@ export function ProjectDetailPanel({
     !project.subscription.stripe_subscription_id &&
     stripeActivationPlan
   )
-  const hasCustomPlanNotice = Boolean(
-    project.subscription &&
-      !project.subscription.stripe_subscription_id &&
-      !stripeActivationPlan
-  )
-  const hasFooterContent =
-    canActivateStripeSubscription ||
-    hasCustomPlanNotice ||
-    (isDepositPending(project) && Boolean(project.client))
-
   return (
     <Card className="flex min-h-80 flex-col gap-0 py-0">
-      <CardHeader className="items-center gap-4 p-6">
+      <CardHeader className="gap-4 p-6">
         <ProjectStageBadge stage={project.stage} />
-        <CardAction>
-          <Link
-            href={`/projects/${project.id}`}
-            className={cn(
-              buttonVariants({ variant: "outline", size: "sm" }),
-              "gap-2"
-            )}
-          >
-            View details
-            <ArrowUpRight aria-hidden />
-          </Link>
-        </CardAction>
+        <div className="min-w-0 space-y-1">
+          <CardTitle className="line-clamp-2 font-sans text-xl leading-tight">
+            {clientDisplay}
+          </CardTitle>
+          <CardDescription className="truncate">{productLabel}</CardDescription>
+        </div>
       </CardHeader>
 
       <CardContent className="flex flex-col p-0">
-        <div className="min-w-0 space-y-1 px-6 pb-6">
-          <h2 className="line-clamp-2 font-sans text-xl leading-tight font-medium">
-            {clientDisplay}
-          </h2>
-          <p className="truncate text-sm text-muted-foreground">
-            {productLabel}
-          </p>
-        </div>
         <Separator />
         <div className="grid grid-cols-2 bg-muted/10">
           {subscriptionOnly && project.subscription ? (
@@ -266,7 +234,6 @@ export function ProjectDetailPanel({
             <DetailRow
               label="Recurring billing"
               value={project.subscription.plan}
-              hint={subscriptionBillingHint(project.subscription)}
             />
           ) : null}
           <DetailRow
@@ -280,8 +247,18 @@ export function ProjectDetailPanel({
         </div>
       </CardContent>
 
-      {hasFooterContent ? <Separator /> : null}
-      <CardFooter className="mt-auto flex-col gap-4 p-6 empty:hidden">
+      <Separator />
+      <CardFooter className="mt-auto flex-col items-stretch gap-4 p-6">
+        <Link
+          href={`/projects/${project.id}`}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "w-full gap-2"
+          )}
+        >
+          View details
+          <ArrowUpRight aria-hidden />
+        </Link>
         {canActivateStripeSubscription &&
         project.subscription &&
         project.client &&

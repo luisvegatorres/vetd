@@ -206,11 +206,11 @@ export default async function LeadsPage({
         eyebrow="Leads"
         title={
           <span className="flex flex-wrap items-center gap-3">
-            <span>{counts.new} new</span>
+            <span>{counts.new} New</span>
             <Dot />
-            <span>{counts.qualified} qualified</span>
+            <span>{counts.qualified} Qualified</span>
             <Dot />
-            <span>{totalFiltered} showing</span>
+            <span>{totalFiltered} Showing</span>
           </span>
         }
         action={<NewLeadDialog />}

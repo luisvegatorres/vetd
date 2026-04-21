@@ -1,7 +1,7 @@
 "use client"
 
 import { Calendar, Plus, Trash2 } from "lucide-react"
-import { useEffect, useMemo, useOptimistic, useState, useTransition } from "react"
+import { useEffect, useId, useMemo, useOptimistic, useState, useTransition } from "react"
 import { toast } from "sonner"
 import {
   DndContext,
@@ -47,6 +47,11 @@ import {
 } from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  TASK_LIBRARY,
+  type NamedTaskTemplate,
+  type TaskTemplateCategory,
+} from "@/lib/projects/task-templates"
 import { cn } from "@/lib/utils"
 import type { Database } from "@/lib/supabase/types"
 import {
@@ -84,8 +89,42 @@ const STATUS_LABEL: Record<TaskStatus, string> = {
   done: "Done",
 }
 
-const UNASSIGNED = "__unassigned__"
 const ALL = "__all__"
+const NO_TEMPLATE = "__none__"
+
+const TEMPLATE_CATEGORY_LABEL: Record<TaskTemplateCategory, string> = {
+  intake: "Intake",
+  build: "Build",
+  delivery: "Delivery",
+  other: "Other",
+}
+
+const TEMPLATE_CATEGORY_ORDER: TaskTemplateCategory[] = [
+  "intake",
+  "build",
+  "delivery",
+  "other",
+]
+
+function groupedTemplates(): [TaskTemplateCategory, NamedTaskTemplate[]][] {
+  const buckets: Record<TaskTemplateCategory, NamedTaskTemplate[]> = {
+    intake: [],
+    build: [],
+    delivery: [],
+    other: [],
+  }
+  for (const t of TASK_LIBRARY) buckets[t.category].push(t)
+  return TEMPLATE_CATEGORY_ORDER.filter((k) => buckets[k].length > 0).map(
+    (k) => [k, buckets[k]],
+  )
+}
+
+function templateDueDate(t: NamedTaskTemplate): string {
+  if (t.dueInDays == null) return ""
+  return new Date(Date.now() + t.dueInDays * 86_400_000)
+    .toISOString()
+    .slice(0, 10)
+}
 
 type DueFilter = "all" | "overdue" | "soon" | "week" | "none"
 
@@ -197,10 +236,12 @@ export function ProjectBoard({
   projectId,
   tasks,
   reps,
+  currentUserId,
 }: {
   projectId: string
   tasks: ProjectTaskRow[]
   reps: Rep[]
+  currentUserId: string | null
 }) {
   const initial = useMemo(() => groupTasks(tasks), [tasks])
   const [state, dispatch] = useOptimistic(initial, reducer)
@@ -209,6 +250,7 @@ export function ProjectBoard({
   const [assigneeFilter, setAssigneeFilter] = useState<string>(ALL)
   const [dueFilter, setDueFilter] = useState<DueFilter>("all")
   const [, startTransition] = useTransition()
+  const dndId = useId()
 
   const filteredState = useMemo<BoardState>(() => {
     if (assigneeFilter === ALL && dueFilter === "all") return state
@@ -216,8 +258,7 @@ export function ProjectBoard({
     for (const key of Object.keys(state) as TaskStatus[]) {
       out[key] = state[key].filter((t) => {
         if (assigneeFilter !== ALL) {
-          const id = t.assignee?.id ?? UNASSIGNED
-          if (id !== assigneeFilter) return false
+          if (t.assignee?.id !== assigneeFilter) return false
         }
         return matchesDueFilter(t.due_date, key === "done", dueFilter)
       })
@@ -358,7 +399,6 @@ export function ProjectBoard({
               <SelectValue>
                 {(v) => {
                   if (!v || v === ALL) return "Anyone"
-                  if (v === UNASSIGNED) return "Unassigned"
                   return reps.find((r) => r.id === v)?.full_name ?? "Anyone"
                 }}
               </SelectValue>
@@ -367,7 +407,6 @@ export function ProjectBoard({
               <SelectGroup>
                 <SelectLabel>Assignee</SelectLabel>
                 <SelectItem value={ALL}>Anyone</SelectItem>
-                <SelectItem value={UNASSIGNED}>Unassigned</SelectItem>
                 {reps.map((r) => (
                   <SelectItem key={r.id} value={r.id}>
                     {r.full_name ?? "Unnamed"}
@@ -412,6 +451,7 @@ export function ProjectBoard({
       </div>
 
       <DndContext
+        id={dndId}
         sensors={sensors}
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}
@@ -443,6 +483,7 @@ export function ProjectBoard({
         state={editor}
         projectId={projectId}
         reps={reps}
+        currentUserId={currentUserId}
         onClose={() => setEditor({ mode: "closed" })}
         onDelete={handleDelete}
       />
@@ -655,24 +696,37 @@ function TaskDialog({
   state,
   projectId,
   reps,
+  currentUserId,
   onClose,
   onDelete,
 }: {
   state: EditorState
   projectId: string
   reps: Rep[]
+  currentUserId: string | null
   onClose: () => void
   onDelete: (id: string) => void
 }) {
   const open = state.mode !== "closed"
   const editing = state.mode === "edit"
 
+  // Default assignee is the current user (rep-self-assign) when they're in the
+  // reps list; otherwise the first rep; otherwise "" (form won't submit until
+  // they pick one — required).
+  const defaultAssignee =
+    currentUserId && reps.some((r) => r.id === currentUserId)
+      ? currentUserId
+      : (reps[0]?.id ?? "")
+
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [status, setStatus] = useState<TaskStatus>("todo")
   const [dueDate, setDueDate] = useState<string>("")
-  const [assignee, setAssignee] = useState<string>(UNASSIGNED)
+  const [assignee, setAssignee] = useState<string>("")
+  const [templateId, setTemplateId] = useState<string>(NO_TEMPLATE)
   const [isPending, startTransition] = useTransition()
+
+  const templateGroups = useMemo(() => groupedTemplates(), [])
 
   // Sync form fields when the dialog opens / target task changes.
   useEffect(() => {
@@ -682,15 +736,28 @@ function TaskDialog({
       setDescription("")
       setStatus(state.defaultStatus)
       setDueDate("")
-      setAssignee(UNASSIGNED)
+      setAssignee(defaultAssignee)
+      setTemplateId(NO_TEMPLATE)
     } else {
       setTitle(state.task.title)
       setDescription(state.task.description ?? "")
       setStatus(state.task.status)
       setDueDate(state.task.due_date ?? "")
-      setAssignee(state.task.assignee?.id ?? UNASSIGNED)
+      // Fall back to the current user for legacy tasks that predate the
+      // "assignee required" rule.
+      setAssignee(state.task.assignee?.id ?? defaultAssignee)
     }
-  }, [state])
+  }, [state, defaultAssignee])
+
+  function applyTemplate(id: string) {
+    setTemplateId(id)
+    if (id === NO_TEMPLATE) return
+    const template = TASK_LIBRARY.find((t) => t.id === id)
+    if (!template) return
+    setTitle(template.title)
+    setDescription(template.description ?? "")
+    setDueDate(templateDueDate(template))
+  }
 
   function handleOpenChange(next: boolean) {
     if (!next && !isPending) onClose()
@@ -703,7 +770,11 @@ function TaskDialog({
       toast.error("Title is required")
       return
     }
-    const assignedTo = assignee === UNASSIGNED ? null : assignee
+    if (!assignee) {
+      toast.error("Pick an assignee")
+      return
+    }
+    const assignedTo = assignee
     const due = dueDate || null
 
     startTransition(async () => {
@@ -749,6 +820,46 @@ function TaskDialog({
           <DialogTitle>{editing ? "Edit task" : "New task"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {!editing ? (
+            <div className="space-y-2">
+              <Label htmlFor="task-template">Template</Label>
+              <Select
+                value={templateId}
+                onValueChange={(v) => applyTemplate(v ?? NO_TEMPLATE)}
+                disabled={isPending}
+              >
+                <SelectTrigger id="task-template" className="w-full">
+                  <SelectValue>
+                    {(v) => {
+                      if (!v || v === NO_TEMPLATE) return "Start from blank"
+                      return (
+                        TASK_LIBRARY.find((t) => t.id === v)?.label ??
+                        "Start from blank"
+                      )
+                    }}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Template</SelectLabel>
+                    <SelectItem value={NO_TEMPLATE}>Start from blank</SelectItem>
+                  </SelectGroup>
+                  {templateGroups.map(([category, items]) => (
+                    <SelectGroup key={category}>
+                      <SelectLabel>
+                        {TEMPLATE_CATEGORY_LABEL[category]}
+                      </SelectLabel>
+                      {items.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
           <div className="space-y-2">
             <Label htmlFor="task-title">Title</Label>
             <Input
@@ -810,25 +921,25 @@ function TaskDialog({
               <Label htmlFor="task-assignee">Assignee</Label>
               <Select
                 value={assignee}
-                onValueChange={(v) => setAssignee(v ?? UNASSIGNED)}
+                onValueChange={(v) => setAssignee(v ?? "")}
                 disabled={isPending}
               >
                 <SelectTrigger id="task-assignee" className="w-full">
                   <SelectValue>
                     {(v) => {
-                      if (v === UNASSIGNED || !v) return "Unassigned"
+                      if (!v) return "Pick an assignee"
                       const rep = reps.find((r) => r.id === v)
-                      return rep?.full_name ?? "Unassigned"
+                      return rep?.full_name ?? "Pick an assignee"
                     }}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Rep</SelectLabel>
-                    <SelectItem value={UNASSIGNED}>Unassigned</SelectItem>
                     {reps.map((r) => (
                       <SelectItem key={r.id} value={r.id}>
                         {r.full_name ?? "Unnamed"}
+                        {r.id === currentUserId ? " (me)" : ""}
                       </SelectItem>
                     ))}
                   </SelectGroup>

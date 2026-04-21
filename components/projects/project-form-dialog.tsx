@@ -1,8 +1,7 @@
 "use client"
 
-import { Pencil, Plus } from "lucide-react"
+import { Pencil, Plus, Sparkles } from "lucide-react"
 import { useRouter } from "next/navigation"
-import * as React from "react"
 import { useId, useState, useTransition } from "react"
 import { toast } from "sonner"
 
@@ -17,12 +16,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { DatePicker } from "@/components/ui/date-picker"
-import { Input } from "@/components/ui/input"
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
+  InputGroupTextarea,
 } from "@/components/ui/input-group"
 import { Label } from "@/components/ui/label"
 import {
@@ -35,25 +34,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { Textarea } from "@/components/ui/textarea"
 import {
   createNewProject,
   updateProject,
 } from "@/app/(protected)/projects/actions"
-import {
-  financing,
-  subscriptionPlans,
-  websitePlans,
-  type WebsitePlanId,
-} from "@/lib/site"
-
-const CUSTOM_PLAN_FLAT_COMMISSION = 150
-
-function bundledSigningBonus(planId: WebsitePlanId | "none"): number {
-  if (planId === "presence") return subscriptionPlans.presence.signingBonus
-  if (planId === "growth") return subscriptionPlans.growth.signingBonus
-  return CUSTOM_PLAN_FLAT_COMMISSION
-}
+import { financing, websitePlans, type WebsitePlanId } from "@/lib/site"
 import { PAYMENT_STATUS_LABEL, PROJECT_STAGE_LABEL } from "@/lib/status-colors"
 import {
   PRODUCT_TYPE_LABEL,
@@ -182,30 +167,11 @@ function ProjectFormDialog(props: Props) {
   const clientMap = new Map(props.clients.map((c) => [c.id, c]))
 
   const numericValue = Number(valueStr)
-  const valueEligibleForFinancing =
-    Number.isFinite(numericValue) && numericValue >= financing.minAmount
   const isWebsite = productType === "business_website"
-  const valueIsZero = valueStr === "" || numericValue === 0
-  const websiteBundledRecurring = isWebsite && planId !== "none" && valueIsZero
-
-  // Bundled website + recurring plan at $0 value: pre-fill the rep's flat
-  // commission with the selected plan's signing bonus ($100 / $250 / $150
-  // fallback for Custom). Rep can still override or switch back to rate mode.
-  const bundledBonus = bundledSigningBonus(planId)
-  // Adjust state during render on transitions (enter bundled mode or change
-  // plan while bundled) instead of in an effect. Re-renders bail out when the
-  // "flat" mode and prefilled value are already applied, so this is a no-op
-  // in the steady state. See https://react.dev/learn/you-might-not-need-an-effect#adjusting-state-based-on-other-state
-  const bundledPlanKey = websiteBundledRecurring ? planId : null
-  const [prevBundledPlanKey, setPrevBundledPlanKey] =
-    React.useState(bundledPlanKey)
-  if (prevBundledPlanKey !== bundledPlanKey) {
-    setPrevBundledPlanKey(bundledPlanKey)
-    if (bundledPlanKey !== null) {
-      setCommissionMode("flat")
-      setCommissionFlatStr((prev) => (prev ? prev : String(bundledBonus)))
-    }
-  }
+  const valueEligibleForFinancing =
+    !isWebsite &&
+    Number.isFinite(numericValue) &&
+    numericValue >= financing.minAmount
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -228,7 +194,7 @@ function ProjectFormDialog(props: Props) {
         </DialogHeader>
         <form
           id={formId}
-          className="-mx-6 flex max-h-[65vh] flex-col gap-5 overflow-y-auto px-6"
+          className="-mx-6 flex max-h-[65vh] flex-col gap-5 overflow-y-auto px-6 py-1"
           action={(formData) => {
             setError(null)
             startTransition(async () => {
@@ -248,13 +214,24 @@ function ProjectFormDialog(props: Props) {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2 sm:col-span-2">
               <Label htmlFor={`${formId}-title`}>Title</Label>
-              <Input
-                id={`${formId}-title`}
-                name="title"
-                required
-                placeholder="Project name"
-                defaultValue={project?.title ?? ""}
-              />
+              <InputGroup>
+                <InputGroupInput
+                  id={`${formId}-title`}
+                  name="title"
+                  required
+                  placeholder="Project name"
+                  defaultValue={project?.title ?? ""}
+                />
+                {/* TODO: wire up AI-generated title suggestion */}
+                <InputGroupAddon align="inline-end">
+                  <InputGroupButton
+                    size="icon-xs"
+                    aria-label="Suggest title"
+                  >
+                    <Sparkles aria-hidden />
+                  </InputGroupButton>
+                </InputGroupAddon>
+              </InputGroup>
             </div>
 
             <div className="flex flex-col gap-2 sm:col-span-2">
@@ -373,6 +350,7 @@ function ProjectFormDialog(props: Props) {
                   step="0.01"
                   placeholder="0"
                   value={valueStr}
+                  disabled={isWebsite}
                   onChange={(e) => {
                     setValueStr(e.target.value)
                     const n = Number(e.target.value)
@@ -400,62 +378,70 @@ function ProjectFormDialog(props: Props) {
                   step="1"
                   placeholder="30"
                   defaultValue={project?.deposit_rate ?? 30}
+                  disabled={isWebsite}
                 />
                 <InputGroupAddon align="inline-end">%</InputGroupAddon>
               </InputGroup>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <Label htmlFor={`${formId}-commission`}>Commission</Label>
-              {commissionMode === "rate" ? (
-                <InputGroup>
-                  <InputGroupInput
-                    id={`${formId}-commission`}
-                    name="commission_rate"
-                    type="number"
-                    inputMode="decimal"
-                    min="0"
-                    max="100"
-                    step="1"
-                    placeholder="30"
-                    value={commissionRateStr}
-                    onChange={(e) => setCommissionRateStr(e.target.value)}
-                  />
-                  <InputGroupAddon align="inline-end">%</InputGroupAddon>
-                  <InputGroupAddon align="inline-end">
-                    <InputGroupButton onClick={() => setCommissionMode("flat")}>
-                      Use $
-                    </InputGroupButton>
-                  </InputGroupAddon>
-                </InputGroup>
-              ) : (
-                <InputGroup>
-                  <InputGroupAddon>$</InputGroupAddon>
-                  <InputGroupInput
-                    id={`${formId}-commission`}
-                    name="commission_flat"
-                    type="number"
-                    inputMode="decimal"
-                    min="0"
-                    step="0.01"
-                    placeholder={String(bundledBonus)}
-                    value={commissionFlatStr}
-                    onChange={(e) => setCommissionFlatStr(e.target.value)}
-                  />
-                  <InputGroupAddon align="inline-end">
-                    <InputGroupButton onClick={() => setCommissionMode("rate")}>
-                      Use %
-                    </InputGroupButton>
-                  </InputGroupAddon>
-                </InputGroup>
-              )}
-            </div>
+            {isWebsite ? null : (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor={`${formId}-commission`}>Commission</Label>
+                {commissionMode === "rate" ? (
+                  <InputGroup>
+                    <InputGroupInput
+                      id={`${formId}-commission`}
+                      name="commission_rate"
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      max="100"
+                      step="1"
+                      placeholder="30"
+                      value={commissionRateStr}
+                      onChange={(e) => setCommissionRateStr(e.target.value)}
+                    />
+                    <InputGroupAddon align="inline-end">%</InputGroupAddon>
+                    <InputGroupAddon align="inline-end">
+                      <InputGroupButton
+                        onClick={() => setCommissionMode("flat")}
+                      >
+                        Use $
+                      </InputGroupButton>
+                    </InputGroupAddon>
+                  </InputGroup>
+                ) : (
+                  <InputGroup>
+                    <InputGroupAddon>$</InputGroupAddon>
+                    <InputGroupInput
+                      id={`${formId}-commission`}
+                      name="commission_flat"
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="0.01"
+                      placeholder="0"
+                      value={commissionFlatStr}
+                      onChange={(e) => setCommissionFlatStr(e.target.value)}
+                    />
+                    <InputGroupAddon align="inline-end">
+                      <InputGroupButton
+                        onClick={() => setCommissionMode("rate")}
+                      >
+                        Use %
+                      </InputGroupButton>
+                    </InputGroupAddon>
+                  </InputGroup>
+                )}
+              </div>
+            )}
 
             <div className="flex flex-col gap-2">
               <Label htmlFor={`${formId}-payment`}>One-time payment</Label>
               <Select
                 name="payment_status"
                 defaultValue={project?.payment_status ?? "unpaid"}
+                disabled={isWebsite}
               >
                 <SelectTrigger id={`${formId}-payment`} className="w-full">
                   <SelectValue>
@@ -481,7 +467,9 @@ function ProjectFormDialog(props: Props) {
               </Select>
             </div>
 
-            <div className="flex flex-col gap-2 sm:col-span-2">
+            <div
+              className={`flex flex-col gap-2 ${isWebsite ? "" : "sm:col-span-2"}`}
+            >
               <Label htmlFor={`${formId}-rep`}>Rep</Label>
               <Select
                 name="sold_by"
@@ -562,7 +550,9 @@ function ProjectFormDialog(props: Props) {
                 </p>
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="flex flex-col gap-2">
+                <div
+                  className={`flex flex-col gap-2 ${planId === "custom" ? "" : "sm:col-span-2"}`}
+                >
                   <Label htmlFor={`${formId}-plan`}>Plan</Label>
                   <Select
                     name="website_plan"
@@ -625,13 +615,21 @@ function ProjectFormDialog(props: Props) {
 
           <div className="flex flex-col gap-2">
             <Label htmlFor={`${formId}-description`}>Description</Label>
-            <Textarea
-              id={`${formId}-description`}
-              name="description"
-              rows={3}
-              placeholder="Scope, deliverables, internal notes."
-              defaultValue={project?.description ?? ""}
-            />
+            <InputGroup>
+              <InputGroupTextarea
+                id={`${formId}-description`}
+                name="description"
+                rows={3}
+                placeholder="Scope, deliverables, internal notes."
+                defaultValue={project?.description ?? ""}
+              />
+              {/* TODO: wire up AI-generated description suggestion */}
+              <InputGroupAddon align="block-end" className="justify-end">
+                <InputGroupButton size="icon-xs" aria-label="Suggest description">
+                  <Sparkles aria-hidden />
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
           </div>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
         </form>

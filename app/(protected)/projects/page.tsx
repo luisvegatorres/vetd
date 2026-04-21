@@ -375,11 +375,11 @@ export default async function ProjectsPage({
         eyebrow="Projects"
         title={
           <span className="flex flex-wrap items-center gap-3">
-            <span>{activeCount} active</span>
+            <span>{activeCount} Active</span>
             <Dot />
-            <span>{depositPendingCount} deposit pending</span>
+            <span>{depositPendingCount} Deposit pending</span>
             <Dot />
-            <span>{totalFiltered} showing</span>
+            <span>{totalFiltered} Showing</span>
           </span>
         }
         action={<NewProjectDialog clients={clientOptions} reps={repOptions} />}

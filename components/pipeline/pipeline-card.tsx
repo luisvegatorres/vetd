@@ -35,14 +35,6 @@ function daysSince(iso: string): number {
   return Math.max(0, Math.floor((now - then) / 86_400_000))
 }
 
-function stripClientPrefix(title: string, client: string): string {
-  if (!client || client === "—") return title
-  const trimmed = title.trimStart()
-  if (!trimmed.toLowerCase().startsWith(client.toLowerCase())) return title
-  const rest = trimmed.slice(client.length).replace(/^\s*[·•\-–—:|]\s*/, "")
-  return rest.length > 0 ? rest : title
-}
-
 function subscriptionStatusLabel(
   status: NonNullable<ProjectRow["subscription"]>["status"]
 ) {
@@ -75,7 +67,9 @@ export function PipelineCard({
   const productLabel = project.product_type
     ? PRODUCT_TYPE_LABEL[project.product_type]
     : null
-  const titleDisplay = stripClientPrefix(project.title, clientDisplay)
+  const personName = project.client?.name ?? null
+  const subtitle =
+    personName && personName !== clientDisplay ? personName : null
   const value = project.value ?? 0
   const hasOneTimeAmount =
     project.value != null || Boolean(project.subscription)
@@ -113,24 +107,16 @@ export function PipelineCard({
             >
               Recurring {subscriptionStatusLabel(project.subscription.status)}
             </Badge>
-          ) : (
-            <Badge
-              variant="outline"
-              className={cn(
-                "border-transparent tracking-wide uppercase",
-                paymentStatusBadgeClass(project.payment_status)
-              )}
-            >
-              {paymentStatusLabel(project.payment_status)}
-            </Badge>
-          )}
+          ) : null}
           <div className="space-y-1">
             <p className="truncate font-heading text-sm leading-tight font-medium">
               {clientDisplay}
             </p>
-            <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">
-              {titleDisplay}
-            </p>
+            {subtitle ? (
+              <p className="truncate text-xs leading-snug text-muted-foreground">
+                {subtitle}
+              </p>
+            ) : null}
           </div>
         </div>
         <CardAction className="flex items-center gap-3">

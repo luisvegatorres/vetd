@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 
+import { seedProjectTasks } from "@/lib/projects/seed-tasks"
 import { createClient } from "@/lib/supabase/server"
 import { Constants, type Database } from "@/lib/supabase/types"
 
@@ -260,6 +261,12 @@ export async function convertLead(
       error: projectError?.message ?? "Failed to create project",
     }
   }
+
+  await seedProjectTasks({
+    projectId: project.id,
+    productType: input.productType,
+    createdBy: auth.user.id,
+  })
 
   let subscriptionId: string | null = null
   if (input.plan) {
