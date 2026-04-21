@@ -94,17 +94,38 @@ function periodMonthFromInvoice(invoice: Stripe.Invoice): string | null {
     .slice(0, 10)
 }
 
-async function isRepActive(
+// Gate for commission ledger inserts: only write rows for active non-admin
+// reps. Admin-sold deals intentionally earn no commission — the owner keeps
+// 100% of the MRR through the company, not through the payout ledger.
+async function isRepEligibleForCommission(
   supabase: AdminClient,
   repId: string,
 ): Promise<boolean> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("employment_status")
+    .select("role, employment_status")
     .eq("id", repId)
     .maybeSingle()
   if (error || !data) return false
+  if (data.role === "admin") return false
   return data.employment_status === "active"
+}
+
+// True when the profile is an admin — used to null out commission amounts on
+// the subscription row itself so admin-owned subs don't show up in Team MRC
+// projections (which read subscriptions.monthly_residual_amount).
+async function isAdminRep(
+  supabase: AdminClient,
+  repId: string | null | undefined,
+): Promise<boolean> {
+  if (!repId) return false
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", repId)
+    .maybeSingle()
+  if (error || !data) return false
+  return data.role === "admin"
 }
 
 async function promoteClientToActive(
@@ -178,6 +199,12 @@ async function handleCheckoutCompleted(
       ? session.customer
       : (session.customer?.id ?? null)
 
+  // Admin-owned subs earn no commission — store null amounts so MRC and
+  // signing-bonus projections stay out of the team rollup.
+  const adminSold = await isAdminRep(supabase, meta.sold_by)
+  const signingBonus = adminSold ? null : plan.signingBonus
+  const monthlyResidual = adminSold ? null : plan.monthlyResidual
+
   // If a CRM subscription row already exists (created by the rep before sending
   // the link), update it. Otherwise insert a fresh row.
   if (meta.subscription_id) {
@@ -190,8 +217,8 @@ async function handleCheckoutCompleted(
         stripe_status: stripeSub.status,
         plan: plan.label,
         monthly_rate: plan.monthlyRate,
-        signing_bonus_amount: plan.signingBonus,
-        monthly_residual_amount: plan.monthlyResidual,
+        signing_bonus_amount: signingBonus,
+        monthly_residual_amount: monthlyResidual,
         sold_by: meta.sold_by ?? null,
       })
       .eq("id", meta.subscription_id)
@@ -209,8 +236,8 @@ async function handleCheckoutCompleted(
     plan: plan.label,
     monthly_rate: plan.monthlyRate,
     started_at: new Date().toISOString().slice(0, 10),
-    signing_bonus_amount: plan.signingBonus,
-    monthly_residual_amount: plan.monthlyResidual,
+    signing_bonus_amount: signingBonus,
+    monthly_residual_amount: monthlyResidual,
     stripe_customer_id: stripeCustomerId,
     stripe_subscription_id: stripeSubId,
     stripe_price_id: priceId,
@@ -296,12 +323,17 @@ async function handleInvoicePaid(
   const stripeSubId = subscriptionIdFromInvoice(invoice)
   if (!stripeSubId || !invoice.id) return
 
+  // Race: invoice.payment_succeeded can arrive before checkout.session.completed
+  // finishes writing the CRM subscription row (the checkout handler makes a
+  // Stripe API call first). Throw so the outer catch rolls back the
+  // idempotency entry — Stripe retries the event and by then the sub row
+  // exists. Silently returning here is what caused subscription_invoices to
+  // stay empty even though both events were processed.
   const sub = await findSubscriptionByStripeId(supabase, stripeSubId)
   if (!sub) {
-    console.warn(
-      `[stripe webhook] invoice ${invoice.id} has no matching CRM subscription`,
+    throw new Error(
+      `invoice ${invoice.id} has no matching CRM subscription for ${stripeSubId} — will retry`,
     )
-    return
   }
 
   // Record the invoice (idempotent on stripe_invoice_id).
@@ -369,7 +401,7 @@ async function handleInvoicePaid(
         .eq("id", sub.id)
     }
 
-    if (sub.sold_by && (await isRepActive(supabase, sub.sold_by))) {
+    if (sub.sold_by && (await isRepEligibleForCommission(supabase, sub.sold_by))) {
       const { error: ledgerError } = await supabase
         .from("subscription_commission_ledger")
         .insert({
@@ -397,7 +429,7 @@ async function handleInvoicePaid(
   ) {
     const periodMonth = periodMonthFromInvoice(invoice)
     if (!periodMonth) return
-    if (!sub.sold_by || !(await isRepActive(supabase, sub.sold_by))) return
+    if (!sub.sold_by || !(await isRepEligibleForCommission(supabase, sub.sold_by))) return
 
     const { error: ledgerError } = await supabase
       .from("subscription_commission_ledger")
@@ -457,6 +489,8 @@ async function handleSubscriptionUpdated(
   const plan = priceId ? findPlanByStripePriceId(priceId) : undefined
   const planChanged = !!plan && priceId !== sub.stripe_price_id
 
+  const adminSold = await isAdminRep(supabase, sub.sold_by)
+
   await supabase
     .from("subscriptions")
     .update({
@@ -466,8 +500,8 @@ async function handleSubscriptionUpdated(
             stripe_price_id: priceId,
             plan: plan.label,
             monthly_rate: plan.monthlyRate,
-            signing_bonus_amount: plan.signingBonus,
-            monthly_residual_amount: plan.monthlyResidual,
+            signing_bonus_amount: adminSold ? null : plan.signingBonus,
+            monthly_residual_amount: adminSold ? null : plan.monthlyResidual,
           }
         : {}),
     })

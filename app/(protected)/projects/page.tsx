@@ -53,12 +53,9 @@ function parseSort(v: string | undefined): Sort {
   return "recent"
 }
 
-function parseProduct(
-  v: string | undefined,
-): ProjectProductType | "all" {
+function parseProduct(v: string | undefined): ProjectProductType | "all" {
   if (!v) return "all"
-  const types =
-    Constants.public.Enums.project_product_type as readonly string[]
+  const types = Constants.public.Enums.project_product_type as readonly string[]
   return types.includes(v) ? (v as ProjectProductType) : "all"
 }
 
@@ -120,7 +117,7 @@ export default async function ProjectsPage({
             deposit_paid_at, created_at,
             client:clients!projects_client_id_fkey (id, name, company),
             rep:profiles!projects_sold_by_fkey (id, full_name)
-          `,
+          `
       )
       .order("created_at", { ascending: false }),
     supabase.from("clients").select("id, name, company").order("name"),
@@ -138,12 +135,23 @@ export default async function ProjectsPage({
     supabase
       .from("subscriptions")
       .select(
-        "id, project_id, plan, product, monthly_rate, status, started_at, stripe_subscription_id",
+        "id, project_id, plan, product, monthly_rate, status, started_at, stripe_subscription_id"
       )
       .not("project_id", "is", null),
   ])
 
   if (projectsRes.error) throw projectsRes.error
+
+  const subscriptionIds = (subscriptionsRes.data ?? []).map((s) => s.id)
+  const subscriptionInvoicesRes =
+    subscriptionIds.length > 0
+      ? await supabase
+          .from("subscription_invoices")
+          .select("subscription_id, amount_paid, status")
+          .in("subscription_id", subscriptionIds)
+      : null
+
+  if (subscriptionInvoicesRes?.error) throw subscriptionInvoicesRes.error
 
   const paymentsByProject = new Map<
     string,
@@ -157,7 +165,11 @@ export default async function ProjectsPage({
 
   const interactionsByProject = new Map<
     string,
-    { type: ProjectRow["interactions"][number]["type"]; created_at: string; summary: string | null }[]
+    {
+      type: ProjectRow["interactions"][number]["type"]
+      created_at: string
+      summary: string | null
+    }[]
   >()
   for (const it of interactionsRes.data ?? []) {
     if (!it.project_id) continue
@@ -174,8 +186,35 @@ export default async function ProjectsPage({
     string,
     NonNullable<ProjectRow["subscription"]>
   >()
+  const invoiceSummaryBySubscription = new Map<
+    string,
+    {
+      payment_count: number
+      paid_payment_count: number
+      paid_total: number
+    }
+  >()
+  for (const inv of subscriptionInvoicesRes?.data ?? []) {
+    const current = invoiceSummaryBySubscription.get(inv.subscription_id) ?? {
+      payment_count: 0,
+      paid_payment_count: 0,
+      paid_total: 0,
+    }
+    current.payment_count += 1
+    if (inv.status === "paid") {
+      current.paid_payment_count += 1
+      current.paid_total += Number(inv.amount_paid)
+    }
+    invoiceSummaryBySubscription.set(inv.subscription_id, current)
+  }
+
   for (const s of subscriptionsRes.data ?? []) {
     if (!s.project_id) continue
+    const invoiceSummary = invoiceSummaryBySubscription.get(s.id) ?? {
+      payment_count: 0,
+      paid_payment_count: 0,
+      paid_total: 0,
+    }
     subscriptionByProject.set(s.project_id, {
       id: s.id,
       plan: s.plan,
@@ -184,6 +223,9 @@ export default async function ProjectsPage({
       status: s.status,
       started_at: s.started_at,
       stripe_subscription_id: s.stripe_subscription_id,
+      payment_count: invoiceSummary.payment_count,
+      paid_payment_count: invoiceSummary.paid_payment_count,
+      paid_total: invoiceSummary.paid_total,
     })
   }
 
@@ -267,7 +309,7 @@ export default async function ProjectsPage({
       ? filteredBase
       : tab === "proposal"
         ? filteredBase.filter(
-            (r) => r.stage === "proposal" || r.stage === "negotiation",
+            (r) => r.stage === "proposal" || r.stage === "negotiation"
           )
         : filteredBase.filter((r) => r.stage === tab)
 
@@ -283,9 +325,7 @@ export default async function ProjectsPage({
     if (sort === "stage") {
       return STAGE_ORDER[a.stage] - STAGE_ORDER[b.stage]
     }
-    return (
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    )
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   })
 
   const totalFiltered = sorted.length
@@ -342,9 +382,7 @@ export default async function ProjectsPage({
             <span>{totalFiltered} showing</span>
           </span>
         }
-        action={
-          <NewProjectDialog clients={clientOptions} reps={repOptions} />
-        }
+        action={<NewProjectDialog clients={clientOptions} reps={repOptions} />}
       />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">

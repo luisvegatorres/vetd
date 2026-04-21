@@ -9,29 +9,21 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart"
 
-const DATA = [
-  { month: "Jun 25", mrr: 1700 },
-  { month: "Jul 25", mrr: 1820 },
-  { month: "Aug 25", mrr: 1980 },
-  { month: "Sep 25", mrr: 2150 },
-  { month: "Oct 25", mrr: 2240 },
-  { month: "Nov 25", mrr: 2380 },
-  { month: "Dec 25", mrr: 2520 },
-  { month: "Jan 26", mrr: 2640 },
-  { month: "Feb 26", mrr: 2780 },
-  { month: "Mar 26", mrr: 2870 },
-  { month: "Apr 26", mrr: 2930, projected: true },
-]
+export type MrrTrendPoint = {
+  month: string
+  mrr: number
+  projected?: boolean
+}
 
 const CONFIG = {
   mrr: { label: "MRR", color: "var(--muted-foreground)" },
   projected: { label: "Current month", color: "var(--chart-1)" },
 } satisfies ChartConfig
 
-export function MrrTrendChart() {
+export function MrrTrendChart({ data }: { data: MrrTrendPoint[] }) {
   return (
     <ChartContainer config={CONFIG} className="aspect-auto h-32 w-full">
-      <BarChart data={DATA} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
+      <BarChart data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
         <XAxis
           dataKey="month"
           tickLine={false}
@@ -62,7 +54,7 @@ export function MrrTrendChart() {
           }
         />
         <Bar dataKey="mrr" radius={0} isAnimationActive={false}>
-          {DATA.map((d, i) => (
+          {data.map((d, i) => (
             <Cell
               key={i}
               fill={d.projected ? "var(--color-projected)" : "var(--color-mrr)"}

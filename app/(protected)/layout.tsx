@@ -49,7 +49,10 @@ export default async function ProtectedLayout({
       />
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-3 border-b border-border/60 bg-background/85 px-4 backdrop-blur-md">
-          <SidebarTrigger />
+          <div className="flex items-center gap-2">
+            <SidebarTrigger />
+            <div id="header-slot" className="flex items-center" />
+          </div>
 
           <div className="flex items-center gap-1">
               <Button variant="ghost" size="icon">

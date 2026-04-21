@@ -7,7 +7,10 @@ import {
   type MrrRow,
   type MrrStatus,
 } from "@/components/dashboard/mrr-data-table"
-import { MrrTrendChart } from "@/components/dashboard/mrr-trend-chart"
+import {
+  MrrTrendChart,
+  type MrrTrendPoint,
+} from "@/components/dashboard/mrr-trend-chart"
 import { createClient } from "@/lib/supabase/server"
 import { cn } from "@/lib/utils"
 
@@ -25,6 +28,49 @@ const fmtSince = new Intl.DateTimeFormat("en-US", {
 function formatSince(iso: string) {
   const [y, m, d] = iso.split("-").map(Number)
   return fmtSince.format(new Date(y, (m ?? 1) - 1, d ?? 1))
+}
+
+const fmtTrendMonth = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  year: "2-digit",
+})
+
+type TrendSubscription = {
+  monthly_rate: number | string | null
+  started_at: string | null
+  canceled_at: string | null
+}
+
+function buildMrrTrend(subs: TrendSubscription[]): MrrTrendPoint[] {
+  const now = new Date()
+  const points: MrrTrendPoint[] = []
+  for (let i = 10; i >= 0; i--) {
+    const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const monthEnd = new Date(
+      now.getFullYear(),
+      now.getMonth() - i + 1,
+      0,
+      23,
+      59,
+      59,
+    )
+    const mrr = subs.reduce((sum, s) => {
+      if (!s.started_at) return sum
+      const started = new Date(s.started_at)
+      if (started > monthEnd) return sum
+      if (s.canceled_at) {
+        const canceled = new Date(s.canceled_at)
+        if (canceled < monthStart) return sum
+      }
+      return sum + Number(s.monthly_rate ?? 0)
+    }, 0)
+    points.push({
+      month: fmtTrendMonth.format(monthStart),
+      mrr,
+      projected: i === 0 || undefined,
+    })
+  }
+  return points
 }
 
 function formatPersonName(fullName: string | null) {
@@ -46,6 +92,7 @@ export async function MrrPanel() {
         monthly_rate,
         status,
         started_at,
+        canceled_at,
         clients ( name ),
         sold_by:profiles!subscriptions_sold_by_fkey ( full_name )
       `,
@@ -88,6 +135,8 @@ export async function MrrPanel() {
   const atRiskMrr = totals.mrrByStatus.at_risk ?? 0
   const canceledMrr = totals.mrrByStatus.canceled ?? 0
 
+  const trend = buildMrrTrend(data ?? [])
+
   return (
     <Card className="gap-0 py-0">
       <header className="flex items-center justify-between gap-4 border-b border-border/60 p-6">
@@ -112,6 +161,7 @@ export async function MrrPanel() {
           currentMrr={currentMrr}
           atRiskMrr={atRiskMrr}
           canceledMrr={canceledMrr}
+          trend={trend}
         />
         <MrrDataTable rows={rows} />
       </div>
@@ -123,16 +173,17 @@ function MrrSummary({
   currentMrr,
   atRiskMrr,
   canceledMrr,
+  trend,
 }: {
   currentMrr: number
   atRiskMrr: number
   canceledMrr: number
+  trend: MrrTrendPoint[]
 }) {
   const arr = currentMrr * 12
-  const nowLabel = new Intl.DateTimeFormat("en-US", { month: "short" }).format(
-    new Date(),
-  )
-  const mrrK = `${(currentMrr / 1000).toFixed(2)}K`
+  const latest = trend[trend.length - 1]
+  const nowLabel = latest ? latest.month.split(" ")[0] : ""
+  const mrrK = `${((latest?.mrr ?? currentMrr) / 1000).toFixed(2)}K`
 
   return (
     <div className="grid grid-rows-[auto_auto_auto] divide-y divide-border/60 lg:border-r lg:border-border/60">
@@ -160,7 +211,7 @@ function MrrSummary({
           </p>
         </div>
         <div className="mt-4">
-          <MrrTrendChart />
+          <MrrTrendChart data={trend} />
         </div>
       </div>
 

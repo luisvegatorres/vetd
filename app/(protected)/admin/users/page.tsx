@@ -44,7 +44,6 @@ export default async function AdminUsersPage() {
       <PageHeader
         eyebrow="Admin"
         title="Users"
-        description="Manage team members and their employment status. Terminating a sales rep stops new commission ledger entries immediately."
       />
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] lg:items-start">

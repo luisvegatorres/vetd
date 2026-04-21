@@ -68,6 +68,7 @@ type Props =
       mode: "create"
       clients: { id: string; name: string; company: string | null }[]
       reps: { id: string; full_name: string | null }[]
+      lockedClient?: { id: string; name: string; company: string | null }
     }
   | {
       mode: "edit"
@@ -104,11 +105,11 @@ function clientOptionLabel(c: {
 }
 
 function detectPlanFromSubscription(
-  sub: ProjectRow["subscription"] | undefined,
+  sub: ProjectRow["subscription"] | undefined
 ): WebsitePlanId | "none" {
   if (!sub) return "none"
   const match = websitePlans.find(
-    (p) => p.label.toLowerCase() === sub.plan.toLowerCase(),
+    (p) => p.label.toLowerCase() === sub.plan.toLowerCase()
   )
   return match?.id ?? "custom"
 }
@@ -116,6 +117,9 @@ function detectPlanFromSubscription(
 function ProjectFormDialog(props: Props) {
   const isEdit = props.mode === "edit"
   const project = isEdit ? props.project : null
+  const lockedClient =
+    !isEdit && props.mode === "create" ? props.lockedClient : undefined
+  const fixedClient = isEdit ? (project?.client ?? null) : (lockedClient ?? null)
   const formId = useId()
 
   const [open, setOpen] = useState(false)
@@ -124,30 +128,31 @@ function ProjectFormDialog(props: Props) {
   const router = useRouter()
 
   const [productType, setProductType] = useState<ProjectProductType | "">(
-    project?.product_type ?? "",
+    project?.product_type ?? ""
   )
   const [valueStr, setValueStr] = useState<string>(
-    project?.value != null ? String(project.value) : "",
+    project?.value != null ? String(project.value) : ""
   )
   const [financingEnabled, setFinancingEnabled] = useState<boolean>(
-    project?.financing_enabled ?? false,
+    project?.financing_enabled ?? false
   )
   const [planId, setPlanId] = useState<WebsitePlanId | "none">(
-    detectPlanFromSubscription(project?.subscription ?? null),
+    detectPlanFromSubscription(project?.subscription ?? null)
   )
   const [customMonthlyRate, setCustomMonthlyRate] = useState<string>(
-    project?.subscription && detectPlanFromSubscription(project.subscription) === "custom"
+    project?.subscription &&
+      detectPlanFromSubscription(project.subscription) === "custom"
       ? String(project.subscription.monthly_rate)
-      : "",
+      : ""
   )
   const [commissionMode, setCommissionMode] = useState<"rate" | "flat">(
-    project?.commission_flat != null ? "flat" : "rate",
+    project?.commission_flat != null ? "flat" : "rate"
   )
   const [commissionRateStr, setCommissionRateStr] = useState<string>(
-    project?.commission_rate != null ? String(project.commission_rate) : "",
+    project?.commission_rate != null ? String(project.commission_rate) : ""
   )
   const [commissionFlatStr, setCommissionFlatStr] = useState<string>(
-    project?.commission_flat != null ? String(project.commission_flat) : "",
+    project?.commission_flat != null ? String(project.commission_flat) : ""
   )
 
   function handleOpenChange(next: boolean) {
@@ -161,14 +166,14 @@ function ProjectFormDialog(props: Props) {
         project?.subscription &&
           detectPlanFromSubscription(project.subscription) === "custom"
           ? String(project.subscription.monthly_rate)
-          : "",
+          : ""
       )
       setCommissionMode(project?.commission_flat != null ? "flat" : "rate")
       setCommissionRateStr(
-        project?.commission_rate != null ? String(project.commission_rate) : "",
+        project?.commission_rate != null ? String(project.commission_rate) : ""
       )
       setCommissionFlatStr(
-        project?.commission_flat != null ? String(project.commission_flat) : "",
+        project?.commission_flat != null ? String(project.commission_flat) : ""
       )
     }
     setOpen(next)
@@ -181,8 +186,7 @@ function ProjectFormDialog(props: Props) {
     Number.isFinite(numericValue) && numericValue >= financing.minAmount
   const isWebsite = productType === "business_website"
   const valueIsZero = valueStr === "" || numericValue === 0
-  const websiteBundledRecurring =
-    isWebsite && planId !== "none" && valueIsZero
+  const websiteBundledRecurring = isWebsite && planId !== "none" && valueIsZero
 
   // Bundled website + recurring plan at $0 value: pre-fill the rep's flat
   // commission with the selected plan's signing bonus ($100 / $250 / $150
@@ -220,13 +224,11 @@ function ProjectFormDialog(props: Props) {
       />
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>
-            {isEdit ? "Edit project" : "New project"}
-          </DialogTitle>
+          <DialogTitle>{isEdit ? "Edit project" : "New project"}</DialogTitle>
         </DialogHeader>
         <form
           id={formId}
-          className="flex flex-col gap-5 -mx-6 max-h-[65vh] overflow-y-auto px-6"
+          className="-mx-6 flex max-h-[65vh] flex-col gap-5 overflow-y-auto px-6"
           action={(formData) => {
             setError(null)
             startTransition(async () => {
@@ -257,21 +259,19 @@ function ProjectFormDialog(props: Props) {
 
             <div className="flex flex-col gap-2 sm:col-span-2">
               <Label htmlFor={`${formId}-client`}>Client</Label>
-              {isEdit ? (
+              {fixedClient ? (
                 <>
                   <input
                     type="hidden"
                     name="client_id"
-                    value={project?.client?.id ?? ""}
+                    value={fixedClient.id}
                   />
                   <div
                     id={`${formId}-client`}
                     className="flex h-9 items-center border border-input bg-muted px-3 text-sm text-muted-foreground"
                     aria-readonly="true"
                   >
-                    {project?.client
-                      ? clientOptionLabel(project.client)
-                      : "No client"}
+                    {clientOptionLabel(fixedClient)}
                   </div>
                 </>
               ) : (
@@ -361,7 +361,7 @@ function ProjectFormDialog(props: Props) {
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label htmlFor={`${formId}-value`}>Value</Label>
+              <Label htmlFor={`${formId}-value`}>One-time value</Label>
               <InputGroup>
                 <InputGroupAddon>$</InputGroupAddon>
                 <InputGroupInput
@@ -423,9 +423,7 @@ function ProjectFormDialog(props: Props) {
                   />
                   <InputGroupAddon align="inline-end">%</InputGroupAddon>
                   <InputGroupAddon align="inline-end">
-                    <InputGroupButton
-                      onClick={() => setCommissionMode("flat")}
-                    >
+                    <InputGroupButton onClick={() => setCommissionMode("flat")}>
                       Use $
                     </InputGroupButton>
                   </InputGroupAddon>
@@ -445,9 +443,7 @@ function ProjectFormDialog(props: Props) {
                     onChange={(e) => setCommissionFlatStr(e.target.value)}
                   />
                   <InputGroupAddon align="inline-end">
-                    <InputGroupButton
-                      onClick={() => setCommissionMode("rate")}
-                    >
+                    <InputGroupButton onClick={() => setCommissionMode("rate")}>
                       Use %
                     </InputGroupButton>
                   </InputGroupAddon>
@@ -456,7 +452,7 @@ function ProjectFormDialog(props: Props) {
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label htmlFor={`${formId}-payment`}>Payment</Label>
+              <Label htmlFor={`${formId}-payment`}>One-time payment</Label>
               <Select
                 name="payment_status"
                 defaultValue={project?.payment_status ?? "unpaid"}
@@ -474,7 +470,7 @@ function ProjectFormDialog(props: Props) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectLabel>Payment</SelectLabel>
+                    <SelectLabel>One-time payment</SelectLabel>
                     {PAYMENT_OPTIONS.map(([value, label]) => (
                       <SelectItem key={value} value={value}>
                         {label}
@@ -537,8 +533,8 @@ function ProjectFormDialog(props: Props) {
               <div className="min-w-0">
                 <p className="text-sm font-medium">Offer financing</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {financing.depositRate}% down, 70% over {financing.months} months at{" "}
-                  {financing.financingFeeRate}%.
+                  {financing.depositRate}% down, 70% over {financing.months}{" "}
+                  months at {financing.financingFeeRate}%.
                 </p>
               </div>
               <Switch
@@ -603,7 +599,9 @@ function ProjectFormDialog(props: Props) {
 
                 {planId === "custom" ? (
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor={`${formId}-custom-rate`}>Monthly rate</Label>
+                    <Label htmlFor={`${formId}-custom-rate`}>
+                      Monthly rate
+                    </Label>
                     <InputGroup>
                       <InputGroupAddon>$</InputGroupAddon>
                       <InputGroupInput
@@ -659,11 +657,20 @@ function ProjectFormDialog(props: Props) {
 export function NewProjectDialog({
   clients,
   reps,
+  lockedClient,
 }: {
   clients: { id: string; name: string; company: string | null }[]
   reps: { id: string; full_name: string | null }[]
+  lockedClient?: { id: string; name: string; company: string | null }
 }) {
-  return <ProjectFormDialog mode="create" clients={clients} reps={reps} />
+  return (
+    <ProjectFormDialog
+      mode="create"
+      clients={clients}
+      reps={reps}
+      lockedClient={lockedClient}
+    />
+  )
 }
 
 export function EditProjectDialog({

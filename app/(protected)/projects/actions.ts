@@ -316,6 +316,21 @@ export async function updateProject(
   )
   if (!subSync.ok) return { ok: false, error: subSync.error }
 
+  // Keep the project's rep aligned with the client's primary rep and any
+  // attached subscription, so commission attribution (which reads
+  // subscriptions.sold_by) and Stripe checkout (which reads
+  // clients.assigned_to) don't drift when an admin fixes the rep here.
+  if (soldBy) {
+    await supabase
+      .from("subscriptions")
+      .update({ sold_by: soldBy })
+      .eq("project_id", projectId)
+    await supabase
+      .from("clients")
+      .update({ assigned_to: soldBy })
+      .eq("id", clientId)
+  }
+
   // Deposit cleared / project is running → promote the client off the leads
   // list. `active` stage implies the deposit gate trigger passed.
   if (paymentStatus === "paid" || stage === "active" || stage === "completed") {

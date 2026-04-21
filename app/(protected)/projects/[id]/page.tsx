@@ -42,7 +42,7 @@ export default async function ProjectDetailPage({
           deposit_paid_at, created_at,
           client:clients!projects_client_id_fkey (id, name, company),
           rep:profiles!projects_sold_by_fkey (id, full_name)
-        `,
+        `
       )
       .eq("id", id)
       .maybeSingle(),
@@ -52,10 +52,7 @@ export default async function ProjectDetailPage({
       .select("id, full_name")
       .in("role", ["admin", "editor", "sales_rep"])
       .order("full_name"),
-    supabase
-      .from("payments")
-      .select("amount, status")
-      .eq("project_id", id),
+    supabase.from("payments").select("amount, status").eq("project_id", id),
     supabase
       .from("interactions")
       .select("type, created_at, content")
@@ -64,7 +61,7 @@ export default async function ProjectDetailPage({
     supabase
       .from("subscriptions")
       .select(
-        "id, plan, product, monthly_rate, status, started_at, stripe_subscription_id",
+        "id, plan, product, monthly_rate, status, started_at, stripe_subscription_id"
       )
       .eq("project_id", id)
       .maybeSingle(),
@@ -74,7 +71,7 @@ export default async function ProjectDetailPage({
         `
           id, title, description, status, sort_order, due_date,
           assignee:profiles!project_tasks_assigned_to_fkey (id, full_name)
-        `,
+        `
       )
       .eq("project_id", id)
       .order("status")
@@ -88,7 +85,7 @@ export default async function ProjectDetailPage({
     ? await supabase
         .from("subscription_invoices")
         .select(
-          "id, amount_paid, currency, status, billing_reason, period_start, period_end, paid_at, created_at",
+          "id, amount_paid, currency, status, billing_reason, period_start, period_end, paid_at, created_at"
         )
         .eq("subscription_id", subscriptionRes.data.id)
         .order("created_at", { ascending: false })
@@ -120,8 +117,7 @@ export default async function ProjectDetailPage({
     paid_at: p.paid_at,
     product_type: p.product_type,
     deposit_rate: Number(p.deposit_rate),
-    deposit_amount:
-      p.deposit_amount != null ? Number(p.deposit_amount) : null,
+    deposit_amount: p.deposit_amount != null ? Number(p.deposit_amount) : null,
     deposit_paid_at: p.deposit_paid_at,
     created_at: p.created_at,
     client: clientObj
@@ -150,6 +146,14 @@ export default async function ProjectDetailPage({
           status: subscriptionRes.data.status,
           started_at: subscriptionRes.data.started_at,
           stripe_subscription_id: subscriptionRes.data.stripe_subscription_id,
+          payment_count: invoicesRes?.data?.length ?? 0,
+          paid_payment_count:
+            invoicesRes?.data?.filter((r) => r.status === "paid").length ?? 0,
+          paid_total: (invoicesRes?.data ?? []).reduce(
+            (sum, r) =>
+              r.status === "paid" ? sum + Number(r.amount_paid) : sum,
+            0
+          ),
         }
       : null,
   }
@@ -175,7 +179,7 @@ export default async function ProjectDetailPage({
       period_end: r.period_end,
       paid_at: r.paid_at,
       created_at: r.created_at,
-    }),
+    })
   )
 
   const tasks: ProjectTaskRow[] = (tasksRes.data ?? []).map((t) => {

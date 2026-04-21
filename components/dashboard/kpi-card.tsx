@@ -18,8 +18,8 @@ export function KpiCard({
   label: React.ReactNode
   badge?: string
   badgeTone?: "positive" | "neutral"
-  value: string
-  footer: string
+  value: React.ReactNode
+  footer: React.ReactNode
 }) {
   return (
     <Card className="gap-6">

@@ -19,7 +19,10 @@ export type UpdateClientResult =
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function titleCase(v: string) {
-  return v.replace(/\b(\p{Ll})/gu, (c) => c.toUpperCase())
+  return v.replace(
+    /(^|\s)(\p{Ll})/gu,
+    (_, pre, c) => pre + c.toLocaleUpperCase(),
+  )
 }
 
 const UUID_RE =

@@ -4,18 +4,11 @@ import {
   FolderKanban,
   Mail,
   MousePointerSquareDashed,
-  Plus,
   Repeat,
 } from "lucide-react"
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { NewProjectDialog } from "@/components/projects/project-form-dialog"
 import {
   Card,
   CardAction,
@@ -31,12 +24,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { site } from "@/lib/site"
-import { cn } from "@/lib/utils"
-import {
-  paymentStatusBadgeClass,
-  paymentStatusLabel,
-  projectStageTone,
-} from "@/lib/status-colors"
 import { ClientStatusBadge } from "./client-status-badge"
 import { EditClientDialog, type RepOption } from "./client-form-dialog"
 import {
@@ -123,7 +110,7 @@ export function ClientDetailPanel({
       <CardHeader className="flex-col items-start gap-4 p-6">
         <ClientStatusBadge status={derived} />
         <div className="min-w-0 space-y-1">
-          <h2 className="truncate font-heading text-xl font-medium leading-tight">
+          <h2 className="truncate font-sans text-xl font-medium leading-tight">
             {display}
           </h2>
           <p className="flex items-center gap-2 truncate text-sm text-muted-foreground">
@@ -160,17 +147,6 @@ export function ClientDetailPanel({
             value={
               client.mrr > 0 ? (
                 formatUsdShort(client.mrr)
-              ) : (
-                <span className="text-muted-foreground">—</span>
-              )
-            }
-          />
-          <Separator orientation="vertical" />
-          <StatBlock
-            label="Projects"
-            value={
-              client.projects.length > 0 ? (
-                client.projects.length
               ) : (
                 <span className="text-muted-foreground">—</span>
               )
@@ -239,119 +215,49 @@ export function ClientDetailPanel({
         </div>
 
         <Separator />
-        <Accordion>
-          <AccordionItem value="projects" className="border-b">
-            <AccordionTrigger className="px-6 py-5 hover:no-underline">
-              <div className="flex items-center gap-3">
-                <FolderKanban
-                  aria-hidden
-                  className="size-4 text-muted-foreground"
-                />
-                <span className="text-sm font-medium">Projects</span>
-                <span className="text-xs tabular-nums text-muted-foreground">
-                  {client.projects.length > 0 ? client.projects.length : "—"}
-                </span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="pt-0 pb-0">
-              {client.projects.length === 0 ? (
-                <p className="border-t px-6 py-6 text-sm text-muted-foreground italic">
-                  No projects yet.
-                </p>
-              ) : (
-                <ul className="flex flex-col divide-y divide-border border-t">
-                  {client.projects.map((p) => {
-                    const tone = projectStageTone(p.stage)
-                    return (
-                      <li
-                        key={p.id}
-                        className="flex items-center gap-4 px-6 py-4"
-                      >
-                        <div className="min-w-0 flex-1 space-y-2">
-                          <FieldLabel>{tone.label}</FieldLabel>
-                          <p className="truncate text-sm">
-                            {p.title}
-                            {p.value != null ? (
-                              <>
-                                <span className="mx-2 text-muted-foreground opacity-50">
-                                  ·
-                                </span>
-                                <span className="tabular-nums text-muted-foreground">
-                                  {formatUsdShort(Number(p.value))}
-                                </span>
-                              </>
-                            ) : null}
-                          </p>
-                        </div>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "shrink-0 border-transparent uppercase",
-                            paymentStatusBadgeClass(p.payment_status),
-                          )}
-                        >
-                          {paymentStatusLabel(p.payment_status)}
-                        </Badge>
-                      </li>
-                    )
-                  })}
-                </ul>
-              )}
-            </AccordionContent>
-          </AccordionItem>
-
-          <AccordionItem value="recurring" className="border-none">
-            <AccordionTrigger className="px-6 py-5 hover:no-underline">
-              <div className="flex items-center gap-3">
-                <Repeat aria-hidden className="size-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Recurring</span>
-                <span className="text-xs tabular-nums text-muted-foreground">
-                  {client.subscriptions.length > 0
-                    ? client.subscriptions.length
-                    : "—"}
-                </span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="pt-0 pb-0">
-              {client.subscriptions.length === 0 ? (
-                <p className="border-t px-6 py-6 text-sm text-muted-foreground italic">
-                  No recurring engagements yet.
-                </p>
-              ) : (
-                <ul className="flex flex-col divide-y divide-border border-t">
-                  {client.subscriptions.map((s) => (
-                    <li
-                      key={s.id}
-                      className="flex items-center gap-4 px-6 py-4"
-                    >
-                      <div className="min-w-0 flex-1 space-y-2">
-                        <FieldLabel>
-                          {s.plan}
-                          <Dot className="mx-2" />
-                          Since {formatMonthYear(s.started_at)}
-                        </FieldLabel>
-                        <p className="truncate text-sm">{s.product}</p>
-                      </div>
-                      <div className="shrink-0 text-sm tabular-nums">
-                        {formatUsdShort(Number(s.monthly_rate))}
-                        <span className="text-xs text-muted-foreground">
-                          /mo
-                        </span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+        <div className="flex items-center justify-between gap-3 px-6 py-5">
+          <div className="flex items-center gap-3">
+            <FolderKanban
+              aria-hidden
+              className="size-4 text-muted-foreground"
+            />
+            <span className="text-sm font-medium">Projects</span>
+          </div>
+          <span className="text-xs tabular-nums text-muted-foreground">
+            {client.projects.length > 0 ? client.projects.length : "—"}
+          </span>
+        </div>
+        <Separator />
+        <div className="flex items-center justify-between gap-3 px-6 py-5">
+          <div className="flex items-center gap-3">
+            <Repeat aria-hidden className="size-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Recurring</span>
+          </div>
+          <span className="text-xs tabular-nums text-muted-foreground">
+            {client.subscriptions.length > 0
+              ? client.subscriptions.length
+              : "—"}
+          </span>
+        </div>
       </CardContent>
 
       <Separator />
       <CardFooter className="mt-auto flex-col items-stretch gap-2 p-6">
-        <Button className="gap-2" disabled>
-          <Plus aria-hidden /> New Project
-        </Button>
+        <NewProjectDialog
+          clients={[
+            {
+              id: client.id,
+              name: client.name,
+              company: client.company,
+            },
+          ]}
+          reps={(reps ?? []).map((r) => ({ id: r.id, full_name: r.full_name }))}
+          lockedClient={{
+            id: client.id,
+            name: client.name,
+            company: client.company,
+          }}
+        />
         <div className="grid grid-cols-2 gap-2">
           <Button
             variant="outline"

@@ -25,7 +25,6 @@ export default async function CommissionsPage() {
         <PageHeader
           eyebrow="Commissions"
           title="Commissions"
-          description="Sales rep payouts — signing bonuses and monthly residuals from active subscriptions."
         />
         <p className="text-sm text-muted-foreground">
           You don&apos;t have access to this page.
@@ -83,11 +82,6 @@ export default async function CommissionsPage() {
       <PageHeader
         eyebrow="Commissions"
         title={isAdmin ? "Commissions" : "My book of business"}
-        description={
-          isAdmin
-            ? "Signing bonuses and monthly residuals owed to sales reps. Mark rows as paid once the rep has been paid out."
-            : "Active subscriptions you closed and the residuals they generate while you're with the company."
-        }
       />
 
       <CommissionsView

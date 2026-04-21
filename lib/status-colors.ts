@@ -75,9 +75,9 @@ const LEAD_STATUS_TONE: Record<LeadDerivedStatus, Omit<StatusTone, "label">> = {
     badge: "bg-foreground/10 text-foreground",
   },
   qualified: {
-    text: "text-emerald-400",
-    bar: "bg-emerald-400",
-    badge: "bg-emerald-600/10 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500",
+    text: "text-indigo-400",
+    bar: "bg-indigo-400",
+    badge: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
   },
   archived: {
     text: "text-muted-foreground",
@@ -120,9 +120,9 @@ const CLIENT_STATUS_TONE: Record<
     badge: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
   },
   qualified: {
-    text: "text-teal-400",
-    bar: "bg-teal-500",
-    badge: "bg-teal-500/10 text-teal-600 dark:text-teal-400",
+    text: "text-indigo-400",
+    bar: "bg-indigo-500",
+    badge: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
   },
   at_risk: {
     text: "text-orange-500",

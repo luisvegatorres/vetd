@@ -20,7 +20,8 @@ import {
   paymentStatusLabel,
 } from "@/lib/status-colors"
 import {
-  formatUsdShort,
+  formatUsdMonthlyShort,
+  formatUsdShortWithZero,
   isDepositPending,
   PRODUCT_TYPE_LABEL,
   projectDisplayClient,
@@ -42,6 +43,25 @@ function stripClientPrefix(title: string, client: string): string {
   return rest.length > 0 ? rest : title
 }
 
+function subscriptionStatusLabel(
+  status: NonNullable<ProjectRow["subscription"]>["status"]
+) {
+  if (status === "at_risk") return "At risk"
+  return status.replace(/_/g, " ")
+}
+
+function subscriptionStatusBadgeClass(
+  status: NonNullable<ProjectRow["subscription"]>["status"]
+) {
+  if (status === "active") {
+    return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+  }
+  if (status === "at_risk") {
+    return "bg-orange-500/10 text-orange-600 dark:text-orange-400"
+  }
+  return "bg-muted text-muted-foreground"
+}
+
 export function PipelineCard({
   project,
   dragging,
@@ -57,6 +77,8 @@ export function PipelineCard({
     : null
   const titleDisplay = stripClientPrefix(project.title, clientDisplay)
   const value = project.value ?? 0
+  const hasOneTimeAmount =
+    project.value != null || Boolean(project.subscription)
   const depositPending = isDepositPending(project)
   const age = daysSince(project.created_at)
 
@@ -65,25 +87,45 @@ export function PipelineCard({
       size="sm"
       className={cn(
         "group transition-colors",
-        readOnly
-          ? "border-border/40"
-          : "hover:border-border",
-        dragging ? "cursor-grabbing" : !readOnly && "cursor-grab",
+        readOnly ? "border-border/40" : "hover:border-border",
+        dragging ? "cursor-grabbing" : !readOnly && "cursor-grab"
       )}
     >
       <CardHeader>
         <div className="min-w-0 space-y-3">
-          <Badge
-            variant="outline"
-            className={cn(
-              "border-transparent uppercase tracking-wide",
-              paymentStatusBadgeClass(project.payment_status),
-            )}
-          >
-            {paymentStatusLabel(project.payment_status)}
-          </Badge>
+          {value > 0 ? (
+            <Badge
+              variant="outline"
+              className={cn(
+                "border-transparent tracking-wide uppercase",
+                paymentStatusBadgeClass(project.payment_status)
+              )}
+            >
+              {paymentStatusLabel(project.payment_status)}
+            </Badge>
+          ) : project.subscription ? (
+            <Badge
+              variant="outline"
+              className={cn(
+                "border-transparent tracking-wide uppercase",
+                subscriptionStatusBadgeClass(project.subscription.status)
+              )}
+            >
+              Recurring {subscriptionStatusLabel(project.subscription.status)}
+            </Badge>
+          ) : (
+            <Badge
+              variant="outline"
+              className={cn(
+                "border-transparent tracking-wide uppercase",
+                paymentStatusBadgeClass(project.payment_status)
+              )}
+            >
+              {paymentStatusLabel(project.payment_status)}
+            </Badge>
+          )}
           <div className="space-y-1">
-            <p className="truncate font-heading text-sm font-medium leading-tight">
+            <p className="truncate font-heading text-sm leading-tight font-medium">
               {clientDisplay}
             </p>
             <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">
@@ -92,20 +134,27 @@ export function PipelineCard({
           </div>
         </div>
         <CardAction className="flex items-center gap-3">
-          <span className="font-heading text-lg font-medium leading-none tabular-nums">
-            {value > 0 ? (
-              formatUsdShort(value)
-            ) : (
-              <span className="text-muted-foreground">—</span>
-            )}
-          </span>
+          <div className="flex flex-col items-end gap-1">
+            <span className="font-heading text-lg leading-none font-medium tabular-nums">
+              {hasOneTimeAmount ? (
+                formatUsdShortWithZero(value)
+              ) : (
+                <span className="text-muted-foreground">—</span>
+              )}
+            </span>
+            {project.subscription ? (
+              <span className="text-xs text-muted-foreground uppercase tabular-nums">
+                {formatUsdMonthlyShort(project.subscription.monthly_rate)} MRR
+              </span>
+            ) : null}
+          </div>
           <Link
             href={`/projects/${project.id}`}
             aria-label="View project details"
             onPointerDown={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
-            className="inline-flex size-7 items-center justify-center border border-border/60 text-muted-foreground transition-colors hover:border-border hover:text-foreground focus-visible:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+            className="inline-flex size-7 items-center justify-center border border-border/60 text-muted-foreground transition-colors hover:border-border hover:text-foreground focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card focus-visible:outline-none"
           >
             <ArrowUpRight aria-hidden className="size-4" />
           </Link>

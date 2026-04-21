@@ -6,8 +6,7 @@ import { createClient } from "@/lib/supabase/server"
 import { Constants, type Database } from "@/lib/supabase/types"
 
 type ClientSource = Database["public"]["Enums"]["client_source"]
-type ProjectProductType =
-  Database["public"]["Enums"]["project_product_type"]
+type ProjectProductType = Database["public"]["Enums"]["project_product_type"]
 
 const PROJECT_PRODUCT_TITLE: Record<ProjectProductType, string> = {
   business_website: "Website",
@@ -29,9 +28,7 @@ export type CreateLeadResult =
   | { ok: true; leadId: string }
   | { ok: false; error: string }
 
-export type UpdateLeadResult =
-  | { ok: true }
-  | { ok: false; error: string }
+export type UpdateLeadResult = { ok: true } | { ok: false; error: string }
 
 function titleCase(v: string) {
   return v.replace(/\b(\p{Ll})/gu, (c) => c.toUpperCase())
@@ -40,7 +37,7 @@ function titleCase(v: string) {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export async function createLead(
-  formData: FormData,
+  formData: FormData
 ): Promise<CreateLeadResult> {
   const supabase = await createClient()
   const { data: auth } = await supabase.auth.getUser()
@@ -73,8 +70,7 @@ export async function createLead(
     .select("role")
     .eq("id", auth.user.id)
     .maybeSingle()
-  const assignedTo =
-    creatorProfile?.role === "sales_rep" ? auth.user.id : null
+  const assignedTo = creatorProfile?.role === "sales_rep" ? auth.user.id : null
 
   const { data, error } = await supabase
     .from("clients")
@@ -103,7 +99,7 @@ export async function createLead(
 
 export async function updateLead(
   clientId: string,
-  formData: FormData,
+  formData: FormData
 ): Promise<UpdateLeadResult> {
   const supabase = await createClient()
   const { data: auth } = await supabase.auth.getUser()
@@ -151,7 +147,7 @@ export async function updateLead(
 
 function buildDealTitle(
   lead: { name: string | null; company: string | null; intent: string | null },
-  productLabel: string,
+  productLabel: string
 ) {
   const subject =
     [lead.company, lead.name].filter(Boolean).join(" ▪ ") || "New client"
@@ -160,6 +156,7 @@ function buildDealTitle(
 
 export type ConvertLeadInput = {
   productType: ProjectProductType
+  soldBy: string
   build: { value: number } | null
   plan: { id: SubscriptionPlanId } | null
 }
@@ -172,9 +169,12 @@ export type ConvertLeadResult =
     }
   | { ok: false; error: string }
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 export async function convertLead(
   clientId: string,
-  input: ConvertLeadInput,
+  input: ConvertLeadInput
 ): Promise<ConvertLeadResult> {
   const supabase = await createClient()
   const { data: auth } = await supabase.auth.getUser()
@@ -186,6 +186,29 @@ export async function convertLead(
     return { ok: false, error: "Invalid product type" }
   }
 
+  if (!input.soldBy || !UUID_RE.test(input.soldBy)) {
+    return { ok: false, error: "Pick a sales rep for this deal" }
+  }
+
+  const { data: rep, error: repError } = await supabase
+    .from("profiles")
+    .select("id, role, employment_status")
+    .eq("id", input.soldBy)
+    .maybeSingle()
+  if (repError || !rep) {
+    return { ok: false, error: repError?.message ?? "Rep not found" }
+  }
+  if (
+    rep.role !== "sales_rep" &&
+    rep.role !== "admin" &&
+    rep.role !== "editor"
+  ) {
+    return { ok: false, error: "Selected user cannot be a sales rep" }
+  }
+  if (rep.employment_status !== "active") {
+    return { ok: false, error: "Selected rep is not active" }
+  }
+
   if (!input.build && !input.plan) {
     return {
       ok: false,
@@ -195,7 +218,7 @@ export async function convertLead(
 
   if (input.build) {
     if (!Number.isFinite(input.build.value) || input.build.value <= 0) {
-      return { ok: false, error: "Project value must be greater than 0" }
+      return { ok: false, error: "One-time value must be greater than 0" }
     }
   }
 
@@ -225,7 +248,7 @@ export async function convertLead(
       client_id: clientId,
       title,
       stage,
-      sold_by: auth.user.id,
+      sold_by: input.soldBy,
       product_type: input.productType,
       value: input.build ? input.build.value : null,
     })
@@ -248,12 +271,12 @@ export async function convertLead(
       .insert({
         client_id: clientId,
         project_id: project.id,
-        product: "growth-system",
+        product: "Website",
         plan: planConfig.label,
         monthly_rate: planConfig.monthlyRate,
         status: "active",
         started_at: today,
-        sold_by: auth.user.id,
+        sold_by: input.soldBy,
       })
       .select("id")
       .single()
@@ -267,10 +290,15 @@ export async function convertLead(
   }
 
   // Client becomes active as soon as a recurring plan is attached; otherwise
-  // they're in proposal for a one-time build and count as qualified.
+  // they're in proposal for a one-time build and count as qualified. Also
+  // claim the client for the selected rep so downstream flows (Stripe
+  // checkout metadata, commissions) have a concrete owner.
   await supabase
     .from("clients")
-    .update({ status: input.plan ? "active_client" : "qualified" })
+    .update({
+      status: input.plan ? "active_client" : "qualified",
+      assigned_to: input.soldBy,
+    })
     .eq("id", clientId)
 
   revalidatePath("/leads")
@@ -280,17 +308,3 @@ export async function convertLead(
   return { ok: true, projectId: project.id, subscriptionId }
 }
 
-
-export async function claimLead(clientId: string) {
-  const supabase = await createClient()
-  const { data: auth } = await supabase.auth.getUser()
-  if (!auth.user) throw new Error("Not authenticated")
-
-  const { error } = await supabase
-    .from("clients")
-    .update({ assigned_to: auth.user.id })
-    .eq("id", clientId)
-  if (error) throw new Error(error.message)
-
-  revalidatePath("/leads")
-}

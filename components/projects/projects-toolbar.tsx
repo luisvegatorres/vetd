@@ -36,7 +36,7 @@ type Sort = "recent" | "value" | "deadline" | "stage"
 
 const SORT_LABEL: Record<Sort, string> = {
   recent: "Recently added",
-  value: "Value",
+  value: "One-time value",
   deadline: "Deadline",
   stage: "Stage",
 }
@@ -54,7 +54,7 @@ function useProjectsNav() {
       const qs = next.toString()
       router.push(qs ? `/projects?${qs}` : "/projects", { scroll: false })
     },
-    [params, router],
+    [params, router]
   )
 }
 
@@ -135,7 +135,7 @@ export function ProjectsFilters({
                 aria-hidden
                 className={cn(
                   "absolute -top-1 -right-1 flex size-4 items-center justify-center",
-                  "bg-primary text-[10px] font-medium tabular-nums text-primary-foreground",
+                  "bg-primary text-[10px] font-medium text-primary-foreground tabular-nums"
                 )}
               >
                 {activeCount}
@@ -146,7 +146,7 @@ export function ProjectsFilters({
       />
       <PopoverContent align="end" className="w-72 gap-4">
         <div className="flex items-center justify-between">
-          <p className="text-overline font-medium uppercase text-muted-foreground">
+          <p className="text-overline font-medium text-muted-foreground uppercase">
             Filters
           </p>
           <Button
@@ -162,7 +162,7 @@ export function ProjectsFilters({
 
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-2">
-            <p className="text-overline font-medium uppercase text-muted-foreground">
+            <p className="text-overline font-medium text-muted-foreground uppercase">
               Product
             </p>
             <Select
@@ -204,7 +204,7 @@ export function ProjectsFilters({
           </div>
 
           <div className="flex flex-col gap-2">
-            <p className="text-overline font-medium uppercase text-muted-foreground">
+            <p className="text-overline font-medium text-muted-foreground uppercase">
               Rep
             </p>
             <Select
@@ -240,8 +240,8 @@ export function ProjectsFilters({
           </div>
 
           <div className="flex flex-col gap-2">
-            <p className="text-overline font-medium uppercase text-muted-foreground">
-              Payment
+            <p className="text-overline font-medium text-muted-foreground uppercase">
+              One-time payment
             </p>
             <Select
               value={payment}
@@ -253,19 +253,19 @@ export function ProjectsFilters({
               }
             >
               <SelectTrigger size="sm" className="w-full">
-                <SelectValue placeholder="All payments">
+                <SelectValue placeholder="All one-time">
                   {(value) =>
                     !value || value === "all"
-                      ? "All payments"
+                      ? "All one-time"
                       : (PAYMENT_STATUS_LABEL[value as PaymentStatus] ??
-                        "All payments")
+                        "All one-time")
                   }
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectLabel>Payment</SelectLabel>
-                  <SelectItem value="all">All payments</SelectItem>
+                  <SelectLabel>One-time payment</SelectLabel>
+                  <SelectItem value="all">All one-time</SelectItem>
                   <SelectItem value="unpaid">Unpaid</SelectItem>
                   <SelectItem value="link_sent">Link sent</SelectItem>
                   <SelectItem value="paid">Paid</SelectItem>
@@ -277,7 +277,7 @@ export function ProjectsFilters({
           </div>
 
           <div className="flex flex-col gap-2">
-            <p className="text-overline font-medium uppercase text-muted-foreground">
+            <p className="text-overline font-medium text-muted-foreground uppercase">
               Sort by
             </p>
             <Select
@@ -302,7 +302,7 @@ export function ProjectsFilters({
                 <SelectGroup>
                   <SelectLabel>Sort by</SelectLabel>
                   <SelectItem value="recent">Recently added</SelectItem>
-                  <SelectItem value="value">Value</SelectItem>
+                  <SelectItem value="value">One-time value</SelectItem>
                   <SelectItem value="deadline">Deadline</SelectItem>
                   <SelectItem value="stage">Stage</SelectItem>
                 </SelectGroup>

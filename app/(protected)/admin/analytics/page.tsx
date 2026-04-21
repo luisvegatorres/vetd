@@ -165,7 +165,6 @@ export default async function AdminAnalyticsPage() {
       <PageHeader
         eyebrow="Admin"
         title="Analytics"
-        description="Payments, pipeline progression, and team performance at a glance."
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

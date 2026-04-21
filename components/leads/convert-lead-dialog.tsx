@@ -36,8 +36,7 @@ import { Switch } from "@/components/ui/switch"
 import { convertLead } from "@/app/(protected)/leads/actions"
 import type { Database } from "@/lib/supabase/types"
 
-type ProjectProductType =
-  Database["public"]["Enums"]["project_product_type"]
+type ProjectProductType = Database["public"]["Enums"]["project_product_type"]
 type SubscriptionPlanId = "presence" | "growth"
 
 const PRODUCT_OPTIONS: Array<{
@@ -81,19 +80,36 @@ function formatUSD(amount: number) {
   }).format(amount)
 }
 
-export function ConvertLeadDialog({ leadId }: { leadId: string }) {
+type RepOption = { id: string; full_name: string | null }
+
+export function ConvertLeadDialog({
+  leadId,
+  reps,
+  defaultRepId,
+}: {
+  leadId: string
+  reps: RepOption[]
+  defaultRepId: string | null
+}) {
   const router = useRouter()
   const formId = useId()
   const [open, setOpen] = useState(false)
 
-  const [product, setProduct] =
-    useState<ProjectProductType>("business_website")
+  const [product, setProduct] = useState<ProjectProductType>("business_website")
 
   const [planEnabled, setPlanEnabled] = useState(true)
   const [plan, setPlan] = useState<SubscriptionPlanId>("presence")
 
   const [buildEnabled, setBuildEnabled] = useState(false)
   const [valueInput, setValueInput] = useState("")
+
+  const initialRepId =
+    defaultRepId && reps.some((r) => r.id === defaultRepId)
+      ? defaultRepId
+      : reps.length === 1
+        ? reps[0].id
+        : ""
+  const [repId, setRepId] = useState<string>(initialRepId)
 
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -102,7 +118,7 @@ export function ConvertLeadDialog({ leadId }: { leadId: string }) {
   const hasValidValue = Number.isFinite(parsedValue) && parsedValue > 0
   const deposit = useMemo(
     () => (hasValidValue ? Math.round(parsedValue * DEPOSIT_RATE) : 0),
-    [hasValidValue, parsedValue],
+    [hasValidValue, parsedValue]
   )
 
   function reset() {
@@ -111,6 +127,7 @@ export function ConvertLeadDialog({ leadId }: { leadId: string }) {
     setPlan("presence")
     setBuildEnabled(false)
     setValueInput("")
+    setRepId(initialRepId)
     setError(null)
   }
 
@@ -132,22 +149,29 @@ export function ConvertLeadDialog({ leadId }: { leadId: string }) {
   }
 
   const canSubmit =
-    (planEnabled || buildEnabled) && (!buildEnabled || hasValidValue)
+    (planEnabled || buildEnabled) &&
+    (!buildEnabled || hasValidValue) &&
+    repId !== ""
 
   function handleSubmit() {
     setError(null)
+    if (!repId) {
+      setError("Pick a sales rep for this deal")
+      return
+    }
     if (!planEnabled && !buildEnabled) {
       setError("Pick a monthly plan, a one-time build, or both")
       return
     }
     if (buildEnabled && !hasValidValue) {
-      setError("Enter a project value greater than 0")
+      setError("Enter a one-time value greater than 0")
       return
     }
 
     startTransition(async () => {
       const result = await convertLead(leadId, {
         productType: product,
+        soldBy: repId,
         build: buildEnabled ? { value: parsedValue } : null,
         plan: planEnabled ? { id: plan } : null,
       })
@@ -155,7 +179,7 @@ export function ConvertLeadDialog({ leadId }: { leadId: string }) {
         toast.success(
           buildEnabled
             ? "Project created — deposit invoice next"
-            : "Project created — subscription active",
+            : "Project created — subscription active"
         )
         setOpen(false)
         if (buildEnabled) {
@@ -183,12 +207,46 @@ export function ConvertLeadDialog({ leadId }: { leadId: string }) {
         <DialogHeader>
           <DialogTitle>Convert lead</DialogTitle>
           <DialogDescription>
-            Turn this lead into a project. Add a monthly plan, a one-time
-            build, or both.
+            Turn this lead into a project. Add a monthly plan, a one-time build,
+            or both.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor={`${formId}-rep`}>Rep</Label>
+            <Select value={repId} onValueChange={(v) => setRepId(v ?? "")}>
+              <SelectTrigger id={`${formId}-rep`} className="w-full">
+                <SelectValue placeholder="Pick a sales rep">
+                  {(value) => {
+                    if (!value) return ""
+                    const r = reps.find((x) => x.id === value)
+                    return r?.full_name ?? "Unnamed rep"
+                  }}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Rep</SelectLabel>
+                  {reps.length === 0 ? (
+                    <SelectItem value="__none__" disabled>
+                      No active reps
+                    </SelectItem>
+                  ) : (
+                    reps.map((r) => (
+                      <SelectItem key={r.id} value={r.id}>
+                        {r.full_name ?? "Unnamed rep"}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Commissions and Stripe metadata are tied to this rep.
+            </p>
+          </div>
+
           <div className="flex flex-col gap-2">
             <Label htmlFor={`${formId}-product`}>Product</Label>
             <Select
@@ -200,9 +258,7 @@ export function ConvertLeadDialog({ leadId }: { leadId: string }) {
               <SelectTrigger id={`${formId}-product`} className="w-full">
                 <SelectValue>
                   {(value) =>
-                    value
-                      ? PRODUCT_LABEL[value as ProjectProductType]
-                      : ""
+                    value ? PRODUCT_LABEL[value as ProjectProductType] : ""
                   }
                 </SelectValue>
               </SelectTrigger>
@@ -246,15 +302,10 @@ export function ConvertLeadDialog({ leadId }: { leadId: string }) {
                     value={plan}
                     onValueChange={(v) => setPlan(v as SubscriptionPlanId)}
                   >
-                    <SelectTrigger
-                      id={`${formId}-plan`}
-                      className="w-full"
-                    >
+                    <SelectTrigger id={`${formId}-plan`} className="w-full">
                       <SelectValue>
                         {(value) =>
-                          value
-                            ? PLAN_LABEL[value as SubscriptionPlanId]
-                            : ""
+                          value ? PLAN_LABEL[value as SubscriptionPlanId] : ""
                         }
                       </SelectValue>
                     </SelectTrigger>
@@ -262,10 +313,7 @@ export function ConvertLeadDialog({ leadId }: { leadId: string }) {
                       <SelectGroup>
                         <SelectLabel>Growth System plans</SelectLabel>
                         {PLAN_OPTIONS.map((option) => (
-                          <SelectItem
-                            key={option.value}
-                            value={option.value}
-                          >
+                          <SelectItem key={option.value} value={option.value}>
                             {option.label} — ${option.rate}/mo
                           </SelectItem>
                         ))}
@@ -299,7 +347,7 @@ export function ConvertLeadDialog({ leadId }: { leadId: string }) {
             {buildEnabled ? (
               <div className="space-y-4 border-t border-border/60 px-4 py-4">
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor={`${formId}-value`}>Project value</Label>
+                  <Label htmlFor={`${formId}-value`}>One-time value</Label>
                   <InputGroup>
                     <InputGroupAddon>
                       <InputGroupText>$</InputGroupText>
@@ -321,7 +369,7 @@ export function ConvertLeadDialog({ leadId }: { leadId: string }) {
                 </div>
                 <div className="grid grid-cols-2 divide-x divide-border/60 border border-border/60">
                   <div className="flex flex-col items-center px-4 py-4 text-center">
-                    <p className="text-overline font-medium uppercase text-muted-foreground">
+                    <p className="text-overline font-medium text-muted-foreground uppercase">
                       30% deposit
                     </p>
                     <p className="mt-1 font-heading text-2xl font-medium tabular-nums">
@@ -329,19 +377,17 @@ export function ConvertLeadDialog({ leadId }: { leadId: string }) {
                     </p>
                   </div>
                   <div className="flex flex-col items-center px-4 py-4 text-center">
-                    <p className="text-overline font-medium uppercase text-muted-foreground">
+                    <p className="text-overline font-medium text-muted-foreground uppercase">
                       Remaining
                     </p>
                     <p className="mt-1 font-heading text-2xl font-medium tabular-nums">
-                      {hasValidValue
-                        ? formatUSD(parsedValue - deposit)
-                        : "—"}
+                      {hasValidValue ? formatUSD(parsedValue - deposit) : "—"}
                     </p>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Deal starts in Proposal. It cannot move to Active until
-                  the deposit clears.
+                  Deal starts in Proposal. It cannot move to Active until the
+                  deposit clears.
                 </p>
               </div>
             ) : null}

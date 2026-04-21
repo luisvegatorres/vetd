@@ -46,11 +46,7 @@ export function CancelSubscriptionButton({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2 text-destructive hover:text-destructive"
-          >
+          <Button variant="destructive" size="sm" className="gap-2">
             <X aria-hidden /> Cancel
           </Button>
         }

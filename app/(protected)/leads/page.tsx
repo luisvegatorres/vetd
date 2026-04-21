@@ -71,6 +71,30 @@ export default async function LeadsPage({
 
   const supabase = await createClient()
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const { data: me } = user
+    ? await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle()
+    : { data: null }
+  const currentUserIsRep =
+    me?.role === "sales_rep" || me?.role === "admin" || me?.role === "editor"
+
+  const { data: repRows } = await supabase
+    .from("profiles")
+    .select("id, full_name, role, employment_status")
+    .in("role", ["admin", "editor", "sales_rep"])
+    .eq("employment_status", "active")
+    .order("full_name", { ascending: true })
+  const reps = (repRows ?? []).map((r) => ({
+    id: r.id,
+    full_name: r.full_name,
+  }))
+
   // Leads page excludes already-converted active clients.
   let query = supabase
     .from("clients")
@@ -213,7 +237,12 @@ export default async function LeadsPage({
             className="mt-auto"
           />
         </div>
-        <LeadDetailPanel lead={selectedLead} />
+        <LeadDetailPanel
+          lead={selectedLead}
+          reps={reps}
+          currentUserId={user?.id ?? null}
+          currentUserIsRep={currentUserIsRep}
+        />
       </div>
     </div>
   )

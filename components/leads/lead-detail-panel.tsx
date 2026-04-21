@@ -1,4 +1,4 @@
-import { Mail, Phone, UserPlus } from "lucide-react"
+import { Mail, Phone } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -9,7 +9,6 @@ import {
   CardHeader,
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { claimLead } from "@/app/(protected)/leads/actions"
 import { ConvertLeadDialog } from "./convert-lead-dialog"
 import { EditLeadDialog } from "./lead-form-dialog"
 import { LeadNotesDialog } from "./lead-notes-dialog"
@@ -47,7 +46,19 @@ function Field({
   )
 }
 
-export function LeadDetailPanel({ lead }: { lead: LeadRow | null }) {
+type RepOption = { id: string; full_name: string | null }
+
+export function LeadDetailPanel({
+  lead,
+  reps,
+  currentUserId,
+  currentUserIsRep,
+}: {
+  lead: LeadRow | null
+  reps: RepOption[]
+  currentUserId: string | null
+  currentUserIsRep: boolean
+}) {
   if (!lead) {
     return (
       <Card className="flex min-h-80 flex-col items-center justify-center gap-0 p-10 text-center">
@@ -63,6 +74,11 @@ export function LeadDetailPanel({ lead }: { lead: LeadRow | null }) {
 
   const derived = deriveStatus(lead)
   const score = lead.score ?? 0
+
+  // Prefer the lead's existing owner; fall back to the current user when they
+  // are a rep so self-conversions don't leave the deal unassigned.
+  const defaultRepId =
+    lead.owner?.id ?? (currentUserIsRep ? currentUserId : null)
 
   return (
     <Card className="flex min-h-80 flex-col gap-0 py-0">
@@ -142,13 +158,12 @@ export function LeadDetailPanel({ lead }: { lead: LeadRow | null }) {
 
       <Separator />
       <CardFooter className="mt-auto flex-col items-stretch gap-2 p-6">
-        <ConvertLeadDialog leadId={lead.id} />
-        <div
-          className={cn(
-            "grid gap-2",
-            lead.owner ? "grid-cols-2" : "grid-cols-3",
-          )}
-        >
+        <ConvertLeadDialog
+          leadId={lead.id}
+          reps={reps}
+          defaultRepId={defaultRepId}
+        />
+        <div className="grid grid-cols-2 gap-2">
           <Button
             variant="outline"
             disabled={!lead.email}
@@ -167,17 +182,6 @@ export function LeadDetailPanel({ lead }: { lead: LeadRow | null }) {
           >
             <Phone aria-hidden /> Call
           </Button>
-          {!lead.owner && (
-            <form action={claimLead.bind(null, lead.id)}>
-              <Button
-                variant="outline"
-                type="submit"
-                className="w-full gap-2 capitalize"
-              >
-                <UserPlus aria-hidden /> Claim
-              </Button>
-            </form>
-          )}
         </div>
       </CardFooter>
     </Card>

@@ -5,8 +5,8 @@ import { useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import { Dot } from "@/components/ui/dot"
 import { Spinner } from "@/components/ui/spinner"
+import { cn } from "@/lib/utils"
 import {
   Select,
   SelectContent,
@@ -17,10 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { createSubscriptionCheckoutSession } from "@/lib/stripe/actions"
-import {
-  subscriptionPlans,
-  type BillablePlanId,
-} from "@/lib/site"
+import { subscriptionPlans, type BillablePlanId } from "@/lib/site"
 
 const PLAN_LABEL: Record<BillablePlanId, string> = {
   presence: subscriptionPlans.presence.label,
@@ -30,15 +27,19 @@ const PLAN_LABEL: Record<BillablePlanId, string> = {
 export function SendSubscriptionLink({
   clientId,
   subscriptionId,
+  initialPlanId = "presence",
+  generateLabel = "Generate link",
+  className,
 }: {
   clientId: string
   subscriptionId?: string
+  initialPlanId?: BillablePlanId
+  generateLabel?: string
+  className?: string
 }) {
-  const [planId, setPlanId] = useState<BillablePlanId>("presence")
+  const [planId, setPlanId] = useState<BillablePlanId>(initialPlanId)
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
-
-  const plan = subscriptionPlans[planId]
 
   function handleGenerate() {
     setCheckoutUrl(null)
@@ -64,14 +65,14 @@ export function SendSubscriptionLink({
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
+    <div className={cn("flex flex-col gap-4", className)}>
+      <div className="flex flex-col gap-3">
+        <div className="@container/plan-picker flex flex-col gap-2 @xs/plan-picker:flex-row @xs/plan-picker:items-center">
           <Select
             value={planId}
             onValueChange={(value) => setPlanId(value as BillablePlanId)}
           >
-            <SelectTrigger className="flex-1">
+            <SelectTrigger className="w-full @xs/plan-picker:flex-1">
               <SelectValue>
                 {(value) =>
                   value
@@ -95,7 +96,7 @@ export function SendSubscriptionLink({
           <Button
             onClick={handleGenerate}
             disabled={isPending}
-            className="gap-2"
+            className="w-full gap-2 @xs/plan-picker:w-auto"
           >
             {isPending ? (
               <>
@@ -105,16 +106,11 @@ export function SendSubscriptionLink({
             ) : (
               <>
                 <ArrowUpRight aria-hidden />
-                Generate link
+                {generateLabel}
               </>
             )}
           </Button>
         </div>
-
-        <p className="text-xs text-muted-foreground tabular-nums">
-          ${plan.signingBonus} bonus
-          <Dot className="mx-2" />${plan.monthlyResidual}/mo residual
-        </p>
       </div>
 
       {checkoutUrl ? (
@@ -140,11 +136,7 @@ export function SendSubscriptionLink({
             className="gap-2"
             nativeButton={false}
             render={
-              <a
-                href={checkoutUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              />
+              <a href={checkoutUrl} target="_blank" rel="noopener noreferrer" />
             }
           >
             <ExternalLink aria-hidden /> Open

@@ -184,10 +184,12 @@ export function CommissionsView({
 
   // Admin-only team rollup: one row per rep with active subs, MRC, and ledger
   // totals. Terminated reps keep their ledger history but MRC projects to $0
-  // because residuals stop accruing on termination.
+  // because residuals stop accruing on termination. Admins are excluded —
+  // the owner keeps 100% of MRR through the company, not the payout ledger.
   const teamRollup = useMemo(() => {
     if (!isAdmin) return []
     return profiles
+      .filter((p) => p.role !== "admin")
       .map((p) => {
         const repSubs = subscriptions.filter((s) => s.sold_by === p.id)
         const activeSubs = repSubs.filter((s) => s.status === "active")
