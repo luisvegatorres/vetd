@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { ArrowUpRight, Clock, FileText } from "lucide-react"
-import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -16,12 +15,17 @@ import {
 import { Dot } from "@/components/ui/dot"
 import { cn } from "@/lib/utils"
 import {
+  DOC_KIND_LABEL,
+  DocumentActionsPopover,
+} from "@/components/documents/document-actions-popover"
+import {
   paymentStatusBadgeClass,
   paymentStatusLabel,
 } from "@/lib/status-colors"
 import {
   formatUsdMonthlyShort,
   formatUsdShortWithZero,
+  isContractPending,
   isDepositPending,
   PRODUCT_TYPE_LABEL,
   projectDisplayClient,
@@ -74,7 +78,10 @@ export function PipelineCard({
   const hasOneTimeAmount =
     project.value != null || Boolean(project.subscription)
   const depositPending = isDepositPending(project)
+  const contractPending = isContractPending(project)
   const age = daysSince(project.created_at)
+  const sendableDocs = (project.documents ?? []).filter((d) => d.has_pdf)
+  const hasFooter = !readOnly && (sendableDocs.length > 0 || depositPending)
 
   return (
     <Card
@@ -169,30 +176,40 @@ export function PipelineCard({
               </span>
             </>
           ) : null}
+          {contractPending ? (
+            <>
+              <Dot />
+              <span className="text-amber-600 dark:text-amber-400">
+                Contract unsigned
+              </span>
+            </>
+          ) : null}
         </div>
       </CardContent>
 
-      {!readOnly ? (
+      {hasFooter ? (
         <CardFooter
           onPointerDown={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}
           className="flex-col gap-2"
         >
-          <Button
-            type="button"
-            variant="outline"
-            className="h-8 w-full gap-2 text-xs"
-            onClick={() =>
-              toast.info("Contract sending is coming soon", {
-                description:
-                  "Wire up a contract service (PandaDoc / DocuSign / Stripe e-sig) to enable this.",
-              })
-            }
-          >
-            <FileText aria-hidden />
-            Send contract
-          </Button>
+          {sendableDocs.map((doc) => (
+            <DocumentActionsPopover
+              key={doc.id}
+              doc={doc}
+              trigger={
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-8 w-full gap-2 text-xs"
+                >
+                  <FileText aria-hidden />
+                  Send {DOC_KIND_LABEL[doc.kind]}
+                </Button>
+              }
+            />
+          ))}
           {depositPending ? (
             <SendDepositLink
               projectId={project.id}

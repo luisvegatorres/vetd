@@ -111,6 +111,22 @@ export function isDepositPending(row: {
   return true
 }
 
+// Priced, pre-won project that still needs a signed contract on file. Matches
+// the server-side gate in migration 0031 — "agreement" means exactly a
+// document of kind='contract' with status='signed'.
+export function isContractPending(row: {
+  value: number | null
+  stage: ProjectStage
+  documents?: ProjectDocument[]
+}): boolean {
+  if (!row.value || row.value <= 0) return false
+  if (row.stage !== "proposal" && row.stage !== "negotiation") return false
+  const signed = (row.documents ?? []).some(
+    (d) => d.kind === "contract" && d.status === "signed"
+  )
+  return !signed
+}
+
 export function projectPaidTotal(row: { payments: ProjectPayment[] }): number {
   return row.payments
     .filter((p) => p.status === "paid" || p.status === "succeeded")

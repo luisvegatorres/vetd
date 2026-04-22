@@ -9,6 +9,7 @@ import {
 } from "@/components/dashboard/data-table"
 import { Dot } from "@/components/ui/dot"
 import { cn } from "@/lib/utils"
+import { LeadIntentCell } from "./lead-intent-cell"
 import { LeadStatusBadge } from "./lead-status-badge"
 import {
   SOURCE_LABEL,
@@ -105,7 +106,7 @@ export function LeadsTable({
                 </DataTableCell>
 
                 <DataTableCell>
-                  <p className="truncate text-sm">{row.intent ?? "—"}</p>
+                  <LeadIntentCell intent={row.intent} leadName={row.name} />
                 </DataTableCell>
 
                 <DataTableCell className="gap-2">

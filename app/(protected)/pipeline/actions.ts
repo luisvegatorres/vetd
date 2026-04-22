@@ -55,13 +55,28 @@ export async function moveProjectInPipeline(input: {
 
   if (
     input.toStage === "active" &&
-    !project.deposit_paid_at &&
     project.value != null &&
     Number(project.value) > 0
   ) {
-    return {
-      ok: false,
-      error: "Collect the deposit before marking this deal won.",
+    if (!project.deposit_paid_at) {
+      return {
+        ok: false,
+        error: "Collect the deposit before marking this deal won.",
+      }
+    }
+
+    const { count: signedContractCount, error: contractError } = await supabase
+      .from("documents")
+      .select("id", { count: "exact", head: true })
+      .eq("project_id", input.projectId)
+      .eq("kind", "contract")
+      .eq("status", "signed")
+    if (contractError) return { ok: false, error: contractError.message }
+    if (!signedContractCount) {
+      return {
+        ok: false,
+        error: "Get the contract signed before marking this deal won.",
+      }
     }
   }
 

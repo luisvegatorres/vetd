@@ -84,17 +84,44 @@ export default async function PipelinePage({
   })
 
   const projectIds = visible.map((p) => p.id)
-  const subscriptionsRes =
+  const [subscriptionsRes, documentsRes] = await Promise.all([
     projectIds.length > 0
-      ? await supabase
+      ? supabase
           .from("subscriptions")
           .select(
             "id, project_id, plan, product, monthly_rate, status, started_at, stripe_subscription_id",
           )
           .in("project_id", projectIds)
-      : null
+      : Promise.resolve(null),
+    projectIds.length > 0
+      ? supabase
+          .from("documents")
+          .select("id, project_id, title, kind, status, pdf_path, created_at")
+          .in("project_id", projectIds)
+          .order("created_at", { ascending: false })
+      : Promise.resolve(null),
+  ])
 
   if (subscriptionsRes?.error) throw subscriptionsRes.error
+  if (documentsRes?.error) throw documentsRes.error
+
+  const documentsByProject = new Map<
+    string,
+    NonNullable<ProjectRow["documents"]>
+  >()
+  for (const d of documentsRes?.data ?? []) {
+    if (!d.project_id) continue
+    const list = documentsByProject.get(d.project_id) ?? []
+    list.push({
+      id: d.id,
+      title: d.title,
+      kind: d.kind,
+      status: d.status,
+      created_at: d.created_at,
+      has_pdf: Boolean(d.pdf_path),
+    })
+    documentsByProject.set(d.project_id, list)
+  }
 
   const subscriptionByProject = new Map<
     string,
@@ -151,6 +178,7 @@ export default async function PipelinePage({
         payments: [],
         interactions: [],
         subscription: subscriptionByProject.get(p.id) ?? null,
+        documents: documentsByProject.get(p.id) ?? [],
       }
     })
 

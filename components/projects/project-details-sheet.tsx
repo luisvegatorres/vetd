@@ -1,23 +1,20 @@
 "use client"
 
 import Link from "next/link"
-import { useTransition } from "react"
-import { toast } from "sonner"
 import {
   Activity,
   CalendarClock,
   CircleAlert,
   CircleCheck,
   CircleMinus,
-  Download,
+  CreditCard,
   FileText,
   Info,
+  MoreHorizontal,
   NotebookText,
   PanelRight,
   Repeat,
 } from "lucide-react"
-
-import { getDownloadUrlAction } from "@/app/(protected)/documents/actions"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -45,24 +42,21 @@ import {
 } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { CancelSubscriptionButton } from "@/components/subscriptions/cancel-subscription-button"
-import { SendPlanAgreement } from "@/components/subscriptions/send-plan-agreement"
 import { SendSubscriptionLink } from "@/components/subscriptions/send-subscription-link"
+import {
+  DOC_KIND_LABEL,
+  DocumentActionsPopover,
+} from "@/components/documents/document-actions-popover"
+import { SendDepositLink } from "./send-deposit-link"
 import {
   formatDate,
   formatUsdFull,
+  isDepositPending,
   PRODUCT_TYPE_LABEL,
   type ProjectDocument,
   type ProjectRow,
   type ProjectSubscription,
 } from "./project-types"
-
-const DOC_KIND_LABEL: Record<ProjectDocument["kind"], string> = {
-  proposal: "Proposal",
-  contract: "Contract",
-  sow: "SOW",
-  nda: "NDA",
-  invoice_terms: "Invoice terms",
-}
 
 const DOC_STATUS_LABEL: Record<ProjectDocument["status"], string> = {
   draft: "Draft",
@@ -73,20 +67,6 @@ const DOC_STATUS_LABEL: Record<ProjectDocument["status"], string> = {
 }
 
 function DocumentItem({ doc }: { doc: ProjectDocument }) {
-  const [pending, startTransition] = useTransition()
-
-  function handleDownload() {
-    if (!doc.has_pdf) return
-    startTransition(async () => {
-      const res = await getDownloadUrlAction(doc.id)
-      if (!res.ok) {
-        toast.error(res.error)
-        return
-      }
-      window.open(res.url, "_blank")
-    })
-  }
-
   return (
     <Item variant="outline" size="sm">
       <ItemContent>
@@ -102,15 +82,18 @@ function DocumentItem({ doc }: { doc: ProjectDocument }) {
       </ItemContent>
       {doc.has_pdf ? (
         <ItemActions>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={handleDownload}
-            disabled={pending}
-            aria-label="Download PDF"
-          >
-            <Download aria-hidden />
-          </Button>
+          <DocumentActionsPopover
+            doc={doc}
+            trigger={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Document actions"
+              >
+                <MoreHorizontal aria-hidden />
+              </Button>
+            }
+          />
         </ItemActions>
       ) : null}
     </Item>
@@ -289,6 +272,90 @@ function Section({
   )
 }
 
+function ProjectInfoDialog({
+  project,
+  productLabel,
+}: {
+  project: ProjectRow
+  productLabel: string
+}) {
+  return (
+    <Dialog>
+      <DialogTrigger
+        render={
+          <Button variant="outline" size="sm" className="w-full gap-2">
+            <Info aria-hidden /> View info
+          </Button>
+        }
+      />
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Project info</DialogTitle>
+          <DialogDescription>
+            Details, scope, and timeline for this project.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4">
+            <SectionHeading icon={Info} label="Details" />
+            <Field label="Rep">
+              {project.rep?.full_name ?? (
+                <span className="text-muted-foreground">Unassigned</span>
+              )}
+            </Field>
+            <Field label="Product">
+              <span className="tracking-wide uppercase">{productLabel}</span>
+            </Field>
+            <Field label="Financing">
+              {project.financing_enabled ? (
+                "12-month plan"
+              ) : (
+                <span className="text-muted-foreground">—</span>
+              )}
+            </Field>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <SectionHeading
+              icon={NotebookText}
+              label="Scope"
+              meta={project.description ? null : "—"}
+            />
+            {project.description ? (
+              <p className="text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground">
+                {project.description}
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">
+                No scope recorded.
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <SectionHeading icon={CalendarClock} label="Timeline" />
+            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+              <dt className="text-muted-foreground">Added</dt>
+              <dd className="text-right tabular-nums">
+                {formatDate(project.created_at)}
+              </dd>
+              <dt className="text-muted-foreground">Start</dt>
+              <dd className="text-right tabular-nums">
+                {formatDate(project.start_date)}
+              </dd>
+              <dt className="text-muted-foreground">Deadline</dt>
+              <dd className="text-right tabular-nums">
+                {formatDate(project.deadline)}
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export function ProjectDetailsSheet({ project }: { project: ProjectRow }) {
   const productLabel = project.product_type
     ? PRODUCT_TYPE_LABEL[project.product_type]
@@ -319,42 +386,18 @@ export function ProjectDetailsSheet({ project }: { project: ProjectRow }) {
 
         <div className="flex-1 overflow-y-auto">
           <Section>
-            <SectionHeading icon={Info} label="Details" />
-            <div className="flex flex-col gap-4">
-              <Field label="Rep">
-                {project.rep?.full_name ?? (
-                  <span className="text-muted-foreground">Unassigned</span>
-                )}
-              </Field>
-              <Field label="Product">
-                <span className="tracking-wide uppercase">{productLabel}</span>
-              </Field>
-              <Field label="Financing">
-                {project.financing_enabled ? (
-                  "12-month plan"
-                ) : (
-                  <span className="text-muted-foreground">—</span>
-                )}
-              </Field>
-            </div>
+            <ProjectInfoDialog
+              project={project}
+              productLabel={productLabel}
+            />
           </Section>
 
-          <Section>
-            <SectionHeading
-              icon={NotebookText}
-              label="Scope"
-              meta={project.description ? null : "—"}
-            />
-            {project.description ? (
-              <p className="text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground">
-                {project.description}
-              </p>
-            ) : (
-              <p className="text-sm text-muted-foreground italic">
-                No scope recorded.
-              </p>
-            )}
-          </Section>
+          {isDepositPending(project) && project.client ? (
+            <Section>
+              <SectionHeading icon={CreditCard} label="Deposit" />
+              <SendDepositLink projectId={project.id} className="w-full" />
+            </Section>
+          ) : null}
 
           {sub ? (
             <Section>
@@ -400,29 +443,10 @@ export function ProjectDetailsSheet({ project }: { project: ProjectRow }) {
                       ))}
                     </div>
                   )}
-                  {sub ? <SendPlanAgreement className="w-full" /> : null}
                 </div>
               </Section>
             )
           })()}
-
-          <Section>
-            <SectionHeading icon={CalendarClock} label="Timeline" />
-            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-              <dt className="text-muted-foreground">Added</dt>
-              <dd className="text-right tabular-nums">
-                {formatDate(project.created_at)}
-              </dd>
-              <dt className="text-muted-foreground">Start</dt>
-              <dd className="text-right tabular-nums">
-                {formatDate(project.start_date)}
-              </dd>
-              <dt className="text-muted-foreground">Deadline</dt>
-              <dd className="text-right tabular-nums">
-                {formatDate(project.deadline)}
-              </dd>
-            </dl>
-          </Section>
 
           <Section>
             <SectionHeading

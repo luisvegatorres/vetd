@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { ConvertLeadDialog } from "./convert-lead-dialog"
-import { EditLeadDialog } from "./lead-form-dialog"
+import { LeadActionsPopover } from "./lead-actions-popover"
 import { LeadNotesDialog } from "./lead-notes-dialog"
 import { LeadStatusBadge } from "./lead-status-badge"
 import {
@@ -98,7 +98,7 @@ export function LeadDetailPanel({
           </p>
         </div>
         <CardAction className="self-start">
-          <EditLeadDialog lead={lead} />
+          <LeadActionsPopover lead={lead} />
         </CardAction>
       </CardHeader>
 

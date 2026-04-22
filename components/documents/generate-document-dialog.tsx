@@ -39,19 +39,26 @@ export function GenerateDocumentDialog({
   clientId,
   projectId,
   templates,
+  existingKinds = [],
 }: {
   clientId: string
   projectId?: string | null
   templates: TemplateOption[]
+  existingKinds?: string[]
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
+  const firstAvailable = templates.find((t) => !existingKinds.includes(t.kind))
   const [templateId, setTemplateId] = useState<string>(
-    templates[0]?.id ?? "",
+    firstAvailable?.id ?? "",
   )
   const [pending, startTransition] = useTransition()
 
   const hasTemplates = templates.length > 0
+  const allUsed = hasTemplates && !firstAvailable
+  const selectedIsUsed = existingKinds.includes(
+    templates.find((t) => t.id === templateId)?.kind ?? "",
+  )
 
   function handleGenerate() {
     if (!templateId) return
@@ -106,17 +113,23 @@ export function GenerateDocumentDialog({
               <SelectContent>
                 <SelectGroup>
                   <SelectLabel>Templates</SelectLabel>
-                  {templates.map((t) => (
-                    <SelectItem key={t.id} value={t.id}>
-                      {t.name}
-                    </SelectItem>
-                  ))}
+                  {templates.map((t) => {
+                    const used = existingKinds.includes(t.kind)
+                    return (
+                      <SelectItem key={t.id} value={t.id} disabled={used}>
+                        <span className={used ? "line-through" : undefined}>
+                          {t.name}
+                        </span>
+                      </SelectItem>
+                    )
+                  })}
                 </SelectGroup>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              Client and project data is merged into the template at render
-              time. The PDF opens in a new tab after generation.
+              {allUsed
+                ? "Every template has already been generated for this project."
+                : "Client and project data is merged into the template at render time. The PDF opens in a new tab after generation."}
             </p>
           </div>
         ) : (
@@ -135,7 +148,9 @@ export function GenerateDocumentDialog({
           </Button>
           <Button
             onClick={handleGenerate}
-            disabled={pending || !templateId || !hasTemplates}
+            disabled={
+              pending || !templateId || !hasTemplates || selectedIsUsed
+            }
           >
             {pending ? "Generating…" : "Generate"}
           </Button>

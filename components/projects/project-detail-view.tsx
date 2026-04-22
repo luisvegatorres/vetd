@@ -188,6 +188,7 @@ export function ProjectDetailView({
               clientId={project.client.id}
               projectId={project.id}
               templates={documentTemplates}
+              existingKinds={(project.documents ?? []).map((d) => d.kind)}
             />
           ) : null}
           <ProjectDetailsSheet project={project} />

@@ -32,6 +32,8 @@ export type CreateLeadResult =
 
 export type UpdateLeadResult = { ok: true } | { ok: false; error: string }
 
+export type DeleteLeadResult = { ok: true } | { ok: false; error: string }
+
 function titleCase(v: string) {
   return v.replace(/\b(\p{Ll})/gu, (c) => c.toUpperCase())
 }
@@ -164,6 +166,79 @@ export async function updateLead(
     title: `Updated lead — ${name}`,
     sourceRef: sourceRefFor("lead-edit", clientId, today),
   })
+
+  revalidatePath("/leads")
+  return { ok: true }
+}
+
+export async function archiveLead(
+  clientId: string
+): Promise<UpdateLeadResult> {
+  const supabase = await createClient()
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth.user) return { ok: false, error: "Not authenticated" }
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("clients")
+    .select("name, status")
+    .eq("id", clientId)
+    .maybeSingle()
+  if (fetchError) return { ok: false, error: fetchError.message }
+  if (!existing) return { ok: false, error: "Lead not found" }
+  if (existing.status !== "lead") {
+    return { ok: false, error: "Only leads can be archived here" }
+  }
+
+  const { error } = await supabase
+    .from("clients")
+    .update({ status: "archived" })
+    .eq("id", clientId)
+  if (error) return { ok: false, error: error.message }
+
+  await logActivity({
+    supabase,
+    clientId,
+    loggedBy: auth.user.id,
+    type: "note",
+    title: `Archived lead — ${existing.name}`,
+    sourceRef: sourceRefFor("lead-archived", clientId),
+  })
+
+  revalidatePath("/leads")
+  return { ok: true }
+}
+
+export async function deleteLead(
+  clientId: string
+): Promise<DeleteLeadResult> {
+  const supabase = await createClient()
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth.user) return { ok: false, error: "Not authenticated" }
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("clients")
+    .select("status")
+    .eq("id", clientId)
+    .maybeSingle()
+  if (fetchError) return { ok: false, error: fetchError.message }
+  if (!existing) return { ok: false, error: "Lead not found" }
+  if (existing.status !== "lead" && existing.status !== "archived") {
+    return {
+      ok: false,
+      error: "This lead has been converted and can't be removed",
+    }
+  }
+
+  const { error } = await supabase.from("clients").delete().eq("id", clientId)
+  if (error) {
+    if (error.code === "23503") {
+      return {
+        ok: false,
+        error: "This lead has linked records — archive it instead",
+      }
+    }
+    return { ok: false, error: error.message }
+  }
 
   revalidatePath("/leads")
   return { ok: true }

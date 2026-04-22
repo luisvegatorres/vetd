@@ -1,6 +1,6 @@
 "use client"
 
-import { MapPin, Pencil, Phone, Plus } from "lucide-react"
+import { MapPin, Pencil, Phone, Plus, Sparkles } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useId, useState, useTransition } from "react"
 import { toast } from "sonner"
@@ -21,7 +21,9 @@ import {
 import {
   InputGroup,
   InputGroupAddon,
+  InputGroupButton,
   InputGroupInput,
+  InputGroupTextarea,
 } from "@/components/ui/input-group"
 import { Label } from "@/components/ui/label"
 import {
@@ -66,16 +68,24 @@ function phoneDigits(v: string | null | undefined) {
   return (v ?? "").replace(/\D/g, "").slice(0, 10)
 }
 
+type ControlledProps = {
+  open: boolean
+  onOpenChange: (next: boolean) => void
+}
+
 type Props =
-  | { mode: "create" }
-  | { mode: "edit"; lead: LeadRow }
+  | ({ mode: "create" } & Partial<ControlledProps>)
+  | ({ mode: "edit"; lead: LeadRow; hideTrigger?: boolean } & Partial<ControlledProps>)
 
 function LeadFormDialog(props: Props) {
   const isEdit = props.mode === "edit"
   const lead = isEdit ? props.lead : null
+  const hideTrigger = isEdit ? props.hideTrigger === true : false
   const formId = useId()
 
-  const [open, setOpen] = useState(false)
+  const isControlled = props.open !== undefined
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = isControlled ? (props.open as boolean) : internalOpen
   const [error, setError] = useState<string | null>(null)
   const [phone, setPhone] = useState(() => phoneDigits(lead?.phone))
   const [pending, startTransition] = useTransition()
@@ -87,24 +97,27 @@ function LeadFormDialog(props: Props) {
       setError(null)
       setPhone(phoneDigits(lead?.phone))
     }
-    setOpen(next)
+    if (isControlled) props.onOpenChange?.(next)
+    else setInternalOpen(next)
   }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
-        render={
-          isEdit ? (
-            <Button variant="outline" size="sm" className="gap-2 capitalize">
-              <Pencil aria-hidden /> Edit
-            </Button>
-          ) : (
-            <Button className="gap-2 capitalize">
-              <Plus aria-hidden /> New lead
-            </Button>
-          )
-        }
-      />
+      {hideTrigger ? null : (
+        <DialogTrigger
+          render={
+            isEdit ? (
+              <Button variant="outline" size="sm" className="gap-2 capitalize">
+                <Pencil aria-hidden /> Edit
+              </Button>
+            ) : (
+              <Button className="gap-2 capitalize">
+                <Plus aria-hidden /> New lead
+              </Button>
+            )
+          }
+        />
+      )}
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit lead" : "New lead"}</DialogTitle>
@@ -120,7 +133,7 @@ function LeadFormDialog(props: Props) {
                 : await createLead(formData)
               if (result.ok) {
                 toast.success(isEdit ? "Lead updated" : "Lead created")
-                setOpen(false)
+                handleOpenChange(false)
                 if (!isEdit) setPhone("")
                 router.refresh()
               } else {
@@ -246,13 +259,21 @@ function LeadFormDialog(props: Props) {
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor={`${formId}-intent`}>Intent</Label>
-            <Textarea
-              id={`${formId}-intent`}
-              name="intent"
-              rows={3}
-              placeholder="What are they trying to do?"
-              defaultValue={lead?.intent ?? ""}
-            />
+            <InputGroup>
+              <InputGroupTextarea
+                id={`${formId}-intent`}
+                name="intent"
+                rows={3}
+                placeholder="What are they trying to do?"
+                defaultValue={lead?.intent ?? ""}
+              />
+              {/* TODO: wire up AI-generated intent suggestion */}
+              <InputGroupAddon align="block-end" className="justify-end">
+                <InputGroupButton size="icon-xs" aria-label="Suggest intent">
+                  <Sparkles aria-hidden />
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor={`${formId}-notes`}>Notes</Label>
@@ -289,4 +310,24 @@ export function NewLeadDialog() {
 
 export function EditLeadDialog({ lead }: { lead: LeadRow }) {
   return <LeadFormDialog mode="edit" lead={lead} />
+}
+
+export function ControlledEditLeadDialog({
+  lead,
+  open,
+  onOpenChange,
+}: {
+  lead: LeadRow
+  open: boolean
+  onOpenChange: (next: boolean) => void
+}) {
+  return (
+    <LeadFormDialog
+      mode="edit"
+      lead={lead}
+      open={open}
+      onOpenChange={onOpenChange}
+      hideTrigger
+    />
+  )
 }
