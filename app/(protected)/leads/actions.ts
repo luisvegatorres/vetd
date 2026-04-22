@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 
+import { logActivity, sourceRefFor } from "@/lib/interactions/log-activity"
 import { seedProjectTasks } from "@/lib/projects/seed-tasks"
 import { createClient } from "@/lib/supabase/server"
 import { Constants, type Database } from "@/lib/supabase/types"
@@ -94,6 +95,15 @@ export async function createLead(
     return { ok: false, error: error?.message ?? "Failed to create lead" }
   }
 
+  await logActivity({
+    supabase,
+    clientId: data.id,
+    loggedBy: auth.user.id,
+    type: "note",
+    title: `New lead — ${name}`,
+    sourceRef: sourceRefFor("lead-created", data.id),
+  })
+
   revalidatePath("/leads")
   return { ok: true, leadId: data.id }
 }
@@ -141,6 +151,17 @@ export async function updateLead(
     .eq("id", clientId)
 
   if (error) return { ok: false, error: error.message }
+
+  // Per-day dedupe: multiple edits to the same lead on the same day log once.
+  const today = new Date().toISOString().slice(0, 10)
+  await logActivity({
+    supabase,
+    clientId,
+    loggedBy: auth.user.id,
+    type: "note",
+    title: `Updated lead — ${name}`,
+    sourceRef: sourceRefFor("lead-edit", clientId, today),
+  })
 
   revalidatePath("/leads")
   return { ok: true }
@@ -307,6 +328,21 @@ export async function convertLead(
       assigned_to: input.soldBy,
     })
     .eq("id", clientId)
+
+  await logActivity({
+    supabase,
+    clientId,
+    loggedBy: auth.user.id,
+    type: "follow_up",
+    title: `Converted lead — ${productLabel}`,
+    content: input.build
+      ? `One-time build at $${input.build.value.toLocaleString()}${input.plan ? ` + ${SUBSCRIPTION_PLAN[input.plan.id].label} plan` : ""}`
+      : input.plan
+        ? `${SUBSCRIPTION_PLAN[input.plan.id].label} plan ($${SUBSCRIPTION_PLAN[input.plan.id].monthlyRate}/mo)`
+        : null,
+    projectId: project.id,
+    sourceRef: sourceRefFor("lead-converted", project.id),
+  })
 
   revalidatePath("/leads")
   revalidatePath("/pipeline")

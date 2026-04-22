@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 
+import { logActivity, sourceRefFor } from "@/lib/interactions/log-activity"
 import { seedProjectTasks } from "@/lib/projects/seed-tasks"
 import { createClient } from "@/lib/supabase/server"
 import { financing, websitePlans, type WebsitePlanId } from "@/lib/site"
@@ -213,6 +214,18 @@ export async function createNewProject(
     return { ok: false, error: error?.message ?? "Failed to create project" }
   }
 
+  await logActivity({
+    supabase,
+    clientId,
+    loggedBy: auth.user.id,
+    type: "follow_up",
+    title: `New project — ${title}`,
+    content:
+      value != null ? `Value $${value.toLocaleString()}` : null,
+    projectId: data.id,
+    sourceRef: sourceRefFor("project-created", data.id),
+  })
+
   await seedProjectTasks({
     projectId: data.id,
     productType,
@@ -284,6 +297,12 @@ export async function updateProject(
       : "none"
   const customRate = num(formData, "website_plan_rate")
 
+  const { data: existingProject } = await supabase
+    .from("projects")
+    .select("stage")
+    .eq("id", projectId)
+    .maybeSingle()
+
   const { error } = await supabase
     .from("projects")
     .update({
@@ -303,6 +322,30 @@ export async function updateProject(
     .eq("id", projectId)
 
   if (error) return { ok: false, error: error.message }
+
+  const today = new Date().toISOString().slice(0, 10)
+  if (existingProject?.stage && existingProject.stage !== stage) {
+    await logActivity({
+      supabase,
+      clientId,
+      loggedBy: auth.user.id,
+      type: "follow_up",
+      title: `Stage → ${stage}`,
+      content: title,
+      projectId,
+      sourceRef: sourceRefFor("project-stage", projectId, stage),
+    })
+  } else {
+    await logActivity({
+      supabase,
+      clientId,
+      loggedBy: auth.user.id,
+      type: "note",
+      title: `Updated project — ${title}`,
+      projectId,
+      sourceRef: sourceRefFor("project-edit", projectId, today),
+    })
+  }
 
   const subSync = await syncWebsiteSubscription(
     supabase,

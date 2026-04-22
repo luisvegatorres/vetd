@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 
+import { logActivity, sourceRefFor } from "@/lib/interactions/log-activity"
 import { subscriptionPlans, type BillablePlanId } from "@/lib/site"
 import { stripe } from "@/lib/stripe/server"
 import { createClient } from "@/lib/supabase/server"
@@ -109,6 +110,15 @@ export async function createSubscriptionCheckoutSession(input: {
     if (!session.url) {
       return { ok: false, error: "Stripe did not return a checkout URL" }
     }
+
+    await logActivity({
+      supabase,
+      clientId: client.data.id,
+      loggedBy: auth.user.id,
+      type: "email",
+      title: `Sent ${plan.label} checkout link`,
+      sourceRef: sourceRefFor("subscription-link", session.id),
+    })
 
     revalidatePath(`/clients/${client.data.id}`)
     return { ok: true, url: session.url }
@@ -219,6 +229,16 @@ export async function createProjectDepositCheckoutSession(input: {
           project.payment_status === "paid" ? "paid" : "link_sent",
       })
       .eq("id", project.id)
+
+    await logActivity({
+      supabase,
+      clientId: client.id,
+      loggedBy: auth.user.id,
+      type: "email",
+      title: `Sent deposit link — ${project.title}`,
+      projectId: project.id,
+      sourceRef: sourceRefFor("deposit-link", session.id),
+    })
 
     revalidatePath("/projects")
     revalidatePath(`/projects/${project.id}`)

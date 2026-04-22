@@ -521,6 +521,62 @@ export type Database = {
           },
         ]
       }
+      rep_integrations: {
+        Row: {
+          access_token: string
+          connected_at: string
+          google_email: string | null
+          id: string
+          last_sync_error: string | null
+          last_synced_at: string | null
+          provider: string
+          refresh_token: string
+          rep_id: string
+          scopes: string[]
+          sync_state: Json
+          token_expires_at: string
+          updated_at: string
+        }
+        Insert: {
+          access_token: string
+          connected_at?: string
+          google_email?: string | null
+          id?: string
+          last_sync_error?: string | null
+          last_synced_at?: string | null
+          provider: string
+          refresh_token: string
+          rep_id: string
+          scopes?: string[]
+          sync_state?: Json
+          token_expires_at: string
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string
+          connected_at?: string
+          google_email?: string | null
+          id?: string
+          last_sync_error?: string | null
+          last_synced_at?: string | null
+          provider?: string
+          refresh_token?: string
+          rep_id?: string
+          scopes?: string[]
+          sync_state?: Json
+          token_expires_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rep_integrations_rep_id_fkey"
+            columns: ["rep_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       showcase_projects: {
         Row: {
           category: string | null

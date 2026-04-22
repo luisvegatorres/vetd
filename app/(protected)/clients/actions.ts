@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 
+import { logActivity, sourceRefFor } from "@/lib/interactions/log-activity"
 import { createClient } from "@/lib/supabase/server"
 import { INDUSTRY_OPTIONS } from "@/lib/industries"
 import { Constants, type Database } from "@/lib/supabase/types"
@@ -99,6 +100,15 @@ export async function createNewClient(
     return { ok: false, error: error?.message ?? "Failed to create client" }
   }
 
+  await logActivity({
+    supabase,
+    clientId: data.id,
+    loggedBy: auth.user.id,
+    type: "note",
+    title: `New client — ${name}`,
+    sourceRef: sourceRefFor("client-created", data.id),
+  })
+
   revalidatePath("/clients")
   return { ok: true, clientId: data.id }
 }
@@ -172,7 +182,7 @@ export async function updateClient(
 
   const { data: existing } = await supabase
     .from("clients")
-    .select("assigned_to")
+    .select("assigned_to, status")
     .eq("id", clientId)
     .maybeSingle()
 
@@ -182,6 +192,29 @@ export async function updateClient(
     .eq("id", clientId)
 
   if (error) return { ok: false, error: error.message }
+
+  const today = new Date().toISOString().slice(0, 10)
+  // Status change is the high-signal event; fall back to a daily-deduped edit
+  // entry for everything else so silent field tweaks still count as a touch.
+  if (existing?.status && existing.status !== status) {
+    await logActivity({
+      supabase,
+      clientId,
+      loggedBy: auth.user.id,
+      type: "follow_up",
+      title: `Status → ${status.replace("_", " ")}`,
+      sourceRef: sourceRefFor("client-status", clientId, status),
+    })
+  } else {
+    await logActivity({
+      supabase,
+      clientId,
+      loggedBy: auth.user.id,
+      type: "note",
+      title: `Updated client — ${name}`,
+      sourceRef: sourceRefFor("client-edit", clientId, today),
+    })
+  }
 
   // When an admin/editor reassigns the client, carry the ownership through to
   // the client's open deals so `sold_by` (and therefore commission) stays in
