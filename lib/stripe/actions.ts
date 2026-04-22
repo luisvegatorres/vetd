@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 
 import { logActivity, sourceRefFor } from "@/lib/interactions/log-activity"
 import { subscriptionPlans, type BillablePlanId } from "@/lib/site"
+import { ensureStripeCustomer } from "@/lib/stripe/customer"
 import { stripe } from "@/lib/stripe/server"
 import { createClient } from "@/lib/supabase/server"
 
@@ -60,7 +61,7 @@ export async function createSubscriptionCheckoutSession(input: {
 
   const client = await supabase
     .from("clients")
-    .select("id, name, email, assigned_to")
+    .select("id, name, email, assigned_to, stripe_customer_id")
     .eq("id", input.clientId)
     .maybeSingle()
   if (client.error || !client.data) {
@@ -75,6 +76,13 @@ export async function createSubscriptionCheckoutSession(input: {
 
   const soldBy = client.data.assigned_to ?? auth.user.id
 
+  const stripeCustomerId = await ensureStripeCustomer(supabase, {
+    id: client.data.id,
+    email: client.data.email,
+    name: client.data.name,
+    stripeCustomerId: client.data.stripe_customer_id,
+  })
+
   if (input.subscriptionId && !UUID_RE.test(input.subscriptionId)) {
     return { ok: false, error: "Invalid subscription id" }
   }
@@ -87,7 +95,7 @@ export async function createSubscriptionCheckoutSession(input: {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       line_items: [{ price: plan.stripePriceId, quantity: 1 }],
-      customer_email: client.data.email,
+      customer: stripeCustomerId,
       client_reference_id: client.data.id,
       metadata: {
         client_id: client.data.id,
@@ -153,7 +161,7 @@ export async function createProjectDepositCheckoutSession(input: {
     .select(
       `
         id, title, deposit_amount, deposit_paid_at, stage, payment_status,
-        client:clients!projects_client_id_fkey (id, email, name)
+        client:clients!projects_client_id_fkey (id, email, name, stripe_customer_id)
       `,
     )
     .eq("id", input.projectId)
@@ -186,6 +194,13 @@ export async function createProjectDepositCheckoutSession(input: {
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ??
     "http://localhost:3000"
 
+  const stripeCustomerId = await ensureStripeCustomer(supabase, {
+    id: client.id,
+    email: client.email,
+    name: client.name,
+    stripeCustomerId: client.stripe_customer_id,
+  })
+
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -199,7 +214,7 @@ export async function createProjectDepositCheckoutSession(input: {
           quantity: 1,
         },
       ],
-      customer_email: client.email,
+      customer: stripeCustomerId,
       client_reference_id: project.id,
       metadata: {
         kind: "project_deposit",

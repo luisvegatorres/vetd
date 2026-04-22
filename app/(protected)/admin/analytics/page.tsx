@@ -9,7 +9,6 @@ import {
 } from "@/components/dashboard/data-table"
 import { KpiCard } from "@/components/dashboard/kpi-card"
 import { MrrPanel } from "@/components/dashboard/mrr-panel"
-import { PageHeader } from "@/components/dashboard/page-header"
 import { Badge } from "@/components/ui/badge"
 import { Dot } from "@/components/ui/dot"
 import {
@@ -232,8 +231,6 @@ export default async function AdminAnalyticsPage() {
 
   return (
     <div className="space-y-10">
-      <PageHeader eyebrow="Admin" title="Analytics" />
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           label="Revenue (30d)"

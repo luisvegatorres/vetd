@@ -1,5 +1,3 @@
-import { PageHeader } from "@/components/dashboard/page-header"
-import { Dot } from "@/components/ui/dot"
 import { NewProjectDialog } from "@/components/projects/project-form-dialog"
 import { ProjectDetailPanel } from "@/components/projects/project-detail-panel"
 import { ProjectsPagination } from "@/components/projects/projects-pagination"
@@ -156,20 +154,6 @@ export default async function ProjectsPage({
   const countCompletedPromise = countQuery("completed")
   const countCancelledPromise = countQuery("cancelled")
 
-  // Unfiltered header aggregates — "Active" / "Deposit pending" reflect the
-  // whole project base, not the filtered view.
-  const activeCountPromise = supabase
-    .from("projects")
-    .select("id", { count: "exact", head: true })
-    .eq("stage", "active")
-
-  const depositPendingCountPromise = supabase
-    .from("projects")
-    .select("id", { count: "exact", head: true })
-    .gt("value", 0)
-    .is("deposit_paid_at", null)
-    .not("stage", "in", '("completed","cancelled")')
-
   const clientOptionsPromise = supabase
     .from("clients")
     .select("id, name, company")
@@ -214,8 +198,6 @@ export default async function ProjectsPage({
     countActiveRes,
     countCompletedRes,
     countCancelledRes,
-    activeCountRes,
-    depositPendingRes,
     clientsRes,
     repsRes,
   ] = await Promise.all([
@@ -224,8 +206,6 @@ export default async function ProjectsPage({
     countActivePromise,
     countCompletedPromise,
     countCancelledPromise,
-    activeCountPromise,
-    depositPendingCountPromise,
     clientOptionsPromise,
     repOptionsPromise,
   ])
@@ -585,9 +565,6 @@ export default async function ProjectsPage({
 
   const selectedId = selectedProject?.id ?? null
 
-  const activeCount = activeCountRes.count ?? 0
-  const depositPendingCount = depositPendingRes.count ?? 0
-
   const clientOptions = (clientsRes.data ?? []).map((c) => ({
     id: c.id,
     name: c.name,
@@ -613,20 +590,6 @@ export default async function ProjectsPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        eyebrow="Projects"
-        title={
-          <span className="flex flex-wrap items-center gap-3">
-            <span>{activeCount} Active</span>
-            <Dot />
-            <span>{depositPendingCount} Deposit pending</span>
-            <Dot />
-            <span>{totalFiltered} Showing</span>
-          </span>
-        }
-        action={<NewProjectDialog clients={clientOptions} reps={repOptions} />}
-      />
-
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
         <div className="flex min-h-0 flex-col border border-border/60">
           <div className="flex flex-wrap items-center gap-3 border-b border-border/60 px-4 py-3">
@@ -640,6 +603,7 @@ export default async function ProjectsPage({
                 sort={sort}
                 reps={repOptions}
               />
+              <NewProjectDialog clients={clientOptions} reps={repOptions} />
             </div>
           </div>
           <ProjectsTable

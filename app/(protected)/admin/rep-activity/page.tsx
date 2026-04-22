@@ -10,7 +10,6 @@ import {
   DataTableRow,
 } from "@/components/dashboard/data-table"
 import { KpiCard } from "@/components/dashboard/kpi-card"
-import { PageHeader } from "@/components/dashboard/page-header"
 import { Badge } from "@/components/ui/badge"
 import {
   repActivityStatus,
@@ -112,18 +111,6 @@ export default async function RepActivityPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        eyebrow="Admin"
-        title="Rep activity"
-      />
-
-      <p className="text-sm text-muted-foreground">
-        Contractor reps don&apos;t work fixed hours — these are the proxies that
-        show whether a rep is actually working their book. Flagged reps are
-        candidates for the termination clause in the commission agreement,
-        which freezes their residuals.
-      </p>
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           label="Active reps"

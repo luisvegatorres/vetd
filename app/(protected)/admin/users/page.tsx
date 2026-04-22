@@ -9,7 +9,6 @@ import {
   DataTableHeader,
   DataTableRow,
 } from "@/components/dashboard/data-table"
-import { PageHeader } from "@/components/dashboard/page-header"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -41,11 +40,6 @@ export default async function AdminUsersPage() {
 
   return (
     <div className="space-y-10">
-      <PageHeader
-        eyebrow="Admin"
-        title="Users"
-      />
-
       <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] lg:items-start">
         <section className="border border-border/60">
           <header className="border-b border-border/60 p-6">

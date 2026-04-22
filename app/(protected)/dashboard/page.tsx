@@ -2,19 +2,10 @@ import { ArrowRight } from "lucide-react"
 
 import { AutoRefresh } from "@/components/dashboard/auto-refresh"
 import { KpiCard } from "@/components/dashboard/kpi-card"
-import { PageHeader } from "@/components/dashboard/page-header"
-import { Dot } from "@/components/ui/dot"
 import { PipelineSnapshot } from "@/components/dashboard/pipeline-snapshot"
 import { QuickActions } from "@/components/dashboard/quick-actions"
 import { TodaysFocus } from "@/components/dashboard/todays-focus"
 import { createClient } from "@/lib/supabase/server"
-
-function getGreeting(date = new Date()) {
-  const hour = date.getHours()
-  if (hour < 12) return "Good morning"
-  if (hour < 18) return "Good afternoon"
-  return "Good evening"
-}
 
 const fmtMoney = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -26,14 +17,10 @@ const fmtMonth = new Intl.DateTimeFormat("en-US", { month: "long" })
 
 export default async function DashboardPage() {
   const supabase = await createClient()
-  const { data: auth } = await supabase.auth.getUser()
 
   const now = new Date()
   const startOfDay = new Date(now)
   startOfDay.setHours(0, 0, 0, 0)
-  const endOfDay = new Date(startOfDay)
-  endOfDay.setDate(endOfDay.getDate() + 1)
-  const todayIso = now.toISOString()
 
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
   const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1)
@@ -44,10 +31,6 @@ export default async function DashboardPage() {
   trendStart.setDate(trendStart.getDate() - WEEKS * 7)
 
   const [
-    profileRes,
-    dealsRes,
-    overdueRes,
-    meetingsRes,
     openDealsRes,
     thisMonthPaymentsRes,
     lastMonthPaymentsRes,
@@ -58,26 +41,6 @@ export default async function DashboardPage() {
     commissionsTrendRes,
     clientsTrendRes,
   ] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("full_name")
-      .eq("id", auth!.user!.id)
-      .single(),
-    supabase
-      .from("projects")
-      .select("id", { count: "exact", head: true })
-      .in("stage", ["proposal", "negotiation", "active"]),
-    supabase
-      .from("projects")
-      .select("id", { count: "exact", head: true })
-      .in("payment_status", ["unpaid", "link_sent"])
-      .lt("deadline", todayIso),
-    supabase
-      .from("interactions")
-      .select("id", { count: "exact", head: true })
-      .eq("type", "meeting")
-      .gte("occurred_at", startOfDay.toISOString())
-      .lt("occurred_at", endOfDay.toISOString()),
     supabase
       .from("projects")
       .select("value")
@@ -126,21 +89,6 @@ export default async function DashboardPage() {
       .in("status", ["active_client", "lost"])
       .gte("updated_at", trendStart.toISOString()),
   ])
-
-  const firstName =
-    profileRes.data?.full_name?.trim().split(/\s+/)[0] ??
-    auth?.user?.email?.split("@")[0] ??
-    "there"
-
-  const title = (
-    <span className="flex flex-wrap items-center gap-3">
-      <span>{dealsRes.count ?? 0} Deals Moving</span>
-      <Dot />
-      <span>{overdueRes.count ?? 0} Payments Overdue</span>
-      <Dot />
-      <span>{meetingsRes.count ?? 0} Meetings Today</span>
-    </span>
-  )
 
   const openDeals = openDealsRes.data ?? []
   const openDealCount = openDeals.length
@@ -300,11 +248,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-10">
-      <PageHeader
-        eyebrow={`${getGreeting()}, ${firstName}`}
-        title={title}
-      />
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {KPIS.map((kpi, i) => (
           <KpiCard key={i} {...kpi} />

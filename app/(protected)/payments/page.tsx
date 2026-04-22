@@ -1,5 +1,3 @@
-import { PageHeader } from "@/components/dashboard/page-header"
-import { Dot } from "@/components/ui/dot"
 import { PaymentDetailPanel } from "@/components/payments/payment-detail-panel"
 import { PaymentsPagination } from "@/components/payments/payments-pagination"
 import { PaymentsTable } from "@/components/payments/payments-table"
@@ -297,35 +295,6 @@ export default async function PaymentsPage({
   const paymentsCountPromise = buildPaymentsCountQuery()
   const invoicesCountPromise = buildInvoicesCountQuery()
 
-  // ---------- header aggregates ----------
-  // Unfiltered totals: collected (paid) and failed. Payloads are small
-  // (just amounts), not the full joined row.
-
-  const paidPaymentsAmountsPromise = supabase
-    .from("payments")
-    .select("amount")
-    .in("status", PAID_STATUSES)
-  const paidInvoicesAmountsPromise = supabase
-    .from("subscription_invoices")
-    .select("amount_paid")
-    .in("status", PAID_STATUSES)
-  const failedPaymentsAmountsPromise = supabase
-    .from("payments")
-    .select("amount")
-    .in("status", FAILED_STATUSES)
-  const failedInvoicesAmountsPromise = supabase
-    .from("subscription_invoices")
-    .select("amount_paid")
-    .in("status", FAILED_STATUSES)
-
-  // Overall total (all payments + invoices, no filters). Two count queries.
-  const overallPaymentsCountPromise = supabase
-    .from("payments")
-    .select("id", { count: "exact", head: true })
-  const overallInvoicesCountPromise = supabase
-    .from("subscription_invoices")
-    .select("id", { count: "exact", head: true })
-
   const repOptionsPromise = supabase
     .from("profiles")
     .select("id, full_name")
@@ -412,33 +381,16 @@ export default async function PaymentsPage({
   const [
     paymentsCountRes,
     invoicesCountRes,
-    paidPaymentsAmountsRes,
-    paidInvoicesAmountsRes,
-    failedPaymentsAmountsRes,
-    failedInvoicesAmountsRes,
-    overallPaymentsCountRes,
-    overallInvoicesCountRes,
     repsRes,
     paymentsSliceRes,
     invoicesSliceRes,
   ] = await Promise.all([
     paymentsCountPromise,
     invoicesCountPromise,
-    paidPaymentsAmountsPromise,
-    paidInvoicesAmountsPromise,
-    failedPaymentsAmountsPromise,
-    failedInvoicesAmountsPromise,
-    overallPaymentsCountPromise,
-    overallInvoicesCountPromise,
     repOptionsPromise,
     paymentsSlicePromise,
     invoicesSlicePromise,
   ])
-
-  if (paidPaymentsAmountsRes.error) throw paidPaymentsAmountsRes.error
-  if (paidInvoicesAmountsRes.error) throw paidInvoicesAmountsRes.error
-  if (failedPaymentsAmountsRes.error) throw failedPaymentsAmountsRes.error
-  if (failedInvoicesAmountsRes.error) throw failedInvoicesAmountsRes.error
 
   type PaymentsSlice =
     | Awaited<ReturnType<typeof orderedPaymentsQuery>>
@@ -684,33 +636,6 @@ export default async function PaymentsPage({
     visibleRows = mergedCandidates.slice(0, PAGE_SIZE)
   }
 
-  // Header aggregate totals.
-  const paidTotal =
-    (paidPaymentsAmountsRes.data ?? []).reduce(
-      (s, r) => s + Number(r.amount),
-      0,
-    ) +
-    (paidInvoicesAmountsRes.data ?? []).reduce(
-      (s, r) => s + Number(r.amount_paid),
-      0,
-    )
-
-  const failedPaymentCount =
-    (failedPaymentsAmountsRes.data?.length ?? 0) +
-    (failedInvoicesAmountsRes.data?.length ?? 0)
-  const failedTotal =
-    (failedPaymentsAmountsRes.data ?? []).reduce(
-      (s, r) => s + Number(r.amount),
-      0,
-    ) +
-    (failedInvoicesAmountsRes.data ?? []).reduce(
-      (s, r) => s + Number(r.amount_paid),
-      0,
-    )
-
-  const overallTotal =
-    (overallPaymentsCountRes.count ?? 0) + (overallInvoicesCountRes.count ?? 0)
-
   const counts: Record<PaymentTab, number> = {
     all: paymentsTotal + invoicesTotal,
     one_time: paymentsTotal,
@@ -761,18 +686,6 @@ export default async function PaymentsPage({
 
   const selectedId = selectedPayment?.id ?? null
 
-  function formatUsdShortCompact(amount: number): string {
-    if (amount >= 1000) {
-      const k = amount / 1000
-      const trimmed = k % 1 === 0 ? k.toFixed(0) : k.toFixed(1)
-      return `$${trimmed}k`
-    }
-    return `$${Math.round(amount)}`
-  }
-
-  const paidTotalShort = formatUsdShortCompact(paidTotal)
-  const failedTotalShort = formatUsdShortCompact(failedTotal)
-
   const repOptions = (repsRes.data ?? []).map((r) => ({
     id: r.id,
     full_name: r.full_name,
@@ -794,27 +707,6 @@ export default async function PaymentsPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        eyebrow="Payments"
-        title={
-          <span className="flex flex-wrap items-center gap-3">
-            <span>{paidTotalShort} Collected</span>
-            <Dot />
-            {failedPaymentCount > 0 ? (
-              <>
-                <span className="text-orange-500">
-                  {failedTotalShort} Failed
-                </span>
-                <Dot />
-              </>
-            ) : null}
-            <span>{overallTotal} Total</span>
-            <Dot />
-            <span>{totalFiltered} Showing</span>
-          </span>
-        }
-      />
-
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
         <div className="flex min-h-0 flex-col border border-border/60">
           <div className="flex flex-wrap items-center gap-3 border-b border-border/60 px-4 py-3">

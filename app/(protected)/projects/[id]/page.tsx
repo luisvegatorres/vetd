@@ -31,6 +31,8 @@ export default async function ProjectDetailPage({
     interactionsRes,
     subscriptionRes,
     tasksRes,
+    templatesRes,
+    documentsRes,
   ] = await Promise.all([
     supabase
       .from("projects")
@@ -78,6 +80,17 @@ export default async function ProjectDetailPage({
       .eq("project_id", id)
       .order("status")
       .order("sort_order"),
+    supabase
+      .from("document_templates")
+      .select("id, name, kind")
+      .eq("is_active", true)
+      .order("kind")
+      .order("name"),
+    supabase
+      .from("documents")
+      .select("id, title, kind, status, pdf_path, created_at")
+      .eq("project_id", id)
+      .order("created_at", { ascending: false }),
   ])
 
   if (projectRes.error) throw projectRes.error
@@ -132,6 +145,14 @@ export default async function ProjectDetailPage({
       type: r.type,
       created_at: r.created_at,
       summary: r.content,
+    })),
+    documents: (documentsRes.data ?? []).map((d) => ({
+      id: d.id,
+      title: d.title,
+      kind: d.kind,
+      status: d.status,
+      created_at: d.created_at,
+      has_pdf: Boolean(d.pdf_path),
     })),
     subscription: subscriptionRes.data
       ? {
@@ -193,6 +214,12 @@ export default async function ProjectDetailPage({
     }
   })
 
+  const documentTemplates = (templatesRes.data ?? []).map((t) => ({
+    id: t.id,
+    name: t.name,
+    kind: t.kind,
+  }))
+
   return (
     <ProjectDetailView
       project={project}
@@ -201,6 +228,7 @@ export default async function ProjectDetailPage({
       invoices={invoices}
       tasks={tasks}
       currentUserId={currentUserId}
+      documentTemplates={documentTemplates}
     />
   )
 }

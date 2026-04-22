@@ -45,6 +45,15 @@ export type ProjectInteraction = {
   summary: string | null
 }
 
+export type ProjectDocument = {
+  id: string
+  title: string
+  kind: Database["public"]["Enums"]["document_kind"]
+  status: Database["public"]["Enums"]["document_status"]
+  created_at: string
+  has_pdf: boolean
+}
+
 export type ProjectSubscription = {
   id: string
   plan: string
@@ -82,6 +91,8 @@ export type ProjectRow = {
   payments: ProjectPayment[]
   interactions: ProjectInteraction[]
   subscription: ProjectSubscription | null
+  // Only populated on the project detail page; list views omit it.
+  documents?: ProjectDocument[]
 }
 
 export function projectDisplayClient(row: ProjectRow): string {

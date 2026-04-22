@@ -1,17 +1,23 @@
 "use client"
 
+import Link from "next/link"
+import { useTransition } from "react"
+import { toast } from "sonner"
 import {
   Activity,
   CalendarClock,
   CircleAlert,
   CircleCheck,
   CircleMinus,
+  Download,
   FileText,
   Info,
   NotebookText,
   PanelRight,
   Repeat,
 } from "lucide-react"
+
+import { getDownloadUrlAction } from "@/app/(protected)/documents/actions"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -45,9 +51,71 @@ import {
   formatDate,
   formatUsdFull,
   PRODUCT_TYPE_LABEL,
+  type ProjectDocument,
   type ProjectRow,
   type ProjectSubscription,
 } from "./project-types"
+
+const DOC_KIND_LABEL: Record<ProjectDocument["kind"], string> = {
+  proposal: "Proposal",
+  contract: "Contract",
+  sow: "SOW",
+  nda: "NDA",
+  invoice_terms: "Invoice terms",
+}
+
+const DOC_STATUS_LABEL: Record<ProjectDocument["status"], string> = {
+  draft: "Draft",
+  sent: "Sent",
+  viewed: "Viewed",
+  signed: "Signed",
+  void: "Void",
+}
+
+function DocumentItem({ doc }: { doc: ProjectDocument }) {
+  const [pending, startTransition] = useTransition()
+
+  function handleDownload() {
+    if (!doc.has_pdf) return
+    startTransition(async () => {
+      const res = await getDownloadUrlAction(doc.id)
+      if (!res.ok) {
+        toast.error(res.error)
+        return
+      }
+      window.open(res.url, "_blank")
+    })
+  }
+
+  return (
+    <Item variant="outline" size="sm">
+      <ItemContent>
+        <ItemTitle>
+          <Link href={`/documents/${doc.id}`} className="hover:underline">
+            {doc.title}
+          </Link>
+        </ItemTitle>
+        <ItemDescription>
+          {DOC_KIND_LABEL[doc.kind]} ▪ {DOC_STATUS_LABEL[doc.status]} ▪{" "}
+          {formatDate(doc.created_at)}
+        </ItemDescription>
+      </ItemContent>
+      {doc.has_pdf ? (
+        <ItemActions>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={handleDownload}
+            disabled={pending}
+            aria-label="Download PDF"
+          >
+            <Download aria-hidden />
+          </Button>
+        </ItemActions>
+      ) : null}
+    </Item>
+  )
+}
 
 function SectionHeading({
   icon: Icon,
@@ -311,15 +379,32 @@ export function ProjectDetailsSheet({ project }: { project: ProjectRow }) {
             </Section>
           ) : null}
 
-          <Section>
-            <SectionHeading icon={FileText} label="Documents" meta="—" />
-            <div className="flex flex-col gap-3">
-              <p className="text-xs text-muted-foreground">
-                No contracts on file yet.
-              </p>
-              {sub ? <SendPlanAgreement className="w-full" /> : null}
-            </div>
-          </Section>
+          {(() => {
+            const docs = project.documents ?? []
+            return (
+              <Section>
+                <SectionHeading
+                  icon={FileText}
+                  label="Documents"
+                  meta={docs.length > 0 ? docs.length : "—"}
+                />
+                <div className="flex flex-col gap-3">
+                  {docs.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      No documents generated yet.
+                    </p>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {docs.map((doc) => (
+                        <DocumentItem key={doc.id} doc={doc} />
+                      ))}
+                    </div>
+                  )}
+                  {sub ? <SendPlanAgreement className="w-full" /> : null}
+                </div>
+              </Section>
+            )
+          })()}
 
           <Section>
             <SectionHeading icon={CalendarClock} label="Timeline" />

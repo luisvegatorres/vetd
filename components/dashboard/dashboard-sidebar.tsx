@@ -7,6 +7,7 @@ import {
   BarChart3,
   Briefcase,
   CreditCard,
+  FileText,
   Inbox,
   Layers,
   LayoutGrid,
@@ -31,6 +32,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { LogoutButton } from "@/components/auth/logout-button"
+import { Button } from "@/components/ui/button"
 import { site } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
@@ -55,6 +57,7 @@ function buildWorkspaceNav(newLeadsCount: number): NavItem[] {
     { href: "/clients", label: "Clients", icon: Users },
     { href: "/payments", label: "Payments", icon: CreditCard },
     { href: "/commissions", label: "Commissions", icon: TrendingUp },
+    { href: "/documents", label: "Documents", icon: FileText },
   ]
 }
 
@@ -99,9 +102,13 @@ function NavItemLink({
 export function DashboardSidebar({
   isAdmin,
   newLeadsCount,
+  greeting,
+  firstName,
 }: {
   isAdmin: boolean
   newLeadsCount: number
+  greeting: string
+  firstName: string
 }) {
   const pathname = usePathname()
   const workspaceNav = buildWorkspaceNav(newLeadsCount)
@@ -111,7 +118,7 @@ export function DashboardSidebar({
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader>
+      <SidebarHeader className="gap-3">
         <Link
           href="/dashboard"
           className="font-heading text-sm font-medium text-foreground uppercase"
@@ -123,6 +130,14 @@ export function DashboardSidebar({
             IA
           </span>
         </Link>
+        <Button
+          variant="outline"
+          nativeButton={false}
+          render={<Link href="/settings" />}
+          className="group-data-[collapsible=icon]:hidden justify-start"
+        >
+          {greeting}, {firstName}
+        </Button>
       </SidebarHeader>
 
       <SidebarContent>

@@ -1,15 +1,9 @@
-import { PageHeader } from "@/components/dashboard/page-header"
-import { Dot } from "@/components/ui/dot"
 import { PipelineBoard } from "@/components/pipeline/pipeline-board"
 import {
   PipelineRangeTabs,
   type PipelineRange,
 } from "@/components/pipeline/pipeline-range-tabs"
-import {
-  formatUsdShort,
-  isDepositPending,
-  type ProjectRow,
-} from "@/components/projects/project-types"
+import { type ProjectRow } from "@/components/projects/project-types"
 import { createClient } from "@/lib/supabase/server"
 
 // Loose SQL bound — any terminal deal created within the last 2 years can land
@@ -160,28 +154,11 @@ export default async function PipelinePage({
       }
     })
 
-  const liveRows = rows.filter(
-    (r) => r.stage === "proposal" || r.stage === "negotiation",
-  )
-  const liveCount = liveRows.length
-  const liveValue = liveRows.reduce((sum, r) => sum + (r.value ?? 0), 0)
-  const depositPendingCount = liveRows.filter(isDepositPending).length
-
   return (
     <div className="space-y-6">
-      <PageHeader
-        eyebrow="Pipeline"
-        title={
-          <span className="flex flex-wrap items-center gap-3">
-            <span>{liveCount} Open</span>
-            <Dot />
-            <span>{formatUsdShort(liveValue)} In play</span>
-            <Dot />
-            <span>{depositPendingCount} Deposit pending</span>
-          </span>
-        }
-        action={<PipelineRangeTabs active={range} />}
-      />
+      <div className="flex items-center justify-end">
+        <PipelineRangeTabs active={range} />
+      </div>
 
       <PipelineBoard projects={rows} />
     </div>

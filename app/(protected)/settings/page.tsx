@@ -1,4 +1,3 @@
-import { PageHeader } from "@/components/dashboard/page-header"
 import { GoogleIntegrationCard } from "@/components/settings/google-integration-card"
 import { isGoogleConfigured } from "@/lib/google/config"
 import { createClient } from "@/lib/supabase/server"
@@ -43,7 +42,6 @@ export default async function SettingsPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow="Settings" title="Settings" />
       <GoogleIntegrationCard
         configured={configured}
         connection={connection}

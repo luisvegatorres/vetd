@@ -1,14 +1,15 @@
 import Link from "next/link"
-import { ArrowLeft, ArrowUpRight, Layers } from "lucide-react"
+import { ArrowUpRight, Layers } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { KpiCard } from "@/components/dashboard/kpi-card"
-import { HeaderPortal } from "@/components/layout/header-portal"
+import { BreadcrumbCurrentPortal } from "@/components/layout/breadcrumb-current-portal"
 import { cn } from "@/lib/utils"
 import {
   paymentStatusBadgeClass,
   paymentStatusLabel,
 } from "@/lib/status-colors"
+import { GenerateDocumentDialog } from "@/components/documents/generate-document-dialog"
 import { EditProjectDialog } from "./project-form-dialog"
 import { ProjectBoard, type ProjectTaskRow } from "./project-board"
 import { ProjectDetailsSheet } from "./project-details-sheet"
@@ -117,6 +118,7 @@ export function ProjectDetailView({
   invoices,
   tasks,
   currentUserId,
+  documentTemplates,
 }: {
   project: ProjectRow
   clients: { id: string; name: string; company: string | null }[]
@@ -124,6 +126,7 @@ export function ProjectDetailView({
   invoices: SubscriptionInvoiceRow[]
   tasks: ProjectTaskRow[]
   currentUserId: string | null
+  documentTemplates: { id: string; name: string; kind: string }[]
 }) {
   const clientDisplay = projectDisplayClient(project)
   const productLabel = project.product_type
@@ -149,52 +152,44 @@ export function ProjectDetailView({
 
   return (
     <div className="space-y-10">
-      <HeaderPortal>
-        <Link
-          href="/projects"
-          className="text-overline inline-flex items-center gap-2 font-medium text-muted-foreground uppercase transition-colors hover:text-foreground"
-        >
-          <ArrowLeft aria-hidden className="size-3" />
-          Back to projects
-        </Link>
-      </HeaderPortal>
+      <BreadcrumbCurrentPortal>{clientDisplay}</BreadcrumbCurrentPortal>
 
       <header className="flex items-start justify-between gap-4">
-        <div className="max-w-3xl min-w-0 space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <ProjectStageBadge stage={project.stage} />
-            {oneTimeValue > 0 ? (
-              <Badge
-                variant="outline"
-                className={cn(
-                  "border-transparent uppercase",
-                  paymentStatusBadgeClass(project.payment_status)
-                )}
-              >
-                {paymentStatusLabel(project.payment_status)}
-              </Badge>
-            ) : project.subscription ? (
-              <Badge
-                variant="outline"
-                className={cn(
-                  "border-transparent uppercase",
-                  subscriptionStatusBadgeClass(project.subscription.status)
-                )}
-              >
-                Recurring {subscriptionStatusLabel(project.subscription.status)}
-              </Badge>
-            ) : null}
-          </div>
-          <div className="space-y-1">
-            <h1 className="line-clamp-2 font-sans text-xl leading-tight font-medium">
-              {clientDisplay}
-            </h1>
-            <p className="truncate text-sm text-muted-foreground">
-              {productLabel}
-            </p>
-          </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <ProjectStageBadge stage={project.stage} />
+          {oneTimeValue > 0 ? (
+            <Badge
+              variant="outline"
+              className={cn(
+                "border-transparent uppercase",
+                paymentStatusBadgeClass(project.payment_status)
+              )}
+            >
+              {paymentStatusLabel(project.payment_status)}
+            </Badge>
+          ) : project.subscription ? (
+            <Badge
+              variant="outline"
+              className={cn(
+                "border-transparent uppercase",
+                subscriptionStatusBadgeClass(project.subscription.status)
+              )}
+            >
+              Recurring {subscriptionStatusLabel(project.subscription.status)}
+            </Badge>
+          ) : null}
+          <span className="text-xs text-muted-foreground uppercase">
+            {productLabel}
+          </span>
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          {project.client ? (
+            <GenerateDocumentDialog
+              clientId={project.client.id}
+              projectId={project.id}
+              templates={documentTemplates}
+            />
+          ) : null}
           <ProjectDetailsSheet project={project} />
           <EditProjectDialog project={project} clients={clients} reps={reps} />
         </div>

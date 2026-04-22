@@ -234,6 +234,14 @@ async function handleCheckoutCompleted(
       ? session.customer
       : (session.customer?.id ?? null)
 
+  if (stripeCustomerId) {
+    await supabase
+      .from("clients")
+      .update({ stripe_customer_id: stripeCustomerId })
+      .eq("id", meta.client_id)
+      .is("stripe_customer_id", null)
+  }
+
   // Admin-owned subs earn no commission — null the residual so Team MRC
   // projections stay out of the rollup.
   const adminSold = await isAdminRep(supabase, meta.sold_by)
@@ -346,6 +354,17 @@ async function handleDepositCompleted(
   }
 
   if (clientId) {
+    const depositCustomerId =
+      typeof session.customer === "string"
+        ? session.customer
+        : (session.customer?.id ?? null)
+    if (depositCustomerId) {
+      await supabase
+        .from("clients")
+        .update({ stripe_customer_id: depositCustomerId })
+        .eq("id", clientId)
+        .is("stripe_customer_id", null)
+    }
     await promoteClientToActive(supabase, clientId)
   }
 

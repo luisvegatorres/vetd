@@ -34,6 +34,7 @@ export type Database = {
           score: number | null
           source: Database["public"]["Enums"]["client_source"]
           status: Database["public"]["Enums"]["client_status"]
+          stripe_customer_id: string | null
           updated_at: string
         }
         Insert: {
@@ -55,6 +56,7 @@ export type Database = {
           score?: number | null
           source?: Database["public"]["Enums"]["client_source"]
           status?: Database["public"]["Enums"]["client_status"]
+          stripe_customer_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -76,6 +78,7 @@ export type Database = {
           score?: number | null
           source?: Database["public"]["Enums"]["client_source"]
           status?: Database["public"]["Enums"]["client_status"]
+          stripe_customer_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -98,6 +101,174 @@ export type Database = {
             columns: ["assigned_to"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_templates: {
+        Row: {
+          body: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          kind: Database["public"]["Enums"]["document_kind"]
+          name: string
+          updated_at: string
+          variables: Json
+          version: number
+        }
+        Insert: {
+          body?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          kind: Database["public"]["Enums"]["document_kind"]
+          name: string
+          updated_at?: string
+          variables?: Json
+          version?: number
+        }
+        Update: {
+          body?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          kind?: Database["public"]["Enums"]["document_kind"]
+          name?: string
+          updated_at?: string
+          variables?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_analytics_team_performance"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "document_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_rep_activity"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "document_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          data: Json
+          id: string
+          kind: Database["public"]["Enums"]["document_kind"]
+          pdf_path: string | null
+          project_id: string | null
+          sent_at: string | null
+          signed_at: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          subscription_id: string | null
+          template_id: string | null
+          template_version: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          id?: string
+          kind: Database["public"]["Enums"]["document_kind"]
+          pdf_path?: string | null
+          project_id?: string | null
+          sent_at?: string | null
+          signed_at?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          subscription_id?: string | null
+          template_id?: string | null
+          template_version?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          id?: string
+          kind?: Database["public"]["Enums"]["document_kind"]
+          pdf_path?: string | null
+          project_id?: string | null
+          sent_at?: string | null
+          signed_at?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          subscription_id?: string | null
+          template_id?: string | null
+          template_version?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_analytics_team_performance"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "documents_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_rep_activity"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "documents_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -961,6 +1132,8 @@ export type Database = {
         | "archived"
         | "lost"
       commission_ledger_status: "pending" | "paid" | "voided"
+      document_kind: "proposal" | "contract" | "sow" | "nda" | "invoice_terms"
+      document_status: "draft" | "sent" | "viewed" | "signed" | "void"
       employment_status: "active" | "terminated"
       interaction_type:
         | "call"
@@ -1122,6 +1295,8 @@ export const Constants = {
       ],
       client_status: ["lead", "qualified", "active_client", "archived", "lost"],
       commission_ledger_status: ["pending", "paid", "voided"],
+      document_kind: ["proposal", "contract", "sow", "nda", "invoice_terms"],
+      document_status: ["draft", "sent", "viewed", "signed", "void"],
       employment_status: ["active", "terminated"],
       interaction_type: [
         "call",

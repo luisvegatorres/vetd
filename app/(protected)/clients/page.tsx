@@ -1,5 +1,3 @@
-import { PageHeader } from "@/components/dashboard/page-header"
-import { Dot } from "@/components/ui/dot"
 import { ClientDetailPanel } from "@/components/clients/client-detail-panel"
 import {
   deriveClientStatus,
@@ -274,20 +272,6 @@ export default async function ClientsPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        eyebrow="Clients"
-        title={
-          <span className="flex flex-wrap items-center gap-3">
-            <span>{counts.active} active</span>
-            <Dot />
-            <span>{counts.at_risk} at-risk</span>
-            <Dot />
-            <span>{totalFiltered} showing</span>
-          </span>
-        }
-        action={<NewClientDialog reps={reps} canReassign={canReassign} />}
-      />
-
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
         <div className="flex min-h-0 flex-col border border-border/60">
           <div className="flex flex-wrap items-center gap-3 border-b border-border/60 px-4 py-3">
@@ -299,6 +283,7 @@ export default async function ClientsPage({
                 sort={sort}
                 industries={industries}
               />
+              <NewClientDialog reps={reps} canReassign={canReassign} />
             </div>
           </div>
           <ClientsTable

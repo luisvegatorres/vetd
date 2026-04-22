@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation"
 
 import { CommissionsView } from "@/components/commissions/commissions-view"
-import { PageHeader } from "@/components/dashboard/page-header"
 import { createClient } from "@/lib/supabase/server"
 
 export default async function CommissionsPage() {
@@ -22,10 +21,6 @@ export default async function CommissionsPage() {
   if (!isAdmin && !isRep) {
     return (
       <div className="space-y-6">
-        <PageHeader
-          eyebrow="Commissions"
-          title="Commissions"
-        />
         <p className="text-sm text-muted-foreground">
           You don&apos;t have access to this page.
         </p>
@@ -107,11 +102,6 @@ export default async function CommissionsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        eyebrow="Commissions"
-        title={isAdmin ? "Commissions" : "My book of business"}
-      />
-
       <CommissionsView
         subLedger={subLedger ?? []}
         projectLedger={projectLedger ?? []}

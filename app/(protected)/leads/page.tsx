@@ -1,5 +1,3 @@
-import { PageHeader } from "@/components/dashboard/page-header"
-import { Dot } from "@/components/ui/dot"
 import { LeadDetailPanel } from "@/components/leads/lead-detail-panel"
 import {
   deriveStatus,
@@ -207,20 +205,6 @@ export default async function LeadsPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        eyebrow="Leads"
-        title={
-          <span className="flex flex-wrap items-center gap-3">
-            <span>{counts.new} New</span>
-            <Dot />
-            <span>{counts.qualified} Qualified</span>
-            <Dot />
-            <span>{totalFiltered} Showing</span>
-          </span>
-        }
-        action={<NewLeadDialog />}
-      />
-
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
         <div className="flex min-h-0 flex-col border border-border/60">
           <div className="flex flex-wrap items-center gap-3 border-b border-border/60 px-4 py-3">
@@ -228,6 +212,7 @@ export default async function LeadsPage({
             <div className="ml-auto flex items-center gap-2">
               <LeadsSearch q={q} />
               <LeadsFilters source={source} sort={sort} />
+              <NewLeadDialog />
             </div>
           </div>
           <LeadsTable
