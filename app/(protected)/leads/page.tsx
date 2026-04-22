@@ -121,12 +121,16 @@ export default async function LeadsPage({
     query = query.order("name", { ascending: true })
   else query = query.order("score", { ascending: false, nullsFirst: false })
 
-  const [rowsRes, interactionsRes] = await Promise.all([
-    query,
-    supabase.from("interactions").select("client_id"),
-  ])
-
+  const rowsRes = await query
   if (rowsRes.error) throw rowsRes.error
+
+  const visibleClientIds = (rowsRes.data ?? []).map((r) => r.id)
+  const interactionsRes = visibleClientIds.length
+    ? await supabase
+        .from("interactions")
+        .select("client_id")
+        .in("client_id", visibleClientIds)
+    : { data: [] as { client_id: string }[] }
 
   const contactedIds = new Set(
     (interactionsRes.data ?? []).map((r) => r.client_id),

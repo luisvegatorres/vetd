@@ -67,8 +67,8 @@ export default async function PipelinePage({
       `
         id, title, description, stage, value, currency,
         financing_enabled,
-        start_date, deadline, completed_at, commission_rate,
-        commission_flat, commission_amount, payment_status,
+        start_date, deadline, completed_at,
+        payment_status,
         stripe_checkout_session_id, paid_at, product_type,
         deposit_rate, deposit_amount, deposit_paid_at, created_at,
         client:clients!projects_client_id_fkey (id, name, company),
@@ -137,12 +137,6 @@ export default async function PipelinePage({
         start_date: p.start_date,
         deadline: p.deadline,
         completed_at: p.completed_at,
-        commission_rate:
-          p.commission_rate != null ? Number(p.commission_rate) : null,
-        commission_flat:
-          p.commission_flat != null ? Number(p.commission_flat) : null,
-        commission_amount:
-          p.commission_amount != null ? Number(p.commission_amount) : null,
         payment_status: p.payment_status,
         stripe_checkout_session_id: p.stripe_checkout_session_id,
         paid_at: p.paid_at,

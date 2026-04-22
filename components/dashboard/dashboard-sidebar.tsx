@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
+  Activity,
   BarChart3,
   Briefcase,
   CreditCard,
@@ -65,6 +66,7 @@ const accountNav: NavItem[] = [
 
 const adminNav: NavItem[] = [
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/admin/rep-activity", label: "Rep Activity", icon: Activity },
   { href: "/admin/users", label: "Users", icon: UserCog },
 ]
 

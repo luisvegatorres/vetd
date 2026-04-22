@@ -9,7 +9,7 @@ import {
   markProjectTaskDoneByTitle,
   TASK_TITLES,
 } from "@/lib/projects/task-automations"
-import { findPlanByStripePriceId } from "@/lib/site"
+import { COMMISSION_RATE, findPlanByStripePriceId } from "@/lib/site"
 import { stripe } from "@/lib/stripe/server"
 import { verifyStripeWebhook } from "@/lib/stripe/webhook"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -111,6 +111,10 @@ async function resolveFirstInvoiceLine(
     )
     return null
   }
+}
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100
 }
 
 function periodMonthFromLine(
@@ -230,11 +234,12 @@ async function handleCheckoutCompleted(
       ? session.customer
       : (session.customer?.id ?? null)
 
-  // Admin-owned subs earn no commission — store null amounts so MRC and
-  // signing-bonus projections stay out of the team rollup.
+  // Admin-owned subs earn no commission — null the residual so Team MRC
+  // projections stay out of the rollup.
   const adminSold = await isAdminRep(supabase, meta.sold_by)
-  const signingBonus = adminSold ? null : plan.signingBonus
-  const monthlyResidual = adminSold ? null : plan.monthlyResidual
+  const monthlyResidual = adminSold
+    ? null
+    : round2(plan.monthlyRate * COMMISSION_RATE)
 
   // If a CRM subscription row already exists (created by the rep before sending
   // the link), update it. Otherwise insert a fresh row.
@@ -248,7 +253,6 @@ async function handleCheckoutCompleted(
         stripe_status: stripeSub.status,
         plan: plan.label,
         monthly_rate: plan.monthlyRate,
-        signing_bonus_amount: signingBonus,
         monthly_residual_amount: monthlyResidual,
         sold_by: meta.sold_by ?? null,
       })
@@ -267,7 +271,6 @@ async function handleCheckoutCompleted(
     plan: plan.label,
     monthly_rate: plan.monthlyRate,
     started_at: new Date().toISOString().slice(0, 10),
-    signing_bonus_amount: signingBonus,
     monthly_residual_amount: monthlyResidual,
     stripe_customer_id: stripeCustomerId,
     stripe_subscription_id: stripeSubId,
@@ -346,6 +349,10 @@ async function handleDepositCompleted(
     await promoteClientToActive(supabase, clientId)
   }
 
+  // 10% one-time commission for the selling rep, earned the moment the deposit
+  // clears. Idempotent via the unique (project_id) constraint.
+  await recordProjectCommission(supabase, projectId)
+
   // Tick the "Send Stripe deposit invoice" task on the board — the deposit
   // just landed, so the deliverable is done.
   await markProjectTaskDoneByTitle(
@@ -353,6 +360,35 @@ async function handleDepositCompleted(
     projectId,
     TASK_TITLES.sendDepositInvoice,
   )
+}
+
+async function recordProjectCommission(
+  supabase: AdminClient,
+  projectId: string,
+) {
+  const { data: project, error } = await supabase
+    .from("projects")
+    .select("id, value, sold_by")
+    .eq("id", projectId)
+    .maybeSingle()
+  if (error || !project) return
+  if (!project.sold_by || project.value == null || project.value <= 0) return
+  if (!(await isRepEligibleForCommission(supabase, project.sold_by))) return
+
+  const amount = round2(Number(project.value) * COMMISSION_RATE)
+  const { error: ledgerError } = await supabase
+    .from("project_commission_ledger")
+    .insert({
+      project_id: project.id,
+      rep_id: project.sold_by,
+      amount,
+    })
+  if (ledgerError && ledgerError.code !== "23505") {
+    console.error(
+      "[stripe webhook] project commission ledger insert failed",
+      ledgerError,
+    )
+  }
 }
 
 async function handleInvoicePaid(
@@ -409,29 +445,62 @@ async function handleInvoicePaid(
     return
   }
 
-  // Resolve the plan + commission amounts from the price the invoice was for.
+  // Resolve the plan label for the onboarding task only — commission is a
+  // flat 10% of what the client actually paid, so the ledger write below
+  // doesn't need the catalog plan at all.
   const priceId = (lineItem ? priceIdFromInvoiceLine(lineItem) : null) ??
     sub.stripe_price_id
   const plan = priceId ? findPlanByStripePriceId(priceId) : undefined
-  if (!plan) {
+
+  // Once a subscription is canceled, it stays canceled. Stray paid invoices
+  // (e.g. a late charge after cancellation) still get recorded above for
+  // audit, but must not reactivate the sub or credit new commission.
+  if (sub.status === "canceled") {
     console.warn(
-      `[stripe webhook] invoice ${invoice.id} price ${priceId} did not match a plan — skipping commission`,
+      `[stripe webhook] paid invoice ${invoice.id} received for canceled subscription ${sub.id} — skipping reactivation and commission`,
     )
     return
   }
 
-  // Reactivate the subscription if it was previously at_risk/canceled.
+  // Reactivate if previously at_risk (payment recovered).
   await supabase
     .from("subscriptions")
     .update({ status: "active", stripe_status: "active" })
     .eq("id", sub.id)
 
   // A paid invoice proves the client is paying — promote them off the leads
-  // list. Skip if already active_client/at_risk/canceled to avoid redundant
-  // writes and to preserve downstream lifecycle states.
+  // list. Skip if already active_client/at_risk to avoid redundant writes
+  // and to preserve downstream lifecycle states.
   await promoteClientToActive(supabase, sub.client_id)
 
-  // First invoice: set first_payment_at + insert signing bonus ledger row.
+  // Every paid invoice — first month or renewal — generates a 10% residual
+  // ledger row for the period it covers. Idempotent via the
+  // (subscription_id, period_month) unique constraint.
+  const periodMonth = periodMonthFromLine(lineItem)
+  const residualAmount = round2((invoice.amount_paid / 100) * COMMISSION_RATE)
+  if (
+    periodMonth &&
+    residualAmount > 0 &&
+    sub.sold_by &&
+    (await isRepEligibleForCommission(supabase, sub.sold_by))
+  ) {
+    const { error: ledgerError } = await supabase
+      .from("subscription_commission_ledger")
+      .insert({
+        subscription_id: sub.id,
+        rep_id: sub.sold_by,
+        period_month: periodMonth,
+        amount: residualAmount,
+      })
+    if (ledgerError && ledgerError.code !== "23505") {
+      console.error(
+        "[stripe webhook] subscription commission ledger insert failed",
+        ledgerError,
+      )
+    }
+  }
+
+  // First invoice: mark first_payment_at and seed the onboarding task.
   if (invoice.billing_reason === "subscription_create") {
     if (!sub.first_payment_at) {
       await supabase
@@ -439,28 +508,7 @@ async function handleInvoicePaid(
         .update({ first_payment_at: paidAt })
         .eq("id", sub.id)
     }
-
-    if (sub.sold_by && (await isRepEligibleForCommission(supabase, sub.sold_by))) {
-      const { error: ledgerError } = await supabase
-        .from("subscription_commission_ledger")
-        .insert({
-          subscription_id: sub.id,
-          rep_id: sub.sold_by,
-          kind: "signing_bonus",
-          period_month: null,
-          amount: plan.signingBonus,
-        })
-      if (ledgerError && ledgerError.code !== "23505") {
-        console.error(
-          "[stripe webhook] signing bonus ledger insert failed",
-          ledgerError,
-        )
-      }
-    }
-
-    // Subscription just went live — append onboarding tasks to the project
-    // board so the rep has the recurring workstream in front of them.
-    if (sub.project_id) {
+    if (sub.project_id && plan) {
       await appendProjectTask(supabase, {
         projectId: sub.project_id,
         title: `${plan.label} subscription active`,
@@ -472,34 +520,11 @@ async function handleInvoicePaid(
     return
   }
 
-  // Recurring invoice: insert monthly residual ledger row (idempotent on the
-  // (subscription_id, kind, period_month) unique constraint).
+  // Renewal — drop a monthly check-in task on the board.
   if (
     invoice.billing_reason === "subscription_cycle" ||
     invoice.billing_reason === "subscription_update"
   ) {
-    const periodMonth = periodMonthFromLine(lineItem)
-    if (!periodMonth) return
-    if (!sub.sold_by || !(await isRepEligibleForCommission(supabase, sub.sold_by))) return
-
-    const { error: ledgerError } = await supabase
-      .from("subscription_commission_ledger")
-      .insert({
-        subscription_id: sub.id,
-        rep_id: sub.sold_by,
-        kind: "monthly_residual",
-        period_month: periodMonth,
-        amount: plan.monthlyResidual,
-      })
-    if (ledgerError && ledgerError.code !== "23505") {
-      console.error(
-        "[stripe webhook] monthly residual ledger insert failed",
-        ledgerError,
-      )
-    }
-
-    // Renewal landed — drop a monthly check-in task on the board. Idempotent
-    // by title so Stripe retries of the same cycle don't double-insert.
     if (sub.project_id) {
       const label = formatPeriodMonth(
         lineItem?.period?.start
@@ -570,8 +595,9 @@ async function handleSubscriptionUpdated(
             stripe_price_id: priceId,
             plan: plan.label,
             monthly_rate: plan.monthlyRate,
-            signing_bonus_amount: adminSold ? null : plan.signingBonus,
-            monthly_residual_amount: adminSold ? null : plan.monthlyResidual,
+            monthly_residual_amount: adminSold
+              ? null
+              : round2(plan.monthlyRate * COMMISSION_RATE),
           }
         : {}),
     })

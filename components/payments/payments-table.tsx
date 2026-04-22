@@ -17,6 +17,7 @@ import {
 } from "@/lib/status-colors"
 import { formatDate, formatUsdFull } from "@/components/projects/project-types"
 import {
+  isPaymentFailed,
   paymentDisplayClient,
   paymentSourceLabel,
   type PaymentRow,
@@ -53,6 +54,7 @@ export function PaymentsTable({
             const isSelected = row.id === selectedId
             const KindIcon =
               row.kind === "subscription" ? Repeat : CircleDollarSign
+            const failed = isPaymentFailed(row)
             return (
               <DataTableRow
                 key={row.id}
@@ -60,8 +62,16 @@ export function PaymentsTable({
                 selected={isSelected}
               >
                 <DataTableCell>
-                  <span className="truncate text-sm text-muted-foreground tabular-nums">
-                    {formatDate(row.paid_at ?? row.created_at)}
+                  <span className="flex items-center gap-2">
+                    {failed ? (
+                      <span
+                        aria-label="Needs attention"
+                        className="size-2 shrink-0 rounded-full bg-orange-500"
+                      />
+                    ) : null}
+                    <span className="truncate text-sm text-muted-foreground tabular-nums">
+                      {formatDate(row.paid_at ?? row.created_at)}
+                    </span>
                   </span>
                 </DataTableCell>
 

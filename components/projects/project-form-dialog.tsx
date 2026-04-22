@@ -130,16 +130,6 @@ function ProjectFormDialog(props: Props) {
       ? String(project.subscription.monthly_rate)
       : ""
   )
-  const [commissionMode, setCommissionMode] = useState<"rate" | "flat">(
-    project?.commission_flat != null ? "flat" : "rate"
-  )
-  const [commissionRateStr, setCommissionRateStr] = useState<string>(
-    project?.commission_rate != null ? String(project.commission_rate) : ""
-  )
-  const [commissionFlatStr, setCommissionFlatStr] = useState<string>(
-    project?.commission_flat != null ? String(project.commission_flat) : ""
-  )
-
   function handleOpenChange(next: boolean) {
     if (next) {
       setError(null)
@@ -152,13 +142,6 @@ function ProjectFormDialog(props: Props) {
           detectPlanFromSubscription(project.subscription) === "custom"
           ? String(project.subscription.monthly_rate)
           : ""
-      )
-      setCommissionMode(project?.commission_flat != null ? "flat" : "rate")
-      setCommissionRateStr(
-        project?.commission_rate != null ? String(project.commission_rate) : ""
-      )
-      setCommissionFlatStr(
-        project?.commission_flat != null ? String(project.commission_flat) : ""
       )
     }
     setOpen(next)
@@ -384,58 +367,6 @@ function ProjectFormDialog(props: Props) {
               </InputGroup>
             </div>
 
-            {isWebsite ? null : (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor={`${formId}-commission`}>Commission</Label>
-                {commissionMode === "rate" ? (
-                  <InputGroup>
-                    <InputGroupInput
-                      id={`${formId}-commission`}
-                      name="commission_rate"
-                      type="number"
-                      inputMode="decimal"
-                      min="0"
-                      max="100"
-                      step="1"
-                      placeholder="30"
-                      value={commissionRateStr}
-                      onChange={(e) => setCommissionRateStr(e.target.value)}
-                    />
-                    <InputGroupAddon align="inline-end">%</InputGroupAddon>
-                    <InputGroupAddon align="inline-end">
-                      <InputGroupButton
-                        onClick={() => setCommissionMode("flat")}
-                      >
-                        Use $
-                      </InputGroupButton>
-                    </InputGroupAddon>
-                  </InputGroup>
-                ) : (
-                  <InputGroup>
-                    <InputGroupAddon>$</InputGroupAddon>
-                    <InputGroupInput
-                      id={`${formId}-commission`}
-                      name="commission_flat"
-                      type="number"
-                      inputMode="decimal"
-                      min="0"
-                      step="0.01"
-                      placeholder="0"
-                      value={commissionFlatStr}
-                      onChange={(e) => setCommissionFlatStr(e.target.value)}
-                    />
-                    <InputGroupAddon align="inline-end">
-                      <InputGroupButton
-                        onClick={() => setCommissionMode("rate")}
-                      >
-                        Use %
-                      </InputGroupButton>
-                    </InputGroupAddon>
-                  </InputGroup>
-                )}
-              </div>
-            )}
-
             <div className="flex flex-col gap-2">
               <Label htmlFor={`${formId}-payment`}>One-time payment</Label>
               <Select
@@ -467,9 +398,7 @@ function ProjectFormDialog(props: Props) {
               </Select>
             </div>
 
-            <div
-              className={`flex flex-col gap-2 ${isWebsite ? "" : "sm:col-span-2"}`}
-            >
+            <div className="flex flex-col gap-2">
               <Label htmlFor={`${formId}-rep`}>Rep</Label>
               <Select
                 name="sold_by"

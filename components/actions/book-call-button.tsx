@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { getCalApi } from "@calcom/embed-react"
 import { useTheme } from "next-themes"
 
 import { Button } from "@/components/ui/button"
@@ -28,7 +27,10 @@ export function BookCallButton({
 
   React.useEffect(() => {
     if (!site.calLink) return
+    let cancelled = false
     ;(async () => {
+      const { getCalApi } = await import("@calcom/embed-react")
+      if (cancelled) return
       const cal = await getCalApi({ namespace: "discovery" })
       cal("ui", {
         theme: (resolvedTheme === "dark" ? "dark" : "light") as "light" | "dark",
@@ -36,6 +38,9 @@ export function BookCallButton({
         layout: "month_view",
       })
     })()
+    return () => {
+      cancelled = true
+    }
   }, [resolvedTheme])
 
   const config = React.useMemo(() => {

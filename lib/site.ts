@@ -81,12 +81,14 @@ export const websitePlans: WebsitePlan[] = [
 
 export type BillablePlanId = Exclude<WebsitePlanId, "custom">
 
+// Commission is a flat 10% of whatever the client actually pays — on both
+// project value and every recurring subscription invoice. No per-plan tiers.
+export const COMMISSION_RATE = 0.1
+
 export type SubscriptionPlanConfig = {
   id: BillablePlanId
   label: string
   monthlyRate: number
-  signingBonus: number
-  monthlyResidual: number
   stripePriceId: string | undefined
 }
 
@@ -95,16 +97,12 @@ export const subscriptionPlans: Record<BillablePlanId, SubscriptionPlanConfig> =
     id: "presence",
     label: "Presence",
     monthlyRate: 97,
-    signingBonus: 100,
-    monthlyResidual: 10,
     stripePriceId: process.env.STRIPE_PRICE_ID_PRESENCE,
   },
   growth: {
     id: "growth",
     label: "Growth",
     monthlyRate: 247,
-    signingBonus: 250,
-    monthlyResidual: 25,
     stripePriceId: process.env.STRIPE_PRICE_ID_GROWTH,
   },
 } as const

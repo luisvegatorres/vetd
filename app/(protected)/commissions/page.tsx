@@ -33,31 +33,59 @@ export default async function CommissionsPage() {
     )
   }
 
-  // Reps see only their own ledger; admins see everyone's.
-  const ledgerQuery = supabase
+  // Reps see only their own ledger rows; admins see everyone's.
+  const subLedgerQuery = supabase
     .from("subscription_commission_ledger")
     .select(
-      "id, kind, period_month, amount, status, paid_at, created_at, notes, rep_id, subscription_id",
+      "id, period_month, amount, status, paid_at, created_at, notes, rep_id, subscription_id",
     )
     .order("created_at", { ascending: false })
 
-  if (isRep) ledgerQuery.eq("rep_id", auth.user.id)
+  const projectLedgerQuery = supabase
+    .from("project_commission_ledger")
+    .select(
+      "id, amount, status, paid_at, created_at, notes, rep_id, project_id",
+    )
+    .order("created_at", { ascending: false })
 
-  const [{ data: ledger }, { data: profiles }, { data: subscriptions }] =
-    await Promise.all([
-      ledgerQuery,
-      supabase
-        .from("profiles")
-        .select("id, full_name, role, employment_status"),
-      supabase
-        .from("subscriptions")
-        .select(
-          "id, plan, monthly_rate, monthly_residual_amount, signing_bonus_amount, status, started_at, sold_by, client_id, first_payment_at",
-        ),
-    ])
+  if (isRep) {
+    subLedgerQuery.eq("rep_id", auth.user.id)
+    projectLedgerQuery.eq("rep_id", auth.user.id)
+  }
+
+  const [
+    { data: subLedger },
+    { data: projectLedger },
+    { data: profiles },
+    { data: subscriptions },
+  ] = await Promise.all([
+    subLedgerQuery,
+    projectLedgerQuery,
+    supabase
+      .from("profiles")
+      .select("id, full_name, role, employment_status"),
+    supabase
+      .from("subscriptions")
+      .select(
+        "id, plan, monthly_rate, monthly_residual_amount, status, started_at, sold_by, client_id, first_payment_at",
+      ),
+  ])
+
+  const projectIds = Array.from(
+    new Set((projectLedger ?? []).map((r) => r.project_id)),
+  )
+  const { data: projectRows } = projectIds.length
+    ? await supabase
+        .from("projects")
+        .select("id, title, value, client_id")
+        .in("id", projectIds)
+    : { data: [] }
 
   const clientIds = Array.from(
-    new Set((subscriptions ?? []).map((s) => s.client_id)),
+    new Set([
+      ...(subscriptions ?? []).map((s) => s.client_id),
+      ...(projectRows ?? []).map((p) => p.client_id),
+    ]),
   )
   const { data: clients } = clientIds.length
     ? await supabase
@@ -85,9 +113,11 @@ export default async function CommissionsPage() {
       />
 
       <CommissionsView
-        ledger={ledger ?? []}
+        subLedger={subLedger ?? []}
+        projectLedger={projectLedger ?? []}
         profiles={profiles ?? []}
         subscriptions={subscriptions ?? []}
+        projects={projectRows ?? []}
         clients={clients ?? []}
         assignedClientsCount={assignedClientsCount}
         currentUserId={auth.user.id}

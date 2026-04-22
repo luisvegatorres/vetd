@@ -116,3 +116,12 @@ export function paymentSourceLabel(row: PaymentRow): string {
   }
   return row.project?.title ?? "Project"
 }
+
+/**
+ * A payment is "needs attention" if its status falls in the failed bucket
+ * (failed one-time payment, or `uncollectible` subscription invoice). Surfaces
+ * problems that require manual follow-up.
+ */
+export function isPaymentFailed(row: PaymentRow): boolean {
+  return paymentStatusBucket(row.status) === "failed"
+}

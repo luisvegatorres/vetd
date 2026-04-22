@@ -1,12 +1,22 @@
 "use client"
 
 import { Calendar, Plus, Trash2 } from "lucide-react"
-import { useEffect, useId, useMemo, useOptimistic, useState, useTransition } from "react"
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useOptimistic,
+  useState,
+  useTransition,
+} from "react"
 import { toast } from "sonner"
 import {
   DndContext,
   DragOverlay,
   PointerSensor,
+  useDroppable,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -32,7 +42,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -52,8 +61,20 @@ import {
   type NamedTaskTemplate,
   type TaskTemplateCategory,
 } from "@/lib/projects/task-templates"
+import {
+  DUE_FILTER_LABEL,
+  boardReducer,
+  dueUrgency,
+  formatDue,
+  groupTasks,
+  initials,
+  matchesDueFilter,
+  type BoardState,
+  type DueFilter,
+  type ProjectTaskRow,
+  type TaskStatus,
+} from "@/lib/projects/task-utilities"
 import { cn } from "@/lib/utils"
-import type { Database } from "@/lib/supabase/types"
 import {
   createProjectTask,
   deleteProjectTask,
@@ -61,17 +82,9 @@ import {
   updateProjectTask,
 } from "@/app/(protected)/projects/[id]/actions"
 
-export type TaskStatus = Database["public"]["Enums"]["task_status"]
-
-export type ProjectTaskRow = {
-  id: string
-  title: string
-  description: string | null
-  status: TaskStatus
-  sort_order: number
-  due_date: string | null
-  assignee: { id: string; full_name: string | null } | null
-}
+// Re-exported for back-compat with consumers that imported the type from
+// this module before it was extracted to lib/projects/task-utilities.
+export type { ProjectTaskRow, TaskStatus } from "@/lib/projects/task-utilities"
 
 type Rep = { id: string; full_name: string | null }
 
@@ -126,107 +139,6 @@ function templateDueDate(t: NamedTaskTemplate): string {
     .slice(0, 10)
 }
 
-type DueFilter = "all" | "overdue" | "soon" | "week" | "none"
-
-const DUE_FILTER_LABEL: Record<DueFilter, string> = {
-  all: "Any due date",
-  overdue: "Overdue",
-  soon: "Due soon",
-  week: "This week",
-  none: "No due date",
-}
-
-const dueFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-})
-
-function formatDue(due: string | null): string | null {
-  if (!due) return null
-  const d = new Date(`${due}T00:00:00`)
-  if (Number.isNaN(d.getTime())) return null
-  return dueFormatter.format(d).toUpperCase()
-}
-
-type DueUrgency = "overdue" | "soon" | "upcoming" | null
-
-/** Days between today (local midnight) and the due date. null if no date. */
-function daysUntilDue(due: string | null): number | null {
-  if (!due) return null
-  const [y, m, d] = due.split("-").map(Number)
-  if (!y || !m || !d) return null
-  const target = new Date(y, m - 1, d).getTime()
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
-  return Math.round((target - today) / 86_400_000)
-}
-
-function dueUrgency(due: string | null, done: boolean): DueUrgency {
-  if (done) return null
-  const daysLeft = daysUntilDue(due)
-  if (daysLeft == null) return null
-  if (daysLeft < 0) return "overdue"
-  if (daysLeft <= 2) return "soon"
-  return "upcoming"
-}
-
-function matchesDueFilter(
-  due: string | null,
-  done: boolean,
-  filter: DueFilter,
-): boolean {
-  if (filter === "all") return true
-  if (filter === "none") return due == null
-  if (done) return false
-  const daysLeft = daysUntilDue(due)
-  if (daysLeft == null) return false
-  if (filter === "overdue") return daysLeft < 0
-  if (filter === "soon") return daysLeft >= 0 && daysLeft <= 2
-  if (filter === "week") return daysLeft >= 0 && daysLeft <= 7
-  return true
-}
-
-function initials(name: string | null): string {
-  if (!name) return "?"
-  const parts = name.trim().split(/\s+/)
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-}
-
-type BoardState = Record<TaskStatus, ProjectTaskRow[]>
-
-function groupTasks(tasks: ProjectTaskRow[]): BoardState {
-  const state: BoardState = { todo: [], doing: [], review: [], done: [] }
-  for (const t of tasks) state[t.status].push(t)
-  for (const key of Object.keys(state) as TaskStatus[]) {
-    state[key].sort((a, b) => a.sort_order - b.sort_order)
-  }
-  return state
-}
-
-type Action =
-  | { kind: "replace"; next: BoardState }
-  | { kind: "add"; status: TaskStatus; task: ProjectTaskRow }
-  | { kind: "remove"; taskId: string }
-
-function reducer(state: BoardState, action: Action): BoardState {
-  if (action.kind === "replace") return action.next
-  if (action.kind === "add") {
-    return {
-      ...state,
-      [action.status]: [...state[action.status], action.task],
-    }
-  }
-  if (action.kind === "remove") {
-    const next: BoardState = { todo: [], doing: [], review: [], done: [] }
-    for (const key of Object.keys(state) as TaskStatus[]) {
-      next[key] = state[key].filter((t) => t.id !== action.taskId)
-    }
-    return next
-  }
-  return state
-}
-
 type EditorState =
   | { mode: "closed" }
   | { mode: "create"; defaultStatus: TaskStatus }
@@ -244,8 +156,9 @@ export function ProjectBoard({
   currentUserId: string | null
 }) {
   const initial = useMemo(() => groupTasks(tasks), [tasks])
-  const [state, dispatch] = useOptimistic(initial, reducer)
+  const [state, dispatch] = useOptimistic(initial, boardReducer)
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [overColumn, setOverColumn] = useState<TaskStatus | null>(null)
   const [editor, setEditor] = useState<EditorState>({ mode: "closed" })
   const [assigneeFilter, setAssigneeFilter] = useState<string>(ALL)
   const [dueFilter, setDueFilter] = useState<DueFilter>("all")
@@ -299,32 +212,14 @@ export function ProjectBoard({
   }
 
   function handleDragOver(event: DragOverEvent) {
-    const { active, over } = event
-    if (!over) return
-    const activeIdStr = String(active.id)
-    const overIdStr = String(over.id)
-    const from = findContainer(activeIdStr)
-    const to = findContainer(overIdStr)
-    if (!from || !to || from === to) return
-
-    startTransition(() => {
-      const activeItem = state[from].find((t) => t.id === activeIdStr)
-      if (!activeItem) return
-      const fromList = state[from].filter((t) => t.id !== activeIdStr)
-      const toList = [...state[to]]
-      const overIndex = toList.findIndex((t) => t.id === overIdStr)
-      const insertAt = overIndex >= 0 ? overIndex : toList.length
-      toList.splice(insertAt, 0, { ...activeItem, status: to })
-      dispatch({
-        kind: "replace",
-        next: { ...state, [from]: fromList, [to]: toList },
-      })
-    })
+    const { over } = event
+    setOverColumn(over ? findContainer(String(over.id)) : null)
   }
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
     setActiveId(null)
+    setOverColumn(null)
     if (!over) return
 
     const activeIdStr = String(active.id)
@@ -333,19 +228,28 @@ export function ProjectBoard({
     const to = findContainer(overIdStr)
     if (!from || !to) return
 
-    let nextState = state
+    let nextState: BoardState = state
     if (from === to) {
       const col = state[from]
       const oldIndex = col.findIndex((t) => t.id === activeIdStr)
       const newIndex = col.findIndex((t) => t.id === overIdStr)
       if (oldIndex >= 0 && newIndex >= 0 && oldIndex !== newIndex) {
         nextState = { ...state, [from]: arrayMove(col, oldIndex, newIndex) }
-        startTransition(() => {
-          dispatch({ kind: "replace", next: nextState })
-        })
       }
+    } else {
+      const activeItem = state[from].find((t) => t.id === activeIdStr)
+      if (!activeItem) return
+      const fromList = state[from].filter((t) => t.id !== activeIdStr)
+      const toList = [...state[to]]
+      const overIndex = toList.findIndex((t) => t.id === overIdStr)
+      const insertAt = overIndex >= 0 ? overIndex : toList.length
+      toList.splice(insertAt, 0, { ...activeItem, status: to })
+      nextState = { ...state, [from]: fromList, [to]: toList }
     }
 
+    if (nextState === state) return
+
+    const snapshot = state
     const payload = (COLUMNS.map((c) => c.id) as TaskStatus[]).map(
       (status) => ({
         status,
@@ -354,18 +258,8 @@ export function ProjectBoard({
     )
 
     startTransition(async () => {
+      dispatch({ kind: "replace", next: nextState })
       const result = await reorderProjectTasks({ projectId, columns: payload })
-      if (!result.ok) {
-        toast.error(result.error)
-      }
-    })
-  }
-
-  function handleDelete(taskId: string) {
-    const snapshot = state
-    startTransition(async () => {
-      dispatch({ kind: "remove", taskId })
-      const result = await deleteProjectTask({ taskId, projectId })
       if (!result.ok) {
         toast.error(result.error)
         dispatch({ kind: "replace", next: snapshot })
@@ -373,7 +267,28 @@ export function ProjectBoard({
     })
   }
 
-  const activeTask = activeId ? taskIndex.get(activeId)?.task ?? null : null
+  // Stable handler identity so memoized task cards don't re-render on every
+  // parent re-render (filter changes, drag ticks, etc.).
+  const handleDelete = useCallback(
+    (taskId: string) => {
+      const snapshot = state
+      startTransition(async () => {
+        dispatch({ kind: "remove", taskId })
+        const result = await deleteProjectTask({ taskId, projectId })
+        if (!result.ok) {
+          toast.error(result.error)
+          dispatch({ kind: "replace", next: snapshot })
+        }
+      })
+    },
+    [state, projectId, dispatch, startTransition],
+  )
+
+  const handleOpen = useCallback((task: ProjectTaskRow) => {
+    setEditor({ mode: "edit", task })
+  }, [])
+
+  const activeTask = activeId ? (taskIndex.get(activeId)?.task ?? null) : null
 
   return (
     <section className="space-y-4">
@@ -457,7 +372,10 @@ export function ProjectBoard({
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
-        onDragCancel={() => setActiveId(null)}
+        onDragCancel={() => {
+          setActiveId(null)
+          setOverColumn(null)
+        }}
       >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
           {COLUMNS.map((col) => (
@@ -466,10 +384,11 @@ export function ProjectBoard({
               status={col.id}
               label={col.label}
               tasks={filteredState[col.id]}
+              isOver={overColumn === col.id}
               onAdd={() =>
                 setEditor({ mode: "create", defaultStatus: col.id })
               }
-              onOpen={(task) => setEditor({ mode: "edit", task })}
+              onOpen={handleOpen}
               onDelete={handleDelete}
             />
           ))}
@@ -495,6 +414,7 @@ function BoardColumn({
   status,
   label,
   tasks,
+  isOver,
   onAdd,
   onOpen,
   onDelete,
@@ -502,11 +422,12 @@ function BoardColumn({
   status: TaskStatus
   label: string
   tasks: ProjectTaskRow[]
+  isOver: boolean
   onAdd: () => void
   onOpen: (task: ProjectTaskRow) => void
   onDelete: (id: string) => void
 }) {
-  const { setNodeRef, isOver } = useSortable({
+  const { setNodeRef } = useDroppable({
     id: status,
     data: { type: "column" },
   })
@@ -529,10 +450,19 @@ function BoardColumn({
             {tasks.length}
           </span>
         </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="gap-1 text-muted-foreground hover:text-foreground"
+          onClick={onAdd}
+        >
+          <Plus aria-hidden /> Add
+        </Button>
       </div>
 
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-1 flex-col gap-2">
           {tasks.map((task) => (
             <SortableTaskCard
               key={task.id}
@@ -543,20 +473,14 @@ function BoardColumn({
           ))}
         </div>
       </SortableContext>
-
-      <Button
-        variant="ghost"
-        size="sm"
-        className="justify-start gap-2 text-muted-foreground hover:text-foreground"
-        onClick={onAdd}
-      >
-        <Plus aria-hidden /> Add task
-      </Button>
     </div>
   )
 }
 
-function SortableTaskCard({
+// Memoized: with stable onOpen/onDelete identity from the parent, a card only
+// re-renders when its own task row changes. Previously every drag tick
+// re-rendered every card on the board.
+const SortableTaskCard = memo(function SortableTaskCard({
   task,
   onOpen,
   onDelete,
@@ -591,9 +515,9 @@ function SortableTaskCard({
       <TaskCard task={task} onOpen={onOpen} onDelete={onDelete} />
     </div>
   )
-}
+})
 
-function TaskCard({
+const TaskCard = memo(function TaskCard({
   task,
   onOpen,
   onDelete,
@@ -690,7 +614,7 @@ function TaskCard({
       ) : null}
     </div>
   )
-}
+})
 
 function TaskDialog({
   state,

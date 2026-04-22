@@ -69,9 +69,6 @@ export type ProjectRow = {
   start_date: string | null
   deadline: string | null
   completed_at: string | null
-  commission_rate: number | null
-  commission_flat: number | null
-  commission_amount: number | null
   payment_status: PaymentStatus
   stripe_checkout_session_id: string | null
   paid_at: string | null

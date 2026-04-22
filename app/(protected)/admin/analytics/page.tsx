@@ -23,14 +23,13 @@ import { createClient } from "@/lib/supabase/server"
 import { cn } from "@/lib/utils"
 
 // `negotiation` is hidden from the analytics grid — its rows roll up into the
-// Proposal bucket below. The DB enum is untouched for legacy rows.
+// Proposal bucket (done in the admin_analytics_pipeline_stats view). The DB
+// enum is untouched for legacy rows.
 const STAGES: { key: ProjectStage; label: string }[] = (
   Object.keys(PROJECT_STAGE_LABEL) as ProjectStage[]
 )
   .filter((key) => key !== "negotiation")
   .map((key) => ({ key, label: PROJECT_STAGE_LABEL[key] }))
-
-const OPEN_STAGES: ProjectStage[] = ["proposal", "negotiation", "active"]
 
 const fmtMoney = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -42,12 +41,6 @@ const fmtDate = new Intl.DateTimeFormat("en-US", {
   month: "short",
   day: "numeric",
 })
-
-function daysAgo(n: number) {
-  const d = new Date()
-  d.setDate(d.getDate() - n)
-  return d.toISOString()
-}
 
 export default async function AdminAnalyticsPage() {
   const supabase = await createClient()
@@ -61,111 +54,94 @@ export default async function AdminAnalyticsPage() {
 
   if (profile?.role !== "admin") redirect("/dashboard")
 
-  const since30 = daysAgo(30)
-
-  const [
-    { data: projects },
-    { data: payments },
-    { data: subscriptions },
-    { data: profiles },
-  ] = await Promise.all([
-    supabase
-      .from("projects")
-      .select(
-        "id, stage, value, commission_amount, sold_by, payment_status, paid_at",
-      ),
+  // All aggregations are pushed into Postgres via the admin_analytics_*
+  // views (see migrations/0022). The page used to fetch every row from
+  // projects/payments/subscriptions/profiles and reduce in memory — at
+  // realistic scale that was multi-MB per page load.
+  const [kpiRes, pipelineRes, teamRes, recentPaymentsRes] = await Promise.all([
+    supabase.from("admin_analytics_kpis").select("*").maybeSingle(),
+    supabase.from("admin_analytics_pipeline_stats").select("*"),
+    supabase.from("admin_analytics_team_performance").select("*"),
     supabase
       .from("payments")
-      .select("id, amount, status, created_at, project_id")
-      .order("created_at", { ascending: false }),
-    supabase.from("subscriptions").select("id, monthly_rate, status, sold_by"),
-    supabase.from("profiles").select("id, full_name, role"),
+      .select(
+        `
+          id, amount, status, created_at,
+          project:projects!payments_project_id_fkey (stage)
+        `,
+      )
+      .order("created_at", { ascending: false })
+      .limit(8),
   ])
 
-  const projectList = projects ?? []
-  const paymentList = payments ?? []
-  const subscriptionList = subscriptions ?? []
-  const profileList = profiles ?? []
+  if (kpiRes.error) throw kpiRes.error
+  if (pipelineRes.error) throw pipelineRes.error
+  if (teamRes.error) throw teamRes.error
+  if (recentPaymentsRes.error) throw recentPaymentsRes.error
 
-  const paid30 = paymentList
-    .filter((p) => p.status === "paid" && p.created_at >= since30)
-    .reduce((sum, p) => sum + Number(p.amount), 0)
+  const kpi = kpiRes.data ?? {
+    revenue_30d: 0,
+    paid_count_30d: 0,
+    open_deal_value: 0,
+    open_deal_count: 0,
+    active_mrr: 0,
+    active_plan_count: 0,
+    deals_won_count: 0,
+  }
 
-  const paidCount30 = paymentList.filter(
-    (p) => p.status === "paid" && p.created_at >= since30,
-  ).length
-
-  const openDealValue = projectList
-    .filter((p) => OPEN_STAGES.includes(p.stage as ProjectStage))
-    .reduce((sum, p) => sum + Number(p.value ?? 0), 0)
-
-  const activeMrr = subscriptionList
-    .filter((s) => s.status === "active")
-    .reduce((sum, s) => sum + Number(s.monthly_rate), 0)
-
+  // Pipeline stats. The view returns at most one row per stage; make sure
+  // the grid always shows every UI stage in a stable order, even if a stage
+  // has zero rows.
+  const pipelineByStage = new Map<string, { count: number; value: number }>()
+  for (const row of pipelineRes.data ?? []) {
+    if (!row.stage) continue
+    pipelineByStage.set(row.stage, {
+      count: row.project_count ?? 0,
+      value: Number(row.value_total ?? 0),
+    })
+  }
   const stageBuckets = STAGES.map((s) => {
-    const inStage = projectList.filter((p) =>
-      s.key === "proposal"
-        ? p.stage === "proposal" || p.stage === "negotiation"
-        : p.stage === s.key,
-    )
+    const stats = pipelineByStage.get(s.key) ?? { count: 0, value: 0 }
+    return { ...s, count: stats.count, value: stats.value }
+  })
+  const maxStageCount = Math.max(1, ...stageBuckets.map((b) => b.count))
+
+  // Team performance. Sort matches the original page.
+  const teamRows = (teamRes.data ?? [])
+    .map((r) => ({
+      id: r.rep_id ?? "",
+      name: r.full_name ?? "Unnamed",
+      role: r.role ?? "",
+      openCount: r.open_count ?? 0,
+      openValue: Number(r.open_value ?? 0),
+      wonCount: r.won_count ?? 0,
+      commission: Number(r.commission_earned ?? 0),
+      activeMrr: Number(r.active_mrr ?? 0),
+    }))
+    .sort((a, b) => b.openValue + b.commission - (a.openValue + a.commission))
+
+  const recentPayments = (recentPaymentsRes.data ?? []).map((p) => {
+    const projectObj = Array.isArray(p.project) ? p.project[0] : p.project
     return {
-      ...s,
-      count: inStage.length,
-      value: inStage.reduce((sum, p) => sum + Number(p.value ?? 0), 0),
+      id: p.id,
+      amount: Number(p.amount),
+      status: p.status,
+      created_at: p.created_at,
+      stage: projectObj?.stage ?? null,
     }
   })
 
-  const maxStageCount = Math.max(1, ...stageBuckets.map((b) => b.count))
-
-  const reps = profileList.filter(
-    (p) => p.role === "sales_rep" || p.role === "admin",
-  )
-
-  const teamRows = reps
-    .map((rep) => {
-      const repProjects = projectList.filter((p) => p.sold_by === rep.id)
-      const open = repProjects.filter((p) =>
-        OPEN_STAGES.includes(p.stage as ProjectStage),
-      )
-      const won = repProjects.filter((p) => p.stage === "completed")
-      const commissionEarned = won.reduce(
-        (sum, p) => sum + Number(p.commission_amount ?? 0),
-        0,
-      )
-      const repSubs = subscriptionList.filter(
-        (s) => s.sold_by === rep.id && s.status === "active",
-      )
-      const repMrr = repSubs.reduce(
-        (sum, s) => sum + Number(s.monthly_rate),
-        0,
-      )
-      return {
-        id: rep.id,
-        name: rep.full_name ?? "Unnamed",
-        role: rep.role,
-        openCount: open.length,
-        openValue: open.reduce((sum, p) => sum + Number(p.value ?? 0), 0),
-        wonCount: won.length,
-        commission: commissionEarned,
-        activeMrr: repMrr,
-      }
-    })
-    .filter(
-      (r) =>
-        r.openCount > 0 || r.wonCount > 0 || r.activeMrr > 0 || r.commission > 0,
-    )
-    .sort((a, b) => b.openValue + b.commission - (a.openValue + a.commission))
-
-  const recentPayments = paymentList.slice(0, 8)
-  const projectById = new Map(projectList.map((p) => [p.id, p]))
+  const paid30 = Number(kpi.revenue_30d ?? 0)
+  const paidCount30 = kpi.paid_count_30d ?? 0
+  const openDealValue = Number(kpi.open_deal_value ?? 0)
+  const openDealCount = kpi.open_deal_count ?? 0
+  const activeMrr = Number(kpi.active_mrr ?? 0)
+  const activePlanCount = kpi.active_plan_count ?? 0
+  const dealsWonCount = kpi.deals_won_count ?? 0
 
   return (
     <div className="space-y-10">
-      <PageHeader
-        eyebrow="Admin"
-        title="Analytics"
-      />
+      <PageHeader eyebrow="Admin" title="Analytics" />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
@@ -176,20 +152,16 @@ export default async function AdminAnalyticsPage() {
         <KpiCard
           label="Open Deal Value"
           value={fmtMoney.format(openDealValue)}
-          footer={`${stageBuckets
-            .filter((s) => OPEN_STAGES.includes(s.key))
-            .reduce((sum, s) => sum + s.count, 0)} deals in flight`}
+          footer={`${openDealCount} deals in flight`}
         />
         <KpiCard
           label="Active MRR"
           value={fmtMoney.format(activeMrr)}
-          footer={`${subscriptionList.filter((s) => s.status === "active").length} active plans`}
+          footer={`${activePlanCount} active plans`}
         />
         <KpiCard
           label="Deals Won"
-          value={String(
-            projectList.filter((p) => p.stage === "completed").length,
-          )}
+          value={String(dealsWonCount)}
           footer="All time"
         />
       </div>
@@ -258,36 +230,33 @@ export default async function AdminAnalyticsPage() {
               <DataTableEmpty>No payments recorded yet.</DataTableEmpty>
             ) : (
               <DataTableBody>
-                {recentPayments.map((p) => {
-                  const proj = projectById.get(p.project_id)
-                  return (
-                    <DataTableRow key={p.id}>
-                      <DataTableCell>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium tabular-nums">
-                            {fmtMoney.format(Number(p.amount))}
-                          </p>
-                          <p className="mt-1 flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
-                            {fmtDate.format(new Date(p.created_at))}
-                            <Dot />
-                            {proj?.stage ?? "—"}
-                          </p>
-                        </div>
-                      </DataTableCell>
-                      <DataTableCell align="end">
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "border-transparent uppercase",
-                            paymentStatusBadgeClass(p.status),
-                          )}
-                        >
-                          {paymentStatusLabel(p.status)}
-                        </Badge>
-                      </DataTableCell>
-                    </DataTableRow>
-                  )
-                })}
+                {recentPayments.map((p) => (
+                  <DataTableRow key={p.id}>
+                    <DataTableCell>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium tabular-nums">
+                          {fmtMoney.format(p.amount)}
+                        </p>
+                        <p className="mt-1 flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
+                          {fmtDate.format(new Date(p.created_at))}
+                          <Dot />
+                          {p.stage ?? "—"}
+                        </p>
+                      </div>
+                    </DataTableCell>
+                    <DataTableCell align="end">
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "border-transparent uppercase",
+                          paymentStatusBadgeClass(p.status),
+                        )}
+                      >
+                        {paymentStatusLabel(p.status)}
+                      </Badge>
+                    </DataTableCell>
+                  </DataTableRow>
+                ))}
               </DataTableBody>
             )}
           </DataTable>
@@ -296,9 +265,7 @@ export default async function AdminAnalyticsPage() {
 
       <section className="border border-border/60">
         <header className="border-b border-border/60 p-6">
-          <h2 className="font-heading text-lg font-medium">
-            Team performance
-          </h2>
+          <h2 className="font-heading text-lg font-medium">Team performance</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {teamRows.length} contributors with open or closed work.
           </p>
@@ -327,7 +294,10 @@ export default async function AdminAnalyticsPage() {
               </thead>
               <tbody>
                 {teamRows.map((r) => (
-                  <tr key={r.id} className="border-b border-border/60 last:border-0">
+                  <tr
+                    key={r.id}
+                    className="border-b border-border/60 last:border-0"
+                  >
                     <td className="px-6 py-4">
                       <div className="font-medium">{r.name}</div>
                       <div className="text-overline uppercase text-muted-foreground">

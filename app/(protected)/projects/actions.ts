@@ -177,8 +177,6 @@ export async function createNewProject(
   const productType = parseProductType(str(formData, "product_type"))
 
   const value = num(formData, "value")
-  const commissionRate = num(formData, "commission_rate")
-  const commissionFlat = num(formData, "commission_flat")
   const depositRate = num(formData, "deposit_rate")
   const financingEnabled =
     bool(formData, "financing_enabled") &&
@@ -203,8 +201,6 @@ export async function createNewProject(
       payment_status: paymentStatus,
       product_type: productType,
       value,
-      commission_rate: commissionFlat != null ? null : commissionRate,
-      commission_flat: commissionFlat,
       deposit_rate: depositRate ?? undefined,
       financing_enabled: financingEnabled,
       start_date: startDate,
@@ -275,8 +271,6 @@ export async function updateProject(
   const productType = parseProductType(str(formData, "product_type"))
 
   const value = num(formData, "value")
-  const commissionRate = num(formData, "commission_rate")
-  const commissionFlat = num(formData, "commission_flat")
   const depositRate = num(formData, "deposit_rate")
   const financingEnabled =
     bool(formData, "financing_enabled") &&
@@ -301,8 +295,6 @@ export async function updateProject(
       payment_status: paymentStatus,
       product_type: productType,
       value,
-      commission_rate: commissionFlat != null ? null : commissionRate,
-      commission_flat: commissionFlat,
       deposit_rate: depositRate ?? undefined,
       financing_enabled: financingEnabled,
       start_date: startDate,

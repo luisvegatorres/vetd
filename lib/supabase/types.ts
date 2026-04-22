@@ -80,6 +80,13 @@ export type Database = {
             foreignKeyName: "clients_assigned_to_fkey"
             columns: ["assigned_to"]
             isOneToOne: false
+            referencedRelation: "admin_analytics_team_performance"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "clients_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -135,6 +142,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interactions_logged_by_fkey"
+            columns: ["logged_by"]
+            isOneToOne: false
+            referencedRelation: "admin_analytics_team_performance"
+            referencedColumns: ["rep_id"]
           },
           {
             foreignKeyName: "interactions_logged_by_fkey"
@@ -244,7 +258,6 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
-          default_commission_rate: number | null
           employment_status: Database["public"]["Enums"]["employment_status"]
           full_name: string | null
           id: string
@@ -252,7 +265,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          default_commission_rate?: number | null
           employment_status?: Database["public"]["Enums"]["employment_status"]
           full_name?: string | null
           id: string
@@ -260,13 +272,70 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          default_commission_rate?: number | null
           employment_status?: Database["public"]["Enums"]["employment_status"]
           full_name?: string | null
           id?: string
           role?: Database["public"]["Enums"]["user_role"]
         }
         Relationships: []
+      }
+      project_commission_ledger: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          notes: string | null
+          paid_at: string | null
+          project_id: string
+          rep_id: string
+          status: Database["public"]["Enums"]["commission_ledger_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          project_id: string
+          rep_id: string
+          status?: Database["public"]["Enums"]["commission_ledger_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          project_id?: string
+          rep_id?: string
+          status?: Database["public"]["Enums"]["commission_ledger_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_commission_ledger_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_commission_ledger_rep_id_fkey"
+            columns: ["rep_id"]
+            isOneToOne: false
+            referencedRelation: "admin_analytics_team_performance"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "project_commission_ledger_rep_id_fkey"
+            columns: ["rep_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       project_tasks: {
         Row: {
@@ -316,8 +385,22 @@ export type Database = {
             foreignKeyName: "project_tasks_assigned_to_fkey"
             columns: ["assigned_to"]
             isOneToOne: false
+            referencedRelation: "admin_analytics_team_performance"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "project_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_analytics_team_performance"
+            referencedColumns: ["rep_id"]
           },
           {
             foreignKeyName: "project_tasks_created_by_fkey"
@@ -338,9 +421,6 @@ export type Database = {
       projects: {
         Row: {
           client_id: string
-          commission_amount: number | null
-          commission_flat: number | null
-          commission_rate: number | null
           completed_at: string | null
           created_at: string
           currency: string
@@ -367,9 +447,6 @@ export type Database = {
         }
         Insert: {
           client_id: string
-          commission_amount?: number | null
-          commission_flat?: number | null
-          commission_rate?: number | null
           completed_at?: string | null
           created_at?: string
           currency?: string
@@ -396,9 +473,6 @@ export type Database = {
         }
         Update: {
           client_id?: string
-          commission_amount?: number | null
-          commission_flat?: number | null
-          commission_rate?: number | null
           completed_at?: string | null
           created_at?: string
           currency?: string
@@ -430,6 +504,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_sold_by_fkey"
+            columns: ["sold_by"]
+            isOneToOne: false
+            referencedRelation: "admin_analytics_team_performance"
+            referencedColumns: ["rep_id"]
           },
           {
             foreignKeyName: "projects_sold_by_fkey"
@@ -493,7 +574,6 @@ export type Database = {
           amount: number
           created_at: string
           id: string
-          kind: Database["public"]["Enums"]["commission_kind"]
           notes: string | null
           paid_at: string | null
           period_month: string | null
@@ -506,7 +586,6 @@ export type Database = {
           amount: number
           created_at?: string
           id?: string
-          kind: Database["public"]["Enums"]["commission_kind"]
           notes?: string | null
           paid_at?: string | null
           period_month?: string | null
@@ -519,7 +598,6 @@ export type Database = {
           amount?: number
           created_at?: string
           id?: string
-          kind?: Database["public"]["Enums"]["commission_kind"]
           notes?: string | null
           paid_at?: string | null
           period_month?: string | null
@@ -529,6 +607,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "subscription_commission_ledger_rep_id_fkey"
+            columns: ["rep_id"]
+            isOneToOne: false
+            referencedRelation: "admin_analytics_team_performance"
+            referencedColumns: ["rep_id"]
+          },
           {
             foreignKeyName: "subscription_commission_ledger_rep_id_fkey"
             columns: ["rep_id"]
@@ -615,7 +700,6 @@ export type Database = {
           plan: string
           product: string
           project_id: string | null
-          signing_bonus_amount: number | null
           sold_by: string | null
           started_at: string
           status: Database["public"]["Enums"]["subscription_status"]
@@ -638,7 +722,6 @@ export type Database = {
           plan: string
           product: string
           project_id?: string | null
-          signing_bonus_amount?: number | null
           sold_by?: string | null
           started_at: string
           status?: Database["public"]["Enums"]["subscription_status"]
@@ -661,7 +744,6 @@ export type Database = {
           plan?: string
           product?: string
           project_id?: string | null
-          signing_bonus_amount?: number | null
           sold_by?: string | null
           started_at?: string
           status?: Database["public"]["Enums"]["subscription_status"]
@@ -690,6 +772,13 @@ export type Database = {
             foreignKeyName: "subscriptions_sold_by_fkey"
             columns: ["sold_by"]
             isOneToOne: false
+            referencedRelation: "admin_analytics_team_performance"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "subscriptions_sold_by_fkey"
+            columns: ["sold_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -697,7 +786,58 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      admin_analytics_kpis: {
+        Row: {
+          active_mrr: number | null
+          active_plan_count: number | null
+          deals_won_count: number | null
+          open_deal_count: number | null
+          open_deal_value: number | null
+          paid_count_30d: number | null
+          revenue_30d: number | null
+        }
+        Relationships: []
+      }
+      admin_analytics_pipeline_stats: {
+        Row: {
+          project_count: number | null
+          stage: string | null
+          value_total: number | null
+        }
+        Relationships: []
+      }
+      admin_rep_activity: {
+        Row: {
+          active_mrr: number | null
+          active_subs_count: number | null
+          employment_status: string | null
+          full_name: string | null
+          interactions_30d: number | null
+          interactions_60d: number | null
+          joined_at: string | null
+          last_interaction_at: string | null
+          new_leads_30d: number | null
+          new_leads_60d: number | null
+          new_mrr_90d: number | null
+          new_subs_90d: number | null
+          rep_id: string | null
+          role: string | null
+        }
+        Relationships: []
+      }
+      admin_analytics_team_performance: {
+        Row: {
+          active_mrr: number | null
+          commission_earned: number | null
+          full_name: string | null
+          open_count: number | null
+          open_value: number | null
+          rep_id: string | null
+          role: string | null
+          won_count: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       auth_role: {
@@ -721,7 +861,6 @@ export type Database = {
         | "active_client"
         | "archived"
         | "lost"
-      commission_kind: "signing_bonus" | "monthly_residual"
       commission_ledger_status: "pending" | "paid" | "voided"
       employment_status: "active" | "terminated"
       interaction_type:
@@ -883,7 +1022,6 @@ export const Constants = {
         "other",
       ],
       client_status: ["lead", "qualified", "active_client", "archived", "lost"],
-      commission_kind: ["signing_bonus", "monthly_residual"],
       commission_ledger_status: ["pending", "paid", "voided"],
       employment_status: ["active", "terminated"],
       interaction_type: [

@@ -8,11 +8,20 @@ export type MarkLedgerResult =
   | { ok: true }
   | { ok: false; error: string }
 
+type LedgerSource = "subscription" | "project"
+
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
+function tableFor(source: LedgerSource) {
+  return source === "project"
+    ? "project_commission_ledger"
+    : "subscription_commission_ledger"
+}
+
 export async function markCommissionPaid(
   ledgerId: string,
+  source: LedgerSource = "subscription",
 ): Promise<MarkLedgerResult> {
   if (!UUID_RE.test(ledgerId)) return { ok: false, error: "Invalid id" }
 
@@ -30,7 +39,7 @@ export async function markCommissionPaid(
   }
 
   const { error } = await supabase
-    .from("subscription_commission_ledger")
+    .from(tableFor(source))
     .update({ status: "paid", paid_at: new Date().toISOString() })
     .eq("id", ledgerId)
   if (error) return { ok: false, error: error.message }
@@ -42,6 +51,7 @@ export async function markCommissionPaid(
 export async function voidCommission(
   ledgerId: string,
   notes: string | null,
+  source: LedgerSource = "subscription",
 ): Promise<MarkLedgerResult> {
   if (!UUID_RE.test(ledgerId)) return { ok: false, error: "Invalid id" }
 
@@ -59,7 +69,7 @@ export async function voidCommission(
   }
 
   const { error } = await supabase
-    .from("subscription_commission_ledger")
+    .from(tableFor(source))
     .update({ status: "voided", notes })
     .eq("id", ledgerId)
   if (error) return { ok: false, error: error.message }

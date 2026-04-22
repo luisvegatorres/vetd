@@ -87,11 +87,11 @@ export default async function DashboardPage() {
       .gte("created_at", prevMonthStart.toISOString())
       .lt("created_at", monthStart.toISOString()),
     supabase
-      .from("projects")
-      .select("commission_amount, sold_by")
-      .eq("payment_status", "paid")
-      .gte("paid_at", monthStart.toISOString())
-      .lt("paid_at", nextMonthStart.toISOString()),
+      .from("project_commission_ledger")
+      .select("amount, rep_id")
+      .eq("status", "pending")
+      .gte("created_at", monthStart.toISOString())
+      .lt("created_at", nextMonthStart.toISOString()),
     supabase
       .from("clients")
       .select("status")
@@ -137,11 +137,11 @@ export default async function DashboardPage() {
 
   const commissionsRows = commissionsRes.data ?? []
   const commissionsOwed = commissionsRows.reduce(
-    (sum, r) => sum + Number(r.commission_amount ?? 0),
+    (sum, r) => sum + Number(r.amount ?? 0),
     0,
   )
   const commissionRepCount = new Set(
-    commissionsRows.map((r) => r.sold_by).filter(Boolean),
+    commissionsRows.map((r) => r.rep_id).filter(Boolean),
   ).size
 
   const closedClients = clientsClosedRes.data ?? []

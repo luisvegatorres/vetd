@@ -26,14 +26,14 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { markCommissionPaid } from "@/app/(protected)/commissions/actions"
+import { COMMISSION_RATE } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
-type LedgerKind = "signing_bonus" | "monthly_residual"
 type LedgerStatus = "pending" | "paid" | "voided"
+type LedgerSource = "subscription" | "project"
 
-type LedgerRow = {
+type SubLedgerRow = {
   id: string
-  kind: LedgerKind
   period_month: string | null
   amount: number
   status: LedgerStatus
@@ -42,6 +42,29 @@ type LedgerRow = {
   notes: string | null
   rep_id: string
   subscription_id: string
+}
+
+type ProjectLedgerRow = {
+  id: string
+  amount: number
+  status: LedgerStatus
+  paid_at: string | null
+  created_at: string
+  notes: string | null
+  rep_id: string
+  project_id: string
+}
+
+type MergedLedgerRow = {
+  id: string
+  source: LedgerSource
+  amount: number
+  status: LedgerStatus
+  paid_at: string | null
+  created_at: string
+  period_month: string | null
+  rep_id: string
+  clientLabel: string
 }
 
 type ProfileRow = {
@@ -56,12 +79,18 @@ type SubscriptionRow = {
   plan: string
   monthly_rate: number
   monthly_residual_amount: number | null
-  signing_bonus_amount: number | null
   status: "active" | "at_risk" | "canceled"
   started_at: string
   sold_by: string | null
   client_id: string
   first_payment_at: string | null
+}
+
+type ProjectRow = {
+  id: string
+  title: string
+  value: number | null
+  client_id: string
 }
 
 type ClientRow = { id: string; name: string; company: string | null }
@@ -83,15 +112,15 @@ const fmtPeriod = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 })
 
-const KIND_LABEL: Record<LedgerKind, string> = {
-  signing_bonus: "Signing bonus",
-  monthly_residual: "Monthly residual",
-}
-
 const STATUS_LABEL: Record<LedgerStatus, string> = {
   pending: "Pending",
   paid: "Paid",
   voided: "Voided",
+}
+
+const SOURCE_LABEL: Record<LedgerSource, string> = {
+  subscription: "Monthly residual",
+  project: "Project sale",
 }
 
 const STATUS_FILTERS: { value: "all" | LedgerStatus; label: string }[] = [
@@ -107,17 +136,21 @@ function clientLabel(client: ClientRow | undefined): string {
 }
 
 export function CommissionsView({
-  ledger,
+  subLedger,
+  projectLedger,
   profiles,
   subscriptions,
+  projects,
   clients,
   assignedClientsCount = 0,
   currentUserId,
   isAdmin,
 }: {
-  ledger: LedgerRow[]
+  subLedger: SubLedgerRow[]
+  projectLedger: ProjectLedgerRow[]
   profiles: ProfileRow[]
   subscriptions: SubscriptionRow[]
+  projects: ProjectRow[]
   clients: ClientRow[]
   assignedClientsCount?: number
   currentUserId: string
@@ -138,33 +171,73 @@ export function CommissionsView({
     () => new Map(subscriptions.map((s) => [s.id, s])),
     [subscriptions],
   )
+  const projectMap = useMemo(
+    () => new Map(projects.map((p) => [p.id, p])),
+    [projects],
+  )
   const clientMap = useMemo(
     () => new Map(clients.map((c) => [c.id, c])),
     [clients],
   )
 
+  const mergedLedger = useMemo<MergedLedgerRow[]>(() => {
+    const subRows: MergedLedgerRow[] = subLedger.map((row) => {
+      const sub = subscriptionMap.get(row.subscription_id)
+      const client = sub ? clientMap.get(sub.client_id) : undefined
+      return {
+        id: `sub:${row.id}`,
+        source: "subscription",
+        amount: Number(row.amount),
+        status: row.status,
+        paid_at: row.paid_at,
+        created_at: row.created_at,
+        period_month: row.period_month,
+        rep_id: row.rep_id,
+        clientLabel: clientLabel(client),
+      }
+    })
+    const projectRows: MergedLedgerRow[] = projectLedger.map((row) => {
+      const project = projectMap.get(row.project_id)
+      const client = project ? clientMap.get(project.client_id) : undefined
+      return {
+        id: `proj:${row.id}`,
+        source: "project",
+        amount: Number(row.amount),
+        status: row.status,
+        paid_at: row.paid_at,
+        created_at: row.created_at,
+        period_month: null,
+        rep_id: row.rep_id,
+        clientLabel: clientLabel(client),
+      }
+    })
+    return [...subRows, ...projectRows].sort((a, b) =>
+      b.created_at.localeCompare(a.created_at),
+    )
+  }, [subLedger, projectLedger, subscriptionMap, projectMap, clientMap])
+
   const filteredLedger = useMemo(() => {
-    return ledger.filter((row) => {
+    return mergedLedger.filter((row) => {
       if (statusFilter !== "all" && row.status !== statusFilter) return false
       if (isAdmin && repFilter !== "all" && row.rep_id !== repFilter) {
         return false
       }
       return true
     })
-  }, [ledger, statusFilter, repFilter, isAdmin])
+  }, [mergedLedger, statusFilter, repFilter, isAdmin])
 
   const totals = useMemo(() => {
     const scope = isAdmin
-      ? ledger
-      : ledger.filter((r) => r.rep_id === currentUserId)
+      ? mergedLedger
+      : mergedLedger.filter((r) => r.rep_id === currentUserId)
     const pending = scope
       .filter((r) => r.status === "pending")
-      .reduce((sum, r) => sum + Number(r.amount), 0)
+      .reduce((sum, r) => sum + r.amount, 0)
     const paid = scope
       .filter((r) => r.status === "paid")
-      .reduce((sum, r) => sum + Number(r.amount), 0)
+      .reduce((sum, r) => sum + r.amount, 0)
     return { pending, paid }
-  }, [ledger, isAdmin, currentUserId])
+  }, [mergedLedger, isAdmin, currentUserId])
 
   const myActiveSubs = useMemo(
     () =>
@@ -197,13 +270,13 @@ export function CommissionsView({
           (sum, s) => sum + Number(s.monthly_residual_amount ?? 0),
           0,
         )
-        const repLedger = ledger.filter((l) => l.rep_id === p.id)
+        const repLedger = mergedLedger.filter((l) => l.rep_id === p.id)
         const pending = repLedger
           .filter((l) => l.status === "pending")
-          .reduce((sum, l) => sum + Number(l.amount), 0)
+          .reduce((sum, l) => sum + l.amount, 0)
         const paid = repLedger
           .filter((l) => l.status === "paid")
-          .reduce((sum, l) => sum + Number(l.amount), 0)
+          .reduce((sum, l) => sum + l.amount, 0)
         return {
           id: p.id,
           name: p.full_name ?? "Unnamed",
@@ -218,7 +291,7 @@ export function CommissionsView({
       })
       .filter((r) => r.touched || r.employment === "active")
       .sort((a, b) => b.mrc + b.pending - (a.mrc + a.pending))
-  }, [isAdmin, profiles, subscriptions, ledger])
+  }, [isAdmin, profiles, subscriptions, mergedLedger])
 
   const teamMrc = useMemo(
     () => teamRollup.reduce((sum, r) => sum + r.mrc, 0),
@@ -232,10 +305,9 @@ export function CommissionsView({
       .filter((s) => s.sold_by === myId)
       .map((s) => {
         const client = clientMap.get(s.client_id)
-        const ledgerRows = ledger.filter((l) => l.subscription_id === s.id)
-        const monthsPaid = ledgerRows.filter(
-          (l) => l.kind === "monthly_residual" && l.status !== "voided",
-        ).length
+        const ledgerRows = subLedger.filter((l) => l.subscription_id === s.id)
+        const monthsPaid = ledgerRows.filter((l) => l.status !== "voided")
+          .length
         const totalEarned = ledgerRows
           .filter((l) => l.status !== "voided")
           .reduce((sum, l) => sum + Number(l.amount), 0)
@@ -253,12 +325,16 @@ export function CommissionsView({
         }
       })
       .sort((a, b) => b.startedAt.localeCompare(a.startedAt))
-  }, [subscriptions, ledger, currentUserId, clientMap])
+  }, [subscriptions, subLedger, currentUserId, clientMap])
 
-  function handleMarkPaid(id: string) {
-    setPendingId(id)
+  function handleMarkPaid(rowId: string) {
+    // rowId is prefixed "sub:<id>" or "proj:<id>" — strip the prefix and pass
+    // the kind so the server action knows which table to update.
+    const [prefix, id] = rowId.split(":")
+    const source: LedgerSource = prefix === "proj" ? "project" : "subscription"
+    setPendingId(rowId)
     startTransition(async () => {
-      const result = await markCommissionPaid(id)
+      const result = await markCommissionPaid(id, source)
       if (result.ok) {
         toast.success("Marked as paid")
       } else {
@@ -479,8 +555,8 @@ export function CommissionsView({
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
               {isAdmin
-                ? "Every signing bonus and monthly residual generated by Stripe webhook events."
-                : "Every signing bonus and monthly residual you've earned."}
+                ? "Every project sale and monthly residual generated by Stripe webhook events."
+                : "Every project sale and monthly residual you've earned."}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -542,17 +618,17 @@ export function CommissionsView({
         <DataTable
           cols={
             isAdmin
-              ? "minmax(180px,1.6fr) minmax(100px,0.7fr) minmax(140px,1.2fr) minmax(120px,1fr) minmax(110px,1fr) minmax(70px,0.6fr) minmax(120px,1fr)"
-              : "minmax(180px,1.6fr) minmax(100px,0.7fr) minmax(120px,1fr) minmax(110px,1fr) minmax(70px,0.6fr) minmax(120px,1fr)"
+              ? "minmax(180px,1.6fr) minmax(120px,1fr) minmax(140px,1.2fr) minmax(120px,1fr) minmax(110px,1fr) minmax(70px,0.6fr) minmax(120px,1fr)"
+              : "minmax(180px,1.6fr) minmax(120px,1fr) minmax(120px,1fr) minmax(110px,1fr) minmax(70px,0.6fr) minmax(120px,1fr)"
           }
         >
           <DataTableHeader>
             <DataTableHead>Client</DataTableHead>
-            <DataTableHead>Subscription</DataTableHead>
-            {isAdmin ? <DataTableHead>Rep</DataTableHead> : null}
             <DataTableHead>Type</DataTableHead>
+            {isAdmin ? <DataTableHead>Rep</DataTableHead> : null}
+            <DataTableHead>Base</DataTableHead>
+            <DataTableHead>Amount</DataTableHead>
             <DataTableHead>Period</DataTableHead>
-            <DataTableHead align="end">Amount</DataTableHead>
             <DataTableHead align="end">Status</DataTableHead>
           </DataTableHeader>
           {filteredLedger.length === 0 ? (
@@ -562,24 +638,16 @@ export function CommissionsView({
           ) : (
             <DataTableBody>
               {filteredLedger.map((row) => {
-                const sub = subscriptionMap.get(row.subscription_id)
-                const client = sub ? clientMap.get(sub.client_id) : undefined
                 const rep = profileMap.get(row.rep_id)
                 return (
                   <DataTableRow key={row.id}>
                     <DataTableCell>
                       <span className="truncate text-sm font-medium">
-                        {clientLabel(client)}
+                        {row.clientLabel}
                       </span>
                     </DataTableCell>
                     <DataTableCell>
-                      {sub?.plan ? (
-                        <Badge variant="outline" className="uppercase">
-                          {sub.plan}
-                        </Badge>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      )}
+                      <span className="text-sm">{SOURCE_LABEL[row.source]}</span>
                     </DataTableCell>
                     {isAdmin ? (
                       <DataTableCell>
@@ -589,18 +657,28 @@ export function CommissionsView({
                       </DataTableCell>
                     ) : null}
                     <DataTableCell>
-                      <span className="text-sm">{KIND_LABEL[row.kind]}</span>
+                      <span
+                        className="text-sm tabular-nums text-muted-foreground"
+                        title={
+                          row.source === "subscription"
+                            ? "Monthly rate — commission is 10% of this"
+                            : "Project value — commission is 10% of this"
+                        }
+                      >
+                        {fmtMoney.format(row.amount / COMMISSION_RATE)}
+                        {row.source === "subscription" ? "/mo" : ""}
+                      </span>
+                    </DataTableCell>
+                    <DataTableCell>
+                      <span className="text-sm font-medium tabular-nums">
+                        {fmtMoney.format(row.amount)}
+                      </span>
                     </DataTableCell>
                     <DataTableCell>
                       <span className="text-sm tabular-nums">
                         {row.period_month
                           ? fmtPeriod.format(new Date(row.period_month))
                           : fmtDate.format(new Date(row.created_at))}
-                      </span>
-                    </DataTableCell>
-                    <DataTableCell align="end">
-                      <span className="text-sm font-medium tabular-nums">
-                        {fmtMoney.format(Number(row.amount))}
                       </span>
                     </DataTableCell>
                     <DataTableCell align="end">

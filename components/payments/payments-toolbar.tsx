@@ -1,10 +1,12 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
-import { Search, SlidersHorizontal } from "lucide-react"
+import { CalendarIcon, Search, SlidersHorizontal, X } from "lucide-react"
 import * as React from "react"
+import type { DateRange } from "react-day-picker"
 
 import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
 import {
   InputGroup,
   InputGroupAddon,
@@ -31,6 +33,35 @@ import {
   type PaymentSort,
   type PaymentStatusFilter,
 } from "./payment-types"
+
+function parseIsoDate(iso: string | null | undefined): Date | undefined {
+  if (!iso) return undefined
+  const [y, m, d] = iso.split("-").map(Number)
+  if (!y || !m || !d) return undefined
+  return new Date(y, m - 1, d)
+}
+
+function toIsoDate(date: Date | undefined): string {
+  if (!date) return ""
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, "0")
+  const d = String(date.getDate()).padStart(2, "0")
+  return `${y}-${m}-${d}`
+}
+
+function formatRangeLabel(from?: Date, to?: Date): string {
+  if (!from && !to) return "All time"
+  const short = (d: Date) =>
+    d.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+  if (from && to) {
+    const sameYear = from.getFullYear() === to.getFullYear()
+    const thisYear = new Date().getFullYear() === to.getFullYear()
+    const suffix = sameYear && !thisYear ? `, ${to.getFullYear()}` : ""
+    return `${short(from)} – ${short(to)}${suffix}`
+  }
+  const only = (from ?? to)!
+  return `From ${short(only)}`
+}
 
 function usePaymentsNav() {
   const router = useRouter()
@@ -77,6 +108,102 @@ export function PaymentsSearch({ q }: { q: string }) {
         className="text-sm"
       />
     </InputGroup>
+  )
+}
+
+export function PaymentsDateRange({
+  from,
+  to,
+}: {
+  from: string
+  to: string
+}) {
+  const pushWith = usePaymentsNav()
+  const fromDate = parseIsoDate(from)
+  const toDate = parseIsoDate(to)
+  const hasRange = Boolean(fromDate || toDate)
+  const label = formatRangeLabel(fromDate, toDate)
+
+  const [range, setRange] = React.useState<DateRange | undefined>(() =>
+    fromDate || toDate ? { from: fromDate, to: toDate } : undefined
+  )
+
+  // Re-seed local state if the URL changes (e.g. clear button, deep link).
+  React.useEffect(() => {
+    setRange(
+      fromDate || toDate ? { from: fromDate, to: toDate } : undefined
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [from, to])
+
+  // Push to URL only when both endpoints are picked AND differ from URL state.
+  // This prevents partial (one-click) selections from firing navigation.
+  React.useEffect(() => {
+    if (!range?.from || !range?.to) return
+    const nextFrom = toIsoDate(range.from)
+    const nextTo = toIsoDate(range.to)
+    if (nextFrom === from && nextTo === to) return
+    pushWith((params) => {
+      params.set("from", nextFrom)
+      params.set("to", nextTo)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [range])
+
+  function clear(event: React.MouseEvent) {
+    event.stopPropagation()
+    setRange(undefined)
+    pushWith((params) => {
+      params.delete("from")
+      params.delete("to")
+    })
+  }
+
+  return (
+    <Popover>
+      <PopoverTrigger
+        render={
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn(
+              "h-8 gap-2 font-normal",
+              !hasRange && "text-muted-foreground"
+            )}
+          >
+            <CalendarIcon aria-hidden className="size-3.5" />
+            <span>{label}</span>
+            {hasRange ? (
+              <span
+                role="button"
+                aria-label="Clear date range"
+                tabIndex={0}
+                onClick={clear}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault()
+                    clear(e as unknown as React.MouseEvent)
+                  }
+                }}
+                className="-mr-1 inline-flex size-4 items-center justify-center text-muted-foreground hover:text-foreground"
+              >
+                <X aria-hidden className="size-3" />
+              </span>
+            ) : null}
+          </Button>
+        }
+      />
+      <PopoverContent align="end" className="w-auto p-0">
+        <Calendar
+          mode="range"
+          defaultMonth={range?.from ?? fromDate ?? new Date()}
+          selected={range}
+          onSelect={setRange}
+          numberOfMonths={2}
+          disabled={(date) => date > new Date()}
+        />
+      </PopoverContent>
+    </Popover>
   )
 }
 
