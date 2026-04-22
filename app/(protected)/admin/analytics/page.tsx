@@ -58,7 +58,25 @@ export default async function AdminAnalyticsPage() {
   // views (see migrations/0022). The page used to fetch every row from
   // projects/payments/subscriptions/profiles and reduce in memory — at
   // realistic scale that was multi-MB per page load.
-  const [kpiRes, pipelineRes, teamRes, recentPaymentsRes] = await Promise.all([
+  const WEEKS = 8
+  const now = new Date()
+  const startOfDay = new Date(now)
+  startOfDay.setHours(0, 0, 0, 0)
+  const trendStart = new Date(startOfDay)
+  trendStart.setDate(trendStart.getDate() - WEEKS * 7)
+  const revenueWindowStart = new Date(startOfDay)
+  revenueWindowStart.setDate(revenueWindowStart.getDate() - 30)
+
+  const [
+    kpiRes,
+    pipelineRes,
+    teamRes,
+    recentPaymentsRes,
+    revenueTrendRes,
+    openDealsTrendRes,
+    newMrrTrendRes,
+    dealsWonTrendRes,
+  ] = await Promise.all([
     supabase.from("admin_analytics_kpis").select("*").maybeSingle(),
     supabase.from("admin_analytics_pipeline_stats").select("*"),
     supabase.from("admin_analytics_team_performance").select("*"),
@@ -72,6 +90,26 @@ export default async function AdminAnalyticsPage() {
       )
       .order("created_at", { ascending: false })
       .limit(8),
+    supabase
+      .from("payments")
+      .select("amount, created_at")
+      .in("status", ["paid", "succeeded"])
+      .gte("created_at", revenueWindowStart.toISOString()),
+    supabase
+      .from("projects")
+      .select("value, created_at")
+      .in("stage", ["proposal", "negotiation", "active"])
+      .gte("created_at", trendStart.toISOString()),
+    supabase
+      .from("subscriptions")
+      .select("monthly_rate, first_payment_at")
+      .eq("status", "active")
+      .gte("first_payment_at", trendStart.toISOString()),
+    supabase
+      .from("projects")
+      .select("updated_at")
+      .eq("stage", "won")
+      .gte("updated_at", trendStart.toISOString()),
   ])
 
   if (kpiRes.error) throw kpiRes.error
@@ -131,6 +169,59 @@ export default async function AdminAnalyticsPage() {
     }
   })
 
+  const weekBuckets = Array.from({ length: WEEKS }, (_, i) => {
+    const start = new Date(startOfDay)
+    start.setDate(start.getDate() - (WEEKS - i) * 7)
+    const end = new Date(start)
+    end.setDate(end.getDate() + 7)
+    return { start: start.getTime(), end: end.getTime() }
+  })
+
+  const bucketByWeek = <T,>(
+    rows: T[],
+    getDate: (r: T) => string | null | undefined,
+    getValue: (r: T) => number,
+  ) => {
+    const sums = new Array(WEEKS).fill(0)
+    for (const r of rows) {
+      const raw = getDate(r)
+      if (!raw) continue
+      const t = new Date(raw).getTime()
+      const idx = weekBuckets.findIndex((b) => t >= b.start && t < b.end)
+      if (idx >= 0) sums[idx] += getValue(r)
+    }
+    return sums
+  }
+
+  const revenueTrend = new Array(30).fill(0)
+  for (const p of revenueTrendRes.data ?? []) {
+    if (!p.created_at) continue
+    const diffDays = Math.floor(
+      (startOfDay.getTime() - new Date(p.created_at).getTime()) /
+        (1000 * 60 * 60 * 24),
+    )
+    const idx = 29 - diffDays
+    if (idx >= 0 && idx < 30) revenueTrend[idx] += Number(p.amount ?? 0)
+  }
+
+  const openDealTrend = bucketByWeek(
+    openDealsTrendRes.data ?? [],
+    (r) => r.created_at,
+    (r) => Number(r.value ?? 0),
+  )
+
+  const newMrrTrend = bucketByWeek(
+    newMrrTrendRes.data ?? [],
+    (r) => r.first_payment_at,
+    (r) => Number(r.monthly_rate ?? 0),
+  )
+
+  const dealsWonTrend = bucketByWeek(
+    dealsWonTrendRes.data ?? [],
+    (r) => r.updated_at,
+    () => 1,
+  )
+
   const paid30 = Number(kpi.revenue_30d ?? 0)
   const paidCount30 = kpi.paid_count_30d ?? 0
   const openDealValue = Number(kpi.open_deal_value ?? 0)
@@ -148,21 +239,25 @@ export default async function AdminAnalyticsPage() {
           label="Revenue (30d)"
           value={fmtMoney.format(paid30)}
           footer={`${paidCount30} paid payments`}
+          trend={revenueTrend}
         />
         <KpiCard
           label="Open Deal Value"
           value={fmtMoney.format(openDealValue)}
           footer={`${openDealCount} deals in flight`}
+          trend={openDealTrend}
         />
         <KpiCard
           label="Active MRR"
           value={fmtMoney.format(activeMrr)}
           footer={`${activePlanCount} active plans`}
+          trend={newMrrTrend}
         />
         <KpiCard
           label="Deals Won"
           value={String(dealsWonCount)}
           footer="All time"
+          trend={dealsWonTrend}
         />
       </div>
 

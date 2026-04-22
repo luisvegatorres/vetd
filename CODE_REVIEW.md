@@ -109,7 +109,7 @@ No hair-on-fire security issues. Stripe webhook signature is verified (`verifySt
 **6. `proxy.ts` middleware runs `getClaims()` on every non-static request including marketing** — [lib/supabase/proxy.ts](lib/supabase/proxy.ts), [proxy.ts](proxy.ts)
 - **What.** `PROTECTED_PREFIXES = ["/dashboard"]` (per CLAUDE.md) but the middleware matcher fires on all non-asset paths.
 - **Why.** Marketing visits pay an auth round-trip they don't need. Also means `/leads`, `/clients`, `/projects`, etc. fall through the unauth-redirect check — those routes are defended by `app/(protected)/layout.tsx`, but the middleware intent is wider.
-- **Fix.** Expand `PROTECTED_PREFIXES` to match the actual `(protected)` route group (`/dashboard`, `/leads`, `/clients`, `/projects`, `/pipeline`, `/commissions`, `/payments`, `/settings`, `/admin`, `/pitch-mode`), and narrow the matcher so marketing paths skip `getClaims()` entirely.
+- **Fix.** Expand `PROTECTED_PREFIXES` to match the actual `(protected)` route group (`/dashboard`, `/leads`, `/clients`, `/projects`, `/pipeline`, `/commissions`, `/payments`, `/settings`, `/admin`), and narrow the matcher so marketing paths skip `getClaims()` entirely.
 
 **7. Commissions page has a conditional second await after the main `Promise.all`** — [app/(protected)/commissions/page.tsx:47-77](app/(protected)/commissions/page.tsx#L47-L77)
 - **What.** Reps incur an extra serial round-trip for `assignedClientsCount`.

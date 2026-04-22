@@ -74,7 +74,7 @@ Schema summary (all `public`):
 - **processed_stripe_events** — webhook idempotency log keyed on Stripe event ID (added in 0013). Insert before processing; `ON CONFLICT DO NOTHING` skips duplicates.
 - **payments** — Stripe payment history per project (one-time payments only; subscription invoices live in `subscription_invoices`).
 - **interactions** — timeline entries (call/email/meeting/etc.) on a client, optionally tied to a project.
-- **showcase_projects**, **pitch_slides** — content for the marketing site and the in-app `pitch-mode` presenter.
+- **showcase_projects** — portfolio content for the marketing site (and any future public `/work` page). (`pitch_slides` was dropped in 0026 when Pitch Mode was removed.)
 
 RLS is enabled; expect policies keyed on role via the `public.auth_role()` SQL function.
 

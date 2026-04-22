@@ -14,12 +14,14 @@ export function KpiCard({
   badgeTone = "neutral",
   value,
   footer,
+  trend,
 }: {
   label: React.ReactNode
   badge?: string
   badgeTone?: "positive" | "neutral"
   value: React.ReactNode
   footer: React.ReactNode
+  trend?: number[]
 }) {
   return (
     <Card className="gap-6">
@@ -45,7 +47,9 @@ export function KpiCard({
         <p className="font-heading text-4xl font-medium tabular-nums">
           {value}
         </p>
-        <Sparkline className="max-w-[55%]" />
+        {trend && trend.length > 0 ? (
+          <Sparkline data={trend} className="max-w-[55%]" />
+        ) : null}
       </CardContent>
 
       <CardFooter>

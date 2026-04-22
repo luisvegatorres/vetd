@@ -1,6 +1,6 @@
 "use client"
 
-import { Pencil, Phone, Plus } from "lucide-react"
+import { MapPin, Pencil, Phone, Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useId, useState, useTransition } from "react"
 import { toast } from "sonner"
@@ -228,6 +228,21 @@ function LeadFormDialog(props: Props) {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor={`${formId}-address`}>Address</Label>
+            <InputGroup>
+              <InputGroupAddon>
+                <MapPin aria-hidden />
+              </InputGroupAddon>
+              <InputGroupInput
+                id={`${formId}-address`}
+                name="address"
+                autoComplete="street-address"
+                placeholder="123 Main St, City, State ZIP"
+                defaultValue={lead?.address ?? ""}
+              />
+            </InputGroup>
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor={`${formId}-intent`}>Intent</Label>

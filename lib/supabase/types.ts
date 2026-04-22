@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       clients: {
         Row: {
+          address: string | null
           assigned_to: string | null
           budget: string | null
           company: string | null
@@ -36,6 +37,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          address?: string | null
           assigned_to?: string | null
           budget?: string | null
           company?: string | null
@@ -56,6 +58,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          address?: string | null
           assigned_to?: string | null
           budget?: string | null
           company?: string | null
@@ -81,6 +84,13 @@ export type Database = {
             columns: ["assigned_to"]
             isOneToOne: false
             referencedRelation: "admin_analytics_team_performance"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "clients_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "admin_rep_activity"
             referencedColumns: ["rep_id"]
           },
           {
@@ -154,6 +164,13 @@ export type Database = {
             foreignKeyName: "interactions_logged_by_fkey"
             columns: ["logged_by"]
             isOneToOne: false
+            referencedRelation: "admin_rep_activity"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "interactions_logged_by_fkey"
+            columns: ["logged_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -206,36 +223,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      pitch_slides: {
-        Row: {
-          body: string | null
-          created_at: string
-          id: string
-          image_url: string | null
-          published: boolean
-          sort_order: number
-          title: string
-        }
-        Insert: {
-          body?: string | null
-          created_at?: string
-          id?: string
-          image_url?: string | null
-          published?: boolean
-          sort_order?: number
-          title: string
-        }
-        Update: {
-          body?: string | null
-          created_at?: string
-          id?: string
-          image_url?: string | null
-          published?: boolean
-          sort_order?: number
-          title?: string
-        }
-        Relationships: []
       }
       processed_stripe_events: {
         Row: {
@@ -332,6 +319,13 @@ export type Database = {
             foreignKeyName: "project_commission_ledger_rep_id_fkey"
             columns: ["rep_id"]
             isOneToOne: false
+            referencedRelation: "admin_rep_activity"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "project_commission_ledger_rep_id_fkey"
+            columns: ["rep_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -392,6 +386,13 @@ export type Database = {
             foreignKeyName: "project_tasks_assigned_to_fkey"
             columns: ["assigned_to"]
             isOneToOne: false
+            referencedRelation: "admin_rep_activity"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "project_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -400,6 +401,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "admin_analytics_team_performance"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "project_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_rep_activity"
             referencedColumns: ["rep_id"]
           },
           {
@@ -516,6 +524,13 @@ export type Database = {
             foreignKeyName: "projects_sold_by_fkey"
             columns: ["sold_by"]
             isOneToOne: false
+            referencedRelation: "admin_rep_activity"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "projects_sold_by_fkey"
+            columns: ["sold_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -568,6 +583,20 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "rep_integrations_rep_id_fkey"
+            columns: ["rep_id"]
+            isOneToOne: false
+            referencedRelation: "admin_analytics_team_performance"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "rep_integrations_rep_id_fkey"
+            columns: ["rep_id"]
+            isOneToOne: false
+            referencedRelation: "admin_rep_activity"
+            referencedColumns: ["rep_id"]
+          },
           {
             foreignKeyName: "rep_integrations_rep_id_fkey"
             columns: ["rep_id"]
@@ -668,6 +697,13 @@ export type Database = {
             columns: ["rep_id"]
             isOneToOne: false
             referencedRelation: "admin_analytics_team_performance"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "subscription_commission_ledger_rep_id_fkey"
+            columns: ["rep_id"]
+            isOneToOne: false
+            referencedRelation: "admin_rep_activity"
             referencedColumns: ["rep_id"]
           },
           {
@@ -835,6 +871,13 @@ export type Database = {
             foreignKeyName: "subscriptions_sold_by_fkey"
             columns: ["sold_by"]
             isOneToOne: false
+            referencedRelation: "admin_rep_activity"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "subscriptions_sold_by_fkey"
+            columns: ["sold_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -862,6 +905,19 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_analytics_team_performance: {
+        Row: {
+          active_mrr: number | null
+          commission_earned: number | null
+          full_name: string | null
+          open_count: number | null
+          open_value: number | null
+          rep_id: string | null
+          role: string | null
+          won_count: number | null
+        }
+        Relationships: []
+      }
       admin_rep_activity: {
         Row: {
           active_mrr: number | null
@@ -878,19 +934,6 @@ export type Database = {
           new_subs_90d: number | null
           rep_id: string | null
           role: string | null
-        }
-        Relationships: []
-      }
-      admin_analytics_team_performance: {
-        Row: {
-          active_mrr: number | null
-          commission_earned: number | null
-          full_name: string | null
-          open_count: number | null
-          open_value: number | null
-          rep_id: string | null
-          role: string | null
-          won_count: number | null
         }
         Relationships: []
       }

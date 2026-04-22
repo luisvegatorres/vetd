@@ -100,7 +100,7 @@ export default async function LeadsPage({
     .from("clients")
     .select(
       `
-        id, lead_number, name, company, email, phone,
+        id, lead_number, name, company, email, phone, address,
         score, intent, budget, notes, source, status, created_at,
         owner:profiles!clients_assigned_to_fkey (id, full_name)
       `,
@@ -147,6 +147,7 @@ export default async function LeadsPage({
       company: r.company,
       email: r.email,
       phone: r.phone,
+      address: r.address,
       score: r.score,
       intent: r.intent,
       budget: r.budget,

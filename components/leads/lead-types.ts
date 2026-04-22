@@ -18,6 +18,7 @@ export type LeadRow = {
   company: string | null
   email: string | null
   phone: string | null
+  address: string | null
   score: number | null
   intent: string | null
   budget: string | null

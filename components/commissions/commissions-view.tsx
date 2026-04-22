@@ -327,6 +327,66 @@ export function CommissionsView({
       .sort((a, b) => b.startedAt.localeCompare(a.startedAt))
   }, [subscriptions, subLedger, currentUserId, clientMap])
 
+  const trends = useMemo(() => {
+    const WEEKS = 8
+    const startOfDay = new Date()
+    startOfDay.setHours(0, 0, 0, 0)
+    const buckets = Array.from({ length: WEEKS }, (_, i) => {
+      const start = new Date(startOfDay)
+      start.setDate(start.getDate() - (WEEKS - i) * 7)
+      const end = new Date(start)
+      end.setDate(end.getDate() + 7)
+      return { start: start.getTime(), end: end.getTime() }
+    })
+    const bucketize = <T,>(
+      rows: T[],
+      getDate: (r: T) => string | null | undefined,
+      getValue: (r: T) => number,
+    ) => {
+      const sums = new Array(WEEKS).fill(0)
+      for (const r of rows) {
+        const raw = getDate(r)
+        if (!raw) continue
+        const t = new Date(raw).getTime()
+        const idx = buckets.findIndex((b) => t >= b.start && t < b.end)
+        if (idx >= 0) sums[idx] += getValue(r)
+      }
+      return sums
+    }
+
+    const mrcScope = isAdmin
+      ? subscriptions.filter((s) => s.status === "active")
+      : myActiveSubs
+    const mrcTrend = bucketize(
+      mrcScope,
+      (s) => s.first_payment_at,
+      (s) =>
+        isAdmin ? Number(s.monthly_residual_amount ?? 0) : 1,
+    )
+
+    const ledgerScope = isAdmin
+      ? mergedLedger
+      : mergedLedger.filter((r) => r.rep_id === currentUserId)
+    const pendingTrend = bucketize(
+      ledgerScope.filter((r) => r.status === "pending"),
+      (r) => r.created_at,
+      (r) => r.amount,
+    )
+    const paidTrend = bucketize(
+      ledgerScope.filter((r) => r.status === "paid"),
+      (r) => r.paid_at ?? r.created_at,
+      (r) => r.amount,
+    )
+
+    return { mrcTrend, pendingTrend, paidTrend }
+  }, [
+    isAdmin,
+    subscriptions,
+    myActiveSubs,
+    mergedLedger,
+    currentUserId,
+  ])
+
   function handleMarkPaid(rowId: string) {
     // rowId is prefixed "sub:<id>" or "proj:<id>" — strip the prefix and pass
     // the kind so the server action knows which table to update.
@@ -357,6 +417,7 @@ export function CommissionsView({
             label="Team MRC"
             value={fmtMoney.format(teamMrc)}
             footer="Projected residual payout next cycle."
+            trend={trends.mrcTrend}
           />
         ) : (
           <>
@@ -369,6 +430,7 @@ export function CommissionsView({
               label="Active subscriptions"
               value={String(myActiveSubs.length)}
               footer={`Projects MRC of ${fmtMoney.format(myMrc)} next cycle.`}
+              trend={trends.mrcTrend}
             />
           </>
         )}
@@ -376,11 +438,13 @@ export function CommissionsView({
           label={isAdmin ? "Pending payouts" : "Owed to you"}
           value={fmtMoney.format(totals.pending)}
           footer="Across all pending ledger rows."
+          trend={trends.pendingTrend}
         />
         <KpiCard
           label={isAdmin ? "Paid year-to-date" : "Earned to date"}
           value={fmtMoney.format(totals.paid)}
           footer="Across all paid ledger rows."
+          trend={trends.paidTrend}
         />
       </div>
 

@@ -39,6 +39,10 @@ export default async function DashboardPage() {
   const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1)
   const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
 
+  const WEEKS = 8
+  const trendStart = new Date(startOfDay)
+  trendStart.setDate(trendStart.getDate() - WEEKS * 7)
+
   const [
     profileRes,
     dealsRes,
@@ -49,6 +53,10 @@ export default async function DashboardPage() {
     lastMonthPaymentsRes,
     commissionsRes,
     clientsClosedRes,
+    openDealsTrendRes,
+    revenueTrendRes,
+    commissionsTrendRes,
+    clientsTrendRes,
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -96,6 +104,27 @@ export default async function DashboardPage() {
       .from("clients")
       .select("status")
       .in("status", ["active_client", "lost"]),
+    supabase
+      .from("projects")
+      .select("value, created_at")
+      .in("stage", ["proposal", "negotiation", "active"])
+      .gte("created_at", trendStart.toISOString()),
+    supabase
+      .from("payments")
+      .select("amount, created_at")
+      .in("status", ["paid", "succeeded"])
+      .gte("created_at", monthStart.toISOString())
+      .lt("created_at", nextMonthStart.toISOString()),
+    supabase
+      .from("project_commission_ledger")
+      .select("amount, created_at")
+      .eq("status", "pending")
+      .gte("created_at", trendStart.toISOString()),
+    supabase
+      .from("clients")
+      .select("status, updated_at")
+      .in("status", ["active_client", "lost"])
+      .gte("updated_at", trendStart.toISOString()),
   ])
 
   const firstName =
@@ -152,6 +181,69 @@ export default async function DashboardPage() {
   const winRate =
     closedClients.length > 0 ? (wonClients / closedClients.length) * 100 : null
 
+  const weekBuckets = Array.from({ length: WEEKS }, (_, i) => {
+    const start = new Date(startOfDay)
+    start.setDate(start.getDate() - (WEEKS - i) * 7)
+    const end = new Date(start)
+    end.setDate(end.getDate() + 7)
+    return { start: start.getTime(), end: end.getTime() }
+  })
+
+  const bucketByWeek = <T,>(
+    rows: T[],
+    getDate: (r: T) => string | null | undefined,
+    getValue: (r: T) => number,
+  ) => {
+    const sums = new Array(WEEKS).fill(0)
+    for (const r of rows) {
+      const raw = getDate(r)
+      if (!raw) continue
+      const t = new Date(raw).getTime()
+      const idx = weekBuckets.findIndex((b) => t >= b.start && t < b.end)
+      if (idx >= 0) sums[idx] += getValue(r)
+    }
+    return sums
+  }
+
+  const openDealTrend = bucketByWeek(
+    openDealsTrendRes.data ?? [],
+    (r) => r.created_at,
+    (r) => Number(r.value ?? 0),
+  )
+
+  const daysInMonth = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    0,
+  ).getDate()
+  const revenueTrend = new Array(daysInMonth).fill(0)
+  for (const p of revenueTrendRes.data ?? []) {
+    if (!p.created_at) continue
+    const d = new Date(p.created_at).getDate()
+    revenueTrend[d - 1] += Number(p.amount ?? 0)
+  }
+
+  const commissionsTrend = bucketByWeek(
+    commissionsTrendRes.data ?? [],
+    (r) => r.created_at,
+    (r) => Number(r.amount ?? 0),
+  )
+
+  const clientsTrendRows = clientsTrendRes.data ?? []
+  const wonByWeek = bucketByWeek(
+    clientsTrendRows.filter((c) => c.status === "active_client"),
+    (r) => r.updated_at,
+    () => 1,
+  )
+  const closedByWeek = bucketByWeek(
+    clientsTrendRows,
+    (r) => r.updated_at,
+    () => 1,
+  )
+  const winRateTrend = wonByWeek.map((won, i) =>
+    closedByWeek[i] > 0 ? (won / closedByWeek[i]) * 100 : 0,
+  )
+
   const KPIS = [
     {
       label: "Open Deal Value",
@@ -161,6 +253,7 @@ export default async function DashboardPage() {
       footer: openDealCount
         ? `Across ${openDealCount} ${openDealCount === 1 ? "deal" : "deals"}`
         : "No open deals",
+      trend: openDealTrend,
     },
     {
       label: "Revenue This Month",
@@ -175,6 +268,7 @@ export default async function DashboardPage() {
       footer: `${fmtMonth.format(now)} ▪ ${thisMonthPayments.length} ${
         thisMonthPayments.length === 1 ? "payment" : "payments"
       }`,
+      trend: revenueTrend,
     },
     {
       label: "Commissions Owed",
@@ -182,6 +276,7 @@ export default async function DashboardPage() {
       badge: `${commissionRepCount} ${commissionRepCount === 1 ? "rep" : "reps"}`,
       badgeTone: "neutral" as const,
       footer: "Pending payout this cycle",
+      trend: commissionsTrend,
     },
     {
       label: (
@@ -199,6 +294,7 @@ export default async function DashboardPage() {
         closedClients.length > 0
           ? "All-time close rate"
           : "No closed deals yet",
+      trend: winRateTrend,
     },
   ]
 

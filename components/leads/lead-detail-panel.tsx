@@ -1,4 +1,4 @@
-import { Mail, Phone } from "lucide-react"
+import { Mail, MapPin, Phone } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -139,6 +139,22 @@ export function LeadDetailPanel({
             )}
           </Field>
           <LeadNotesDialog notes={lead.notes} />
+          <div className="min-w-0 space-y-2 col-span-2">
+            <FieldLabel>Address</FieldLabel>
+            {lead.address ? (
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lead.address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm hover:underline underline-offset-4"
+              >
+                <MapPin aria-hidden className="size-4 text-muted-foreground" />
+                <span className="truncate">{lead.address}</span>
+              </a>
+            ) : (
+              <p className="text-sm text-muted-foreground">—</p>
+            )}
+          </div>
         </div>
 
         <Separator />

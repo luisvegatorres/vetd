@@ -4,6 +4,7 @@ import {
   FolderKanban,
   Mail,
   MousePointerSquareDashed,
+  Phone,
   Repeat,
 } from "lucide-react"
 
@@ -258,7 +259,18 @@ export function ClientDetailPanel({
             company: client.company,
           }}
         />
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
+          <Button
+            variant="outline"
+            disabled={!client.phone}
+            nativeButton={!client.phone}
+            className="gap-2"
+            render={
+              client.phone ? <a href={`tel:${client.phone}`} /> : undefined
+            }
+          >
+            <Phone aria-hidden /> Call
+          </Button>
           <Button
             variant="outline"
             disabled={!client.email}

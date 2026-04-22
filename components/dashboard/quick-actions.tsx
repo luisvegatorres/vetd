@@ -3,7 +3,6 @@ import {
   CreditCard,
   MessageSquarePlus,
   Plus,
-  Presentation,
   UserPlus,
 } from "lucide-react"
 
@@ -25,7 +24,6 @@ const actions: QuickAction[] = [
     label: "Log Interaction",
     icon: MessageSquarePlus,
   },
-  { href: "/pitch-mode", label: "Open Pitch Mode", icon: Presentation },
 ]
 
 export function QuickActions() {

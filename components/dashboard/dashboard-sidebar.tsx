@@ -10,7 +10,6 @@ import {
   Inbox,
   Layers,
   LayoutGrid,
-  Presentation,
   Settings,
   TrendingUp,
   Users,
@@ -56,7 +55,6 @@ function buildWorkspaceNav(newLeadsCount: number): NavItem[] {
     { href: "/clients", label: "Clients", icon: Users },
     { href: "/payments", label: "Payments", icon: CreditCard },
     { href: "/commissions", label: "Commissions", icon: TrendingUp },
-    { href: "/pitch-mode", label: "Pitch Mode", icon: Presentation },
   ]
 }
 
