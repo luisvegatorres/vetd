@@ -1,14 +1,21 @@
 "use client"
 
+import { Sparkles } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useMemo, useState, useTransition } from "react"
+import { useMemo, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { saveTemplate } from "@/app/(protected)/documents/actions"
 import { BreadcrumbCurrentPortal } from "@/components/layout/breadcrumb-current-portal"
-import { Badge } from "@/components/ui/badge"
+import {
+  BodyCodeEditor,
+  type BodyEditorHandle,
+} from "@/components/documents/body-code-editor"
+import { InsertMenu } from "@/components/documents/insert-menu"
+import { TemplatePreview } from "@/components/documents/template-preview"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -21,8 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { Textarea } from "@/components/ui/textarea"
-import { extractTokens, type DocumentBody } from "@/lib/documents/blocks"
+import { type DocumentBody } from "@/lib/documents/blocks"
 
 type TemplateProps = {
   id: string
@@ -70,15 +76,7 @@ export function TemplateEditor({ template }: { template?: TemplateProps }) {
   const [kind, setKind] = useState<string>(initialKind)
   const [isActive, setIsActive] = useState(template?.isActive ?? true)
   const [body, setBody] = useState(initialBody)
-
-  const { detectedTokens, bodyInvalid } = useMemo(() => {
-    try {
-      const parsed = JSON.parse(body) as DocumentBody
-      return { detectedTokens: extractTokens(parsed), bodyInvalid: false }
-    } catch {
-      return { detectedTokens: [] as string[], bodyInvalid: true }
-    }
-  }, [body])
+  const editorRef = useRef<BodyEditorHandle | null>(null)
 
   function handleKindChange(next: string) {
     setKind(next)
@@ -114,13 +112,17 @@ export function TemplateEditor({ template }: { template?: TemplateProps }) {
   }
 
   return (
-    <div className="space-y-10">
+    <div className="flex h-[calc(100svh-6.5rem)] flex-col gap-6 md:h-[calc(100svh-8.5rem)]">
       <BreadcrumbCurrentPortal>
         {isEdit ? template!.name : "New template"}
       </BreadcrumbCurrentPortal>
 
-      <form action={handleSubmit} className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)] lg:items-start">
-        <div className="space-y-6">
+      <form
+        action={handleSubmit}
+        className="grid min-h-0 flex-1 gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]"
+      >
+        <Card className="flex flex-col overflow-hidden">
+          <CardContent className="flex flex-1 flex-col gap-6 overflow-hidden">
           <div className="flex flex-col gap-2">
             <Label htmlFor="name">Name</Label>
             <Input
@@ -136,15 +138,28 @@ export function TemplateEditor({ template }: { template?: TemplateProps }) {
             </p>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="body">Body (structured blocks as JSON)</Label>
-            <Textarea
+          <div className="flex min-h-0 flex-1 flex-col gap-2">
+            <div className="flex items-center justify-between gap-3">
+              <Label htmlFor="body">Body (structured blocks as JSON)</Label>
+              <div className="flex items-center gap-2">
+                <InsertMenu editorRef={editorRef} />
+                {/* TODO: wire up AI-generated body suggestion */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  aria-label="Suggest body with AI"
+                >
+                  <Sparkles aria-hidden />
+                  Suggest
+                </Button>
+              </div>
+            </div>
+            <BodyCodeEditor
+              ref={editorRef}
               id="body"
               value={body}
-              onChange={(e) => setBody(e.target.value)}
-              rows={24}
-              className="font-mono text-xs"
-              spellCheck={false}
+              onValueChange={setBody}
             />
             <p className="text-xs text-muted-foreground">
               Array of blocks — <code>heading</code>, <code>paragraph</code>,{" "}
@@ -170,9 +185,11 @@ export function TemplateEditor({ template }: { template?: TemplateProps }) {
               Cancel
             </Button>
           </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <aside className="space-y-6 border border-border/60 p-6">
+        <Card className="flex flex-col overflow-hidden">
+          <CardContent className="flex-1 space-y-6 overflow-y-auto">
           <div className="flex flex-col gap-2">
             <Label htmlFor="kind">Kind</Label>
             <Select
@@ -209,29 +226,9 @@ export function TemplateEditor({ template }: { template?: TemplateProps }) {
             <Switch checked={isActive} onCheckedChange={setIsActive} />
           </div>
 
-          <div>
-            <p className="text-overline mb-2 font-medium uppercase text-muted-foreground">
-              Detected tokens
-            </p>
-            {bodyInvalid ? (
-              <p className="text-xs text-destructive-500">
-                Body is not valid JSON — tokens can&apos;t be scanned.
-              </p>
-            ) : detectedTokens.length === 0 ? (
-              <p className="text-xs text-muted-foreground">
-                None detected. Use <code>{"{{client.name}}"}</code> syntax.
-              </p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {detectedTokens.map((t) => (
-                  <Badge key={t} variant="outline" className="font-mono">
-                    {t}
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
-        </aside>
+          <TemplatePreview name={name} body={body} />
+          </CardContent>
+        </Card>
       </form>
     </div>
   )

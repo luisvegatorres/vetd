@@ -82,16 +82,16 @@ RLS is enabled; expect policies keyed on role via the `public.auth_role()` SQL f
 
 - shadcn/ui components live in `components/ui/`. Prefer editing existing ones over adding new primitives.
 - Feature components are grouped by domain: `components/auth`, `components/home`, `components/layout`, `components/dashboard`, `components/actions`, `components/motion`, `components/typography`, `components/providers`.
-- Theming: dark mode is the canonical canvas (see `DESIGN.md` — Lamborghini-inspired system: absolute black, zero border-radius, uppercase display type, single accent color for CTAs). `app/layout.tsx` sets `defaultTheme="dark"` on `ThemeProvider`. Tokens live in `app/globals.css` (OKLCH vars, including `--primary`/`--primary-hover` for both light and dark).
+- Theming: dark mode is the canonical canvas (see `docs/DESIGN.md` — Lamborghini-inspired system: absolute black, zero border-radius, uppercase display type, single accent color for CTAs). `app/layout.tsx` sets `defaultTheme="dark"` on `ThemeProvider`. Tokens live in `app/globals.css` (OKLCH vars, including `--primary`/`--primary-hover` for both light and dark).
 - `lib/site.ts` is the single source of truth for site-wide copy, product catalog, nav, and process steps — pull from here instead of hardcoding.
 - `lib/status-colors.ts` is the single source of truth for stage/status/payment colors and labels (project stage, derived lead status, payment status). Use `projectStageTone()`, `leadStatusTone()`, `paymentStatusBadgeClass()`, etc. — do not redefine status palettes inline.
 - Utility helpers: `cn()` in `lib/utils.ts`; Prettier's Tailwind plugin is configured to treat `cn` and `cva` as class-name functions.
 
-### Styling rules (from `DESIGN.md` and user memory)
+### Styling rules (from `docs/DESIGN.md` and user memory)
 
 - Primary color (`--primary` / `text-primary` / `bg-primary`) is reserved for **actions only** — never apply it to eyebrows, numerals, bullets, or plain text.
 - All spacing and sizing lands on a **4px grid**; prefer Tailwind defaults over arbitrary `[Npx]` values.
 - For shadcn Button and nav primitives, keep default sizing/spacing/states — only override text styles, and use theme color variants rather than ad-hoc classes.
 - `--radius: 0` is intentional — do not add rounded corners to buttons or cards.
 
-Full design reference (palette, typography scale, component specs, responsive behavior): `DESIGN.md`.
+Full design reference (palette, typography scale, component specs, responsive behavior): `docs/DESIGN.md`.

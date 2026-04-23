@@ -5,8 +5,9 @@ import { revalidatePath } from "next/cache"
 import { logActivity, sourceRefFor } from "@/lib/interactions/log-activity"
 import { seedProjectTasks } from "@/lib/projects/seed-tasks"
 import { createClient } from "@/lib/supabase/server"
-import { financing, websitePlans, type WebsitePlanId } from "@/lib/site"
+import { financing, recurringPlans, type RecurringPlanId } from "@/lib/site"
 import { Constants, type Database } from "@/lib/supabase/types"
+import { PRODUCT_TYPE_LABEL } from "@/components/projects/project-types"
 
 type ProjectStage = Database["public"]["Enums"]["project_stage"]
 type PaymentStatus = Database["public"]["Enums"]["payment_status"]
@@ -26,7 +27,7 @@ export type UpdateProjectResult =
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-const WEBSITE_PLAN_IDS = websitePlans.map((p) => p.id) as readonly WebsitePlanId[]
+const RECURRING_PLAN_IDS = recurringPlans.map((p) => p.id) as readonly RecurringPlanId[]
 
 function str(formData: FormData, key: string): string | null {
   const v = String(formData.get(key) ?? "").trim()
@@ -62,11 +63,17 @@ function parseProductType(raw: string | null): ProjectProductType | null {
   return types.includes(raw) ? (raw as ProjectProductType) : null
 }
 
-function parsePlanId(raw: string | null): WebsitePlanId | "none" {
+function parsePlanId(raw: string | null): RecurringPlanId | "none" {
   if (!raw || raw === "none") return "none"
-  return (WEBSITE_PLAN_IDS as readonly string[]).includes(raw)
-    ? (raw as WebsitePlanId)
+  return (RECURRING_PLAN_IDS as readonly string[]).includes(raw)
+    ? (raw as RecurringPlanId)
     : "none"
+}
+
+function subscriptionProductLabel(
+  productType: ProjectProductType | null,
+): string {
+  return productType ? PRODUCT_TYPE_LABEL[productType] : "Retainer"
 }
 
 /**
@@ -86,19 +93,21 @@ async function promoteClientToActive(
 }
 
 /**
- * Sync the recurring plan attached to a website project.
+ * Sync the recurring plan attached to a project. A recurring plan can be the
+ * whole deal (stand-alone retainer) or ride alongside a one-time build.
  * - "none" → remove any attached subscription.
  * - presence/growth → upsert a subscription with the catalog rate.
  * - custom → upsert using the submitted monthly rate.
  */
-async function syncWebsiteSubscription(
+async function syncRecurringSubscription(
   supabase: SupabaseServerClient,
   projectId: string,
   clientId: string,
   soldBy: string | null,
-  planId: WebsitePlanId | "none",
+  planId: RecurringPlanId | "none",
   customRate: number | null,
   startDate: string | null,
+  productType: ProjectProductType | null,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const existing = await supabase
     .from("subscriptions")
@@ -117,7 +126,7 @@ async function syncWebsiteSubscription(
     return { ok: true }
   }
 
-  const catalog = websitePlans.find((p) => p.id === planId)
+  const catalog = recurringPlans.find((p) => p.id === planId)
   if (!catalog) return { ok: false, error: "Unknown plan" }
 
   const monthlyRate =
@@ -126,12 +135,19 @@ async function syncWebsiteSubscription(
     return { ok: false, error: "Enter a monthly rate" }
   }
 
+  const productLabel = subscriptionProductLabel(productType)
+  // Websites are pure recurring — billing starts as soon as the sub exists.
+  // Everything else (SaaS, web app, mobile, AI) has a one-time build that
+  // must finish and be paid before the monthly service can activate, so the
+  // sub is parked in 'pending' until an admin flips it via activateRecurringPlan.
+  const isWebsite = productType === "business_website"
+
   if (existing.data) {
     const { error } = await supabase
       .from("subscriptions")
       .update({
         plan: catalog.label,
-        product: "Website",
+        product: productLabel,
         monthly_rate: monthlyRate,
         sold_by: soldBy,
       })
@@ -144,9 +160,10 @@ async function syncWebsiteSubscription(
     client_id: clientId,
     project_id: projectId,
     plan: catalog.label,
-    product: "Website",
+    product: productLabel,
     monthly_rate: monthlyRate,
     sold_by: soldBy,
+    status: isWebsite ? "active" : "pending",
     started_at: startDate ?? new Date().toISOString().slice(0, 10),
   })
   if (error) return { ok: false, error: error.message }
@@ -185,11 +202,8 @@ export async function createNewProject(
     value >= financing.minAmount
 
   const startDate = str(formData, "start_date")
-  const planId =
-    productType === "business_website"
-      ? parsePlanId(str(formData, "website_plan"))
-      : "none"
-  const customRate = num(formData, "website_plan_rate")
+  const planId = parsePlanId(str(formData, "recurring_plan"))
+  const customRate = num(formData, "recurring_plan_rate")
 
   const { data, error } = await supabase
     .from("projects")
@@ -232,7 +246,7 @@ export async function createNewProject(
     createdBy: auth.user.id,
   })
 
-  const subSync = await syncWebsiteSubscription(
+  const subSync = await syncRecurringSubscription(
     supabase,
     data.id,
     clientId,
@@ -240,6 +254,7 @@ export async function createNewProject(
     planId,
     customRate,
     startDate,
+    productType,
   )
   if (!subSync.ok) return { ok: false, error: subSync.error }
 
@@ -291,11 +306,8 @@ export async function updateProject(
     value >= financing.minAmount
 
   const startDate = str(formData, "start_date")
-  const planId =
-    productType === "business_website"
-      ? parsePlanId(str(formData, "website_plan"))
-      : "none"
-  const customRate = num(formData, "website_plan_rate")
+  const planId = parsePlanId(str(formData, "recurring_plan"))
+  const customRate = num(formData, "recurring_plan_rate")
 
   const { data: existingProject } = await supabase
     .from("projects")
@@ -347,7 +359,7 @@ export async function updateProject(
     })
   }
 
-  const subSync = await syncWebsiteSubscription(
+  const subSync = await syncRecurringSubscription(
     supabase,
     projectId,
     clientId,
@@ -355,6 +367,7 @@ export async function updateProject(
     planId,
     customRate,
     startDate,
+    productType,
   )
   if (!subSync.ok) return { ok: false, error: subSync.error }
 
@@ -381,6 +394,75 @@ export async function updateProject(
     revalidatePath("/clients")
   }
 
+  revalidatePath("/projects")
+  return { ok: true }
+}
+
+export type ActivateRecurringPlanResult =
+  | { ok: true }
+  | { ok: false; error: string }
+
+/**
+ * Manually flip a pending subscription to active. Gate: the attached project
+ * must be completed and fully paid (deposit cleared, `payment_status='paid'`,
+ * `stage='completed'`). This is what "delivers" the monthly service to the
+ * client — the first bill runs from today.
+ */
+export async function activateRecurringPlan(
+  projectId: string,
+): Promise<ActivateRecurringPlanResult> {
+  const supabase = await createClient()
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth.user) return { ok: false, error: "Not authenticated" }
+
+  const { data: project, error: projectErr } = await supabase
+    .from("projects")
+    .select("id, client_id, stage, payment_status, deposit_paid_at, value")
+    .eq("id", projectId)
+    .maybeSingle()
+  if (projectErr) return { ok: false, error: projectErr.message }
+  if (!project) return { ok: false, error: "Project not found" }
+
+  const isPriced = project.value != null && project.value > 0
+  if (isPriced && !project.deposit_paid_at) {
+    return { ok: false, error: "Deposit hasn't been paid yet" }
+  }
+  if (isPriced && project.payment_status !== "paid") {
+    return { ok: false, error: "Project isn't fully paid yet" }
+  }
+  if (project.stage !== "completed") {
+    return { ok: false, error: "Project isn't marked completed yet" }
+  }
+
+  const { data: sub, error: subErr } = await supabase
+    .from("subscriptions")
+    .select("id, status")
+    .eq("project_id", projectId)
+    .maybeSingle()
+  if (subErr) return { ok: false, error: subErr.message }
+  if (!sub) return { ok: false, error: "No recurring plan attached" }
+  if (sub.status !== "pending") {
+    return { ok: false, error: "Plan is already active" }
+  }
+
+  const today = new Date().toISOString().slice(0, 10)
+  const { error } = await supabase
+    .from("subscriptions")
+    .update({ status: "active", started_at: today })
+    .eq("id", sub.id)
+  if (error) return { ok: false, error: error.message }
+
+  await logActivity({
+    supabase,
+    clientId: project.client_id,
+    loggedBy: auth.user.id,
+    type: "follow_up",
+    title: "Recurring plan activated",
+    projectId,
+    sourceRef: sourceRefFor("subscription-activated", sub.id),
+  })
+
+  revalidatePath(`/projects/${projectId}`)
   revalidatePath("/projects")
   return { ok: true }
 }

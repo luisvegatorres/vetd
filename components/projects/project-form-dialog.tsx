@@ -38,7 +38,7 @@ import {
   createNewProject,
   updateProject,
 } from "@/app/(protected)/projects/actions"
-import { financing, websitePlans, type WebsitePlanId } from "@/lib/site"
+import { financing, recurringPlans, type RecurringPlanId } from "@/lib/site"
 import { PAYMENT_STATUS_LABEL, PROJECT_STAGE_LABEL } from "@/lib/status-colors"
 import {
   PRODUCT_TYPE_LABEL,
@@ -91,9 +91,9 @@ function clientOptionLabel(c: {
 
 function detectPlanFromSubscription(
   sub: ProjectRow["subscription"] | undefined
-): WebsitePlanId | "none" {
+): RecurringPlanId | "none" {
   if (!sub) return "none"
-  const match = websitePlans.find(
+  const match = recurringPlans.find(
     (p) => p.label.toLowerCase() === sub.plan.toLowerCase()
   )
   return match?.id ?? "custom"
@@ -121,7 +121,7 @@ function ProjectFormDialog(props: Props) {
   const [financingEnabled, setFinancingEnabled] = useState<boolean>(
     project?.financing_enabled ?? false
   )
-  const [planId, setPlanId] = useState<WebsitePlanId | "none">(
+  const [planId, setPlanId] = useState<RecurringPlanId | "none">(
     detectPlanFromSubscription(project?.subscription ?? null)
   )
   const [customMonthlyRate, setCustomMonthlyRate] = useState<string>(
@@ -150,6 +150,9 @@ function ProjectFormDialog(props: Props) {
   const clientMap = new Map(props.clients.map((c) => [c.id, c]))
 
   const numericValue = Number(valueStr)
+  // Websites are a pure recurring service (Squarespace-style) — the client
+  // pays monthly, doesn't own the build, and it goes away when they cancel.
+  // So there's no one-time value, no deposit, no one-time payment status.
   const isWebsite = productType === "business_website"
   const valueEligibleForFinancing =
     !isWebsite &&
@@ -267,10 +270,9 @@ function ProjectFormDialog(props: Props) {
               <Select
                 name="product_type"
                 value={productType}
-                onValueChange={(v) => {
+                onValueChange={(v) =>
                   setProductType(v as ProjectProductType)
-                  if (v !== "business_website") setPlanId("none")
-                }}
+                }
               >
                 <SelectTrigger id={`${formId}-product`} className="w-full">
                   <SelectValue placeholder="Select a product">
@@ -469,78 +471,77 @@ function ProjectFormDialog(props: Props) {
             />
           )}
 
-          {isWebsite ? (
-            <div className="flex flex-col gap-3 border border-border/60 p-4">
-              <div>
-                <p className="text-sm font-medium">Recurring plan</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Websites commonly ship with an ongoing monthly plan. Leave as
-                  None for one-time only.
-                </p>
-              </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div
-                  className={`flex flex-col gap-2 ${planId === "custom" ? "" : "sm:col-span-2"}`}
-                >
-                  <Label htmlFor={`${formId}-plan`}>Plan</Label>
-                  <Select
-                    name="website_plan"
-                    value={planId}
-                    onValueChange={(v) =>
-                      setPlanId(v as WebsitePlanId | "none")
-                    }
-                  >
-                    <SelectTrigger id={`${formId}-plan`} className="w-full">
-                      <SelectValue>
-                        {(value) => {
-                          if (!value || value === "none") return "None"
-                          const p = websitePlans.find((x) => x.id === value)
-                          return p?.label ?? "None"
-                        }}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Plan</SelectLabel>
-                        <SelectItem value="none">None</SelectItem>
-                        {websitePlans.map((p) => (
-                          <SelectItem key={p.id} value={p.id}>
-                            {p.label}
-                            {p.monthlyRate != null
-                              ? ` — $${p.monthlyRate}/mo`
-                              : ""}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {planId === "custom" ? (
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor={`${formId}-custom-rate`}>
-                      Monthly rate
-                    </Label>
-                    <InputGroup>
-                      <InputGroupAddon>$</InputGroupAddon>
-                      <InputGroupInput
-                        id={`${formId}-custom-rate`}
-                        name="website_plan_rate"
-                        type="number"
-                        inputMode="decimal"
-                        min="0"
-                        step="0.01"
-                        placeholder="0"
-                        value={customMonthlyRate}
-                        onChange={(e) => setCustomMonthlyRate(e.target.value)}
-                      />
-                      <InputGroupAddon align="inline-end">/mo</InputGroupAddon>
-                    </InputGroup>
-                  </div>
-                ) : null}
-              </div>
+          <div className="flex flex-col gap-3 border border-border/60 p-4">
+            <div>
+              <p className="text-sm font-medium">Recurring plan</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {isWebsite
+                  ? "Websites are sold as a monthly service — pick the plan."
+                  : "Attach an optional monthly service alongside the one-time build."}
+              </p>
             </div>
-          ) : null}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div
+                className={`flex flex-col gap-2 ${planId === "custom" ? "" : "sm:col-span-2"}`}
+              >
+                <Label htmlFor={`${formId}-plan`}>Plan</Label>
+                <Select
+                  name="recurring_plan"
+                  value={planId}
+                  onValueChange={(v) =>
+                    setPlanId(v as RecurringPlanId | "none")
+                  }
+                >
+                  <SelectTrigger id={`${formId}-plan`} className="w-full">
+                    <SelectValue>
+                      {(value) => {
+                        if (!value || value === "none") return "None"
+                        const p = recurringPlans.find((x) => x.id === value)
+                        return p?.label ?? "None"
+                      }}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Plan</SelectLabel>
+                      <SelectItem value="none">None</SelectItem>
+                      {recurringPlans.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.label}
+                          {p.monthlyRate != null
+                            ? ` — $${p.monthlyRate}/mo`
+                            : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {planId === "custom" ? (
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor={`${formId}-custom-rate`}>
+                    Monthly rate
+                  </Label>
+                  <InputGroup>
+                    <InputGroupAddon>$</InputGroupAddon>
+                    <InputGroupInput
+                      id={`${formId}-custom-rate`}
+                      name="recurring_plan_rate"
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="0.01"
+                      placeholder="0"
+                      value={customMonthlyRate}
+                      onChange={(e) => setCustomMonthlyRate(e.target.value)}
+                    />
+                    <InputGroupAddon align="inline-end">/mo</InputGroupAddon>
+                  </InputGroup>
+                </div>
+              ) : null}
+            </div>
+          </div>
 
           <div className="flex flex-col gap-2">
             <Label htmlFor={`${formId}-description`}>Description</Label>

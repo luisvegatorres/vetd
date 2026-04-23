@@ -10,6 +10,7 @@ import {
   paymentStatusLabel,
 } from "@/lib/status-colors"
 import { GenerateDocumentDialog } from "@/components/documents/generate-document-dialog"
+import { ActivateRecurringPlanBanner } from "./activate-recurring-plan"
 import { EditProjectDialog } from "./project-form-dialog"
 import { ProjectBoard, type ProjectTaskRow } from "./project-board"
 import { ProjectDetailsSheet } from "./project-details-sheet"
@@ -96,6 +97,7 @@ function subscriptionStatusLabel(
   status: NonNullable<ProjectRow["subscription"]>["status"]
 ) {
   if (status === "at_risk") return "At risk"
+  if (status === "pending") return "Pending"
   return status.replace(/_/g, " ")
 }
 
@@ -195,6 +197,19 @@ export function ProjectDetailView({
           <EditProjectDialog project={project} clients={clients} reps={reps} />
         </div>
       </header>
+
+      {project.subscription?.status === "pending" ? (
+        <ActivateRecurringPlanBanner
+          project={{
+            id: project.id,
+            value: project.value,
+            stage: project.stage,
+            payment_status: project.payment_status,
+            deposit_paid_at: project.deposit_paid_at,
+            subscription: project.subscription,
+          }}
+        />
+      ) : null}
 
       {inPipeline ? (
         <Link

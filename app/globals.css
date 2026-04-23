@@ -289,3 +289,8 @@
     }
   }
 }
+
+/* Syntax highlighting for the JSON body code editor lives inline with the
+   CodeMirror setup in components/documents/body-code-editor.tsx — HighlightStyle
+   + a ViewPlugin decoration for {{tokens}}. Kept there because CM6 ties colors
+   to Lezer tags, not to global class selectors. */

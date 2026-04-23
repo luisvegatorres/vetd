@@ -1,35 +1,15 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
 
-import { DocumentActions } from "@/components/documents/document-actions"
+import { DocumentDetailView } from "@/components/documents/document-detail-view"
 import {
   BreadcrumbCurrentPortal,
   BreadcrumbParentPortal,
 } from "@/components/layout/breadcrumb-current-portal"
-import { Badge } from "@/components/ui/badge"
+import { getDocumentWorkingBody } from "@/lib/documents/render"
 import { createClient } from "@/lib/supabase/server"
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
-const STATUS_LABEL: Record<string, string> = {
-  draft: "Draft",
-  sent: "Sent",
-  viewed: "Viewed",
-  signed: "Signed",
-  void: "Void",
-}
-
-function fmt(iso: string | null | undefined) {
-  if (!iso) return "—"
-  return new Date(iso).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  })
-}
 
 export default async function DocumentDetailPage({
   params,
@@ -61,89 +41,46 @@ export default async function DocumentDetailPage({
     ? data.template[0]
     : data.template
 
+  // Resolve the working body (edited-for-this-doc OR freshly resolved from
+  // the template). Done here so the edit-mode editor can seed immediately
+  // without a round-trip click.
+  const working = await getDocumentWorkingBody(data.id)
+  const initialBody = working.ok
+    ? JSON.stringify(working.body, null, 2)
+    : "[]"
+  const bodySource = working.ok ? working.source : "template"
+
   return (
-    <div className="space-y-10">
+    <>
       <BreadcrumbParentPortal>Generated</BreadcrumbParentPortal>
       <BreadcrumbCurrentPortal>{data.title}</BreadcrumbCurrentPortal>
 
-      <div className="flex items-center justify-end">
-        <DocumentActions
-          documentId={data.id}
-          status={data.status}
-          hasPdf={Boolean(data.pdf_path)}
-        />
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <section className="border border-border/60 p-6">
-          <p className="text-overline mb-4 font-medium uppercase text-muted-foreground">
-            Details
-          </p>
-          <dl className="space-y-3 text-sm">
-            <DetailRow label="Status">
-              <Badge variant="outline" className="uppercase">
-                {STATUS_LABEL[data.status] ?? data.status}
-              </Badge>
-            </DetailRow>
-            <DetailRow label="Client">
-              {client ? (
-                <Link
-                  href={`/clients/${client.id}`}
-                  className="hover:underline"
-                >
-                  {client.company || client.name}
-                </Link>
-              ) : (
-                "—"
-              )}
-            </DetailRow>
-            <DetailRow label="Project">
-              {project ? (
-                <Link
-                  href={`/projects/${project.id}`}
-                  className="hover:underline"
-                >
-                  {project.title}
-                </Link>
-              ) : (
-                "—"
-              )}
-            </DetailRow>
-            <DetailRow label="Template">
-              {template
-                ? `${template.name} (v${template.version})`
-                : "— (template deleted)"}
-            </DetailRow>
-            <DetailRow label="Created">{fmt(data.created_at)}</DetailRow>
-            <DetailRow label="Sent">{fmt(data.sent_at)}</DetailRow>
-            <DetailRow label="Signed">{fmt(data.signed_at)}</DetailRow>
-          </dl>
-        </section>
-
-        <section className="border border-border/60 p-6">
-          <p className="text-overline mb-4 font-medium uppercase text-muted-foreground">
-            Snapshot data
-          </p>
-          <pre className="max-h-96 overflow-auto font-mono text-xs text-muted-foreground">
-            {JSON.stringify(data.data, null, 2)}
-          </pre>
-        </section>
-      </div>
-    </div>
-  )
-}
-
-function DetailRow({
-  label,
-  children,
-}: {
-  label: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <dt className="text-xs text-muted-foreground uppercase">{label}</dt>
-      <dd className="text-sm">{children}</dd>
-    </div>
+      <DocumentDetailView
+        doc={{
+          id: data.id,
+          title: data.title,
+          status: data.status,
+          hasPdf: Boolean(data.pdf_path),
+          templateLinked: Boolean(template?.id),
+          initialBody,
+          bodySource,
+          createdAt: data.created_at,
+          sentAt: data.sent_at,
+          signedAt: data.signed_at,
+          client: client
+            ? { id: client.id, label: client.company || client.name }
+            : null,
+          project: project
+            ? { id: project.id, label: project.title }
+            : null,
+          template: template
+            ? {
+                id: template.id,
+                label: `${template.name} (v${template.version})`,
+              }
+            : null,
+        }}
+      />
+    </>
   )
 }

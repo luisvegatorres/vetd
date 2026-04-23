@@ -1,5 +1,5 @@
-import "server-only"
-
+// Isomorphic: usable from the server render pipeline and from the client-side
+// template preview. Kept dependency-free beyond @react-pdf/renderer.
 import {
   Document,
   Page,
@@ -9,19 +9,20 @@ import {
 } from "@react-pdf/renderer"
 
 import type { DocumentBody } from "./blocks"
+import { COLORS, PAGE, TYPE } from "./style-tokens"
 
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 48,
-    paddingBottom: 56,
-    paddingHorizontal: 56,
+    paddingTop: PAGE.padTopPt,
+    paddingBottom: PAGE.padBottomPt,
+    paddingHorizontal: PAGE.padXPt,
     fontFamily: "Helvetica",
-    fontSize: 10,
-    color: "#0a0a0a",
-    lineHeight: 1.5,
+    fontSize: TYPE.body.sizePt,
+    color: COLORS.text,
+    lineHeight: TYPE.body.lineHeight,
   },
   header: {
-    borderBottom: "1px solid #0a0a0a",
+    borderBottom: `1px solid ${COLORS.borderStrong}`,
     paddingBottom: 16,
     marginBottom: 24,
     flexDirection: "row",
@@ -29,97 +30,95 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   brand: {
-    fontSize: 11,
+    fontSize: TYPE.brand.sizePt,
     fontFamily: "Helvetica-Bold",
-    letterSpacing: 1,
+    letterSpacing: TYPE.brand.letterSpacingPt,
     textTransform: "uppercase",
   },
   meta: {
-    fontSize: 9,
-    color: "#525252",
+    fontSize: TYPE.meta.sizePt,
+    color: COLORS.muted,
     textAlign: "right",
   },
   h1: {
-    fontSize: 20,
+    fontSize: TYPE.h1.sizePt,
     fontFamily: "Helvetica-Bold",
-    letterSpacing: 0.5,
-    marginTop: 8,
-    marginBottom: 16,
+    letterSpacing: TYPE.h1.letterSpacingPt,
+    marginTop: TYPE.h1.marginTopPt,
+    marginBottom: TYPE.h1.marginBottomPt,
   },
   h2: {
-    fontSize: 13,
+    fontSize: TYPE.h2.sizePt,
     fontFamily: "Helvetica-Bold",
-    letterSpacing: 1,
+    letterSpacing: TYPE.h2.letterSpacingPt,
     textTransform: "uppercase",
-    marginTop: 16,
-    marginBottom: 8,
+    marginTop: TYPE.h2.marginTopPt,
+    marginBottom: TYPE.h2.marginBottomPt,
   },
   h3: {
-    fontSize: 11,
+    fontSize: TYPE.h3.sizePt,
     fontFamily: "Helvetica-Bold",
-    marginTop: 12,
-    marginBottom: 6,
+    marginTop: TYPE.h3.marginTopPt,
+    marginBottom: TYPE.h3.marginBottomPt,
   },
   paragraph: {
-    marginBottom: 8,
+    marginBottom: TYPE.paragraph.marginBottomPt,
   },
   bulletRow: {
     flexDirection: "row",
-    marginBottom: 4,
+    marginBottom: TYPE.bulletRowMarginBottomPt,
   },
   bulletDot: {
-    width: 10,
+    width: TYPE.bulletDotWidthPt,
   },
   kvRow: {
     flexDirection: "row",
-    borderTop: "1px solid #e5e5e5",
-    paddingTop: 6,
-    paddingBottom: 6,
+    borderTop: `1px solid ${COLORS.borderLight}`,
+    paddingTop: TYPE.kv.paddingYPt,
+    paddingBottom: TYPE.kv.paddingYPt,
   },
   kvLabel: {
-    width: "40%",
-    color: "#525252",
+    width: TYPE.kv.labelWidth,
+    color: COLORS.muted,
     textTransform: "uppercase",
-    fontSize: 8,
-    letterSpacing: 1,
+    fontSize: TYPE.kv.labelSizePt,
+    letterSpacing: TYPE.kv.letterSpacingPt,
   },
   kvValue: {
-    width: "60%",
+    width: TYPE.kv.valueWidth,
   },
   divider: {
-    borderTop: "1px solid #0a0a0a",
-    marginTop: 12,
-    marginBottom: 12,
+    borderTop: `1px solid ${COLORS.borderStrong}`,
+    marginTop: TYPE.divider.marginYPt,
+    marginBottom: TYPE.divider.marginYPt,
   },
   signatureBlock: {
-    marginTop: 24,
-    marginBottom: 16,
+    marginTop: TYPE.signature.marginTopPt,
+    marginBottom: TYPE.signature.marginBottomPt,
   },
   signatureLine: {
-    borderBottom: "1px solid #0a0a0a",
-    height: 32,
+    borderBottom: `1px solid ${COLORS.borderStrong}`,
+    height: TYPE.signature.lineHeightPt,
   },
   signatureLabel: {
-    marginTop: 4,
-    fontSize: 8,
-    color: "#525252",
+    marginTop: TYPE.signature.labelMarginTopPt,
+    fontSize: TYPE.signature.labelSizePt,
+    color: COLORS.muted,
     textTransform: "uppercase",
-    letterSpacing: 1,
+    letterSpacing: TYPE.signature.letterSpacingPt,
   },
   footer: {
     position: "absolute",
-    bottom: 24,
-    left: 56,
-    right: 56,
-    fontSize: 8,
-    color: "#737373",
+    bottom: TYPE.footer.bottomPt,
+    left: PAGE.padXPt,
+    right: PAGE.padXPt,
+    fontSize: TYPE.footer.sizePt,
+    color: COLORS.footer,
     textAlign: "center",
-    borderTop: "1px solid #e5e5e5",
-    paddingTop: 8,
+    borderTop: `1px solid ${COLORS.borderLight}`,
+    paddingTop: TYPE.footer.paddingTopPt,
   },
 })
-
-const SPACER_SIZES = { sm: 6, md: 12, lg: 24 } as const
 
 export function DocumentPDF({
   title,
@@ -149,10 +148,13 @@ export function DocumentPDF({
                   : block.level === 2
                     ? styles.h2
                     : styles.h3
+              // Keep headings glued to the next block — prevents a heading
+              // from orphaning at the bottom of a page with its content on
+              // the next. minPresenceAhead reserves runway below the heading.
               return (
-                <Text key={i} style={style}>
-                  {block.text}
-                </Text>
+                <View key={i} wrap={false} minPresenceAhead={60}>
+                  <Text style={style}>{block.text}</Text>
+                </View>
               )
             }
             case "paragraph":
@@ -163,10 +165,13 @@ export function DocumentPDF({
               )
             case "bullets":
               return (
-                <View key={i} style={{ marginBottom: 8 }}>
+                <View
+                  key={i}
+                  style={{ marginBottom: TYPE.bulletsBlockMarginBottomPt }}
+                >
                   {block.items.map((item, j) => (
-                    <View key={j} style={styles.bulletRow}>
-                      <Text style={styles.bulletDot}>▪</Text>
+                    <View key={j} wrap={false} style={styles.bulletRow}>
+                      <Text style={styles.bulletDot}>•</Text>
                       <Text>{item}</Text>
                     </View>
                   ))}
@@ -174,9 +179,12 @@ export function DocumentPDF({
               )
             case "kv":
               return (
-                <View key={i} style={{ marginBottom: 12 }}>
+                <View
+                  key={i}
+                  style={{ marginBottom: TYPE.kv.blockMarginBottomPt }}
+                >
                   {block.items.map((kv, j) => (
-                    <View key={j} style={styles.kvRow}>
+                    <View key={j} wrap={false} style={styles.kvRow}>
                       <Text style={styles.kvLabel}>{kv.label}</Text>
                       <Text style={styles.kvValue}>{kv.value}</Text>
                     </View>
@@ -184,17 +192,18 @@ export function DocumentPDF({
                 </View>
               )
             case "divider":
-              return <View key={i} style={styles.divider} />
+              return <View key={i} wrap={false} style={styles.divider} />
             case "spacer":
               return (
                 <View
                   key={i}
-                  style={{ height: SPACER_SIZES[block.size ?? "md"] }}
+                  wrap={false}
+                  style={{ height: TYPE.spacer[block.size ?? "md"] }}
                 />
               )
             case "signature":
               return (
-                <View key={i} style={styles.signatureBlock}>
+                <View key={i} wrap={false} style={styles.signatureBlock}>
                   <View style={styles.signatureLine} />
                   <Text style={styles.signatureLabel}>{block.label}</Text>
                 </View>

@@ -5,6 +5,9 @@ import { revalidatePath } from "next/cache"
 import { extractTokens, isDocumentBody } from "@/lib/documents/blocks"
 import {
   getDocumentDownloadUrl,
+  getDocumentWorkingBody,
+  regenerateDocumentFromTemplate,
+  rerenderDocumentWithBody,
   renderDocument,
 } from "@/lib/documents/render"
 import { createClient } from "@/lib/supabase/server"
@@ -130,6 +133,52 @@ export async function getDownloadUrlAction(
     return { ok: false, error: "Invalid document id" }
   }
   return getDocumentDownloadUrl(documentId)
+}
+
+export async function updateDocumentBodyAction(
+  documentId: string,
+  bodyRaw: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!UUID_RE.test(documentId)) {
+    return { ok: false, error: "Invalid document id" }
+  }
+  let body: unknown
+  try {
+    body = JSON.parse(bodyRaw)
+  } catch {
+    return { ok: false, error: "Body must be valid JSON" }
+  }
+  if (!isDocumentBody(body)) {
+    return { ok: false, error: "Body is not a valid block array" }
+  }
+  const res = await rerenderDocumentWithBody({ documentId, body })
+  if (!res.ok) return res
+  revalidatePath(`/documents/${documentId}`)
+  return { ok: true }
+}
+
+export async function regenerateDocumentAction(
+  documentId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!UUID_RE.test(documentId)) {
+    return { ok: false, error: "Invalid document id" }
+  }
+  const res = await regenerateDocumentFromTemplate(documentId)
+  if (!res.ok) return res
+  revalidatePath(`/documents/${documentId}`)
+  return { ok: true }
+}
+
+export async function getDocumentWorkingBodyAction(
+  documentId: string,
+): Promise<
+  | { ok: true; body: unknown; source: "edited" | "template" }
+  | { ok: false; error: string }
+> {
+  if (!UUID_RE.test(documentId)) {
+    return { ok: false, error: "Invalid document id" }
+  }
+  return getDocumentWorkingBody(documentId)
 }
 
 export async function updateDocumentStatus(

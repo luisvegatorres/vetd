@@ -1154,7 +1154,7 @@ export type Database = {
         | "active"
         | "completed"
         | "cancelled"
-      subscription_status: "active" | "at_risk" | "canceled"
+      subscription_status: "pending" | "active" | "at_risk" | "canceled"
       task_status: "todo" | "doing" | "review" | "done"
       user_role: "admin" | "editor" | "sales_rep" | "viewer"
     }
@@ -1320,7 +1320,7 @@ export const Constants = {
         "completed",
         "cancelled",
       ],
-      subscription_status: ["active", "at_risk", "canceled"],
+      subscription_status: ["pending", "active", "at_risk", "canceled"],
       task_status: ["todo", "doing", "review", "done"],
       user_role: ["admin", "editor", "sales_rep", "viewer"],
     },

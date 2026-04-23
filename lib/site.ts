@@ -49,16 +49,16 @@ export const financing = {
   eligibilityNote: "Projects $5K+",
 } as const
 
-export type WebsitePlanId = "presence" | "growth" | "custom"
+export type RecurringPlanId = "presence" | "growth" | "custom"
 
-export type WebsitePlan = {
-  id: WebsitePlanId
+export type RecurringPlan = {
+  id: RecurringPlanId
   label: string
   monthlyRate: number | null
   blurb: string
 }
 
-export const websitePlans: WebsitePlan[] = [
+export const recurringPlans: RecurringPlan[] = [
   {
     id: "presence",
     label: "Presence",
@@ -79,7 +79,7 @@ export const websitePlans: WebsitePlan[] = [
   },
 ] as const
 
-export type BillablePlanId = Exclude<WebsitePlanId, "custom">
+export type BillablePlanId = Exclude<RecurringPlanId, "custom">
 
 // Commission is a flat 10% of whatever the client actually pays — on both
 // project value and every recurring subscription invoice. No per-plan tiers.

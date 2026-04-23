@@ -43,6 +43,7 @@ function subscriptionStatusLabel(
   status: NonNullable<ProjectRow["subscription"]>["status"]
 ) {
   if (status === "at_risk") return "At risk"
+  if (status === "pending") return "Pending"
   return status.replace(/_/g, " ")
 }
 
