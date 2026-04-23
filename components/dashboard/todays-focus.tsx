@@ -70,9 +70,10 @@ function MetaSep() {
 
 export async function TodaysFocus() {
   const supabase = await createClient()
-  const nowIso = new Date().toISOString()
-  const staleCutoff = new Date(Date.now() - 7 * 86_400_000).toISOString()
-  const stuckCutoff = new Date(Date.now() - 14 * 86_400_000).toISOString()
+  const now = new Date()
+  const nowIso = now.toISOString()
+  const staleCutoff = new Date(now.getTime() - 7 * 86_400_000).toISOString()
+  const stuckCutoff = new Date(now.getTime() - 14 * 86_400_000).toISOString()
 
   const [bookings, overdueRes, staleLeadsRes, stuckDealsRes] =
     await Promise.all([

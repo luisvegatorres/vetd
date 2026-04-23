@@ -136,11 +136,10 @@ async function syncRecurringSubscription(
   }
 
   const productLabel = subscriptionProductLabel(productType)
-  // Websites are pure recurring — billing starts as soon as the sub exists.
-  // Everything else (SaaS, web app, mobile, AI) has a one-time build that
-  // must finish and be paid before the monthly service can activate, so the
-  // sub is parked in 'pending' until an admin flips it via activateRecurringPlan.
-  const isWebsite = productType === "business_website"
+  // All new subs land in 'pending'. The Stripe webhook promotes them to
+  // 'active' on the first paid invoice; for priced projects (SaaS, mobile,
+  // AI) with offline billing, an admin flips it via activateRecurringPlan
+  // once the build is delivered and paid.
 
   if (existing.data) {
     const { error } = await supabase
@@ -163,7 +162,7 @@ async function syncRecurringSubscription(
     product: productLabel,
     monthly_rate: monthlyRate,
     sold_by: soldBy,
-    status: isWebsite ? "active" : "pending",
+    status: "pending",
     started_at: startDate ?? new Date().toISOString().slice(0, 10),
   })
   if (error) return { ok: false, error: error.message }
@@ -403,10 +402,11 @@ export type ActivateRecurringPlanResult =
   | { ok: false; error: string }
 
 /**
- * Manually flip a pending subscription to active. Gate: the attached project
- * must be completed and fully paid (deposit cleared, `payment_status='paid'`,
- * `stage='completed'`). This is what "delivers" the monthly service to the
- * client — the first bill runs from today.
+ * Manually flip a pending subscription to active. Used when the sub isn't
+ * Stripe-managed (Stripe auto-activates via the webhook on first paid
+ * invoice). For priced projects, gates enforce that the one-time build is
+ * delivered and paid before monthly billing starts. Pure recurring (unpriced)
+ * subs have no gates — the rep activates once the client is paying offline.
  */
 export async function activateRecurringPlan(
   projectId: string,
@@ -430,7 +430,7 @@ export async function activateRecurringPlan(
   if (isPriced && project.payment_status !== "paid") {
     return { ok: false, error: "Project isn't fully paid yet" }
   }
-  if (project.stage !== "completed") {
+  if (isPriced && project.stage !== "completed") {
     return { ok: false, error: "Project isn't marked completed yet" }
   }
 

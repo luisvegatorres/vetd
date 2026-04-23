@@ -1,4 +1,4 @@
-import { Mail, MapPin, Phone } from "lucide-react"
+import { AtSign, Mail, MapPin, Phone } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -13,11 +13,12 @@ import { ConvertLeadDialog } from "./convert-lead-dialog"
 import { LeadActionsPopover } from "./lead-actions-popover"
 import { LeadNotesDialog } from "./lead-notes-dialog"
 import { LeadStatusBadge } from "./lead-status-badge"
+import { PromoteProspectButton } from "./promote-prospect-button"
 import {
   SOURCE_LABEL,
-  deriveStatus,
   formatAge,
   formatLeadNumber,
+  leadBadgeStatus,
   scoreBarColorClass,
   type LeadRow,
 } from "./lead-types"
@@ -72,7 +73,7 @@ export function LeadDetailPanel({
     )
   }
 
-  const derived = deriveStatus(lead)
+  const derived = leadBadgeStatus(lead)
   const score = lead.score ?? 0
 
   // Prefer the lead's existing owner; fall back to the current user when they
@@ -155,6 +156,26 @@ export function LeadDetailPanel({
               <p className="text-sm text-muted-foreground">—</p>
             )}
           </div>
+          <div className="min-w-0 space-y-2 col-span-2">
+            <FieldLabel>Social</FieldLabel>
+            {lead.social_url ? (
+              <a
+                href={
+                  lead.social_url.startsWith("http")
+                    ? lead.social_url
+                    : `https://${lead.social_url}`
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm hover:underline underline-offset-4"
+              >
+                <AtSign aria-hidden className="size-4 text-muted-foreground" />
+                <span className="truncate">{lead.social_url}</span>
+              </a>
+            ) : (
+              <p className="text-sm text-muted-foreground">—</p>
+            )}
+          </div>
         </div>
 
         <Separator />
@@ -174,11 +195,15 @@ export function LeadDetailPanel({
 
       <Separator />
       <CardFooter className="mt-auto flex-col items-stretch gap-2 p-6">
-        <ConvertLeadDialog
-          leadId={lead.id}
-          reps={reps}
-          defaultRepId={defaultRepId}
-        />
+        {lead.kind === "prospect" ? (
+          <PromoteProspectButton clientId={lead.id} />
+        ) : (
+          <ConvertLeadDialog
+            leadId={lead.id}
+            reps={reps}
+            defaultRepId={defaultRepId}
+          />
+        )}
         <div className="grid grid-cols-2 gap-2">
           <Button
             variant="outline"

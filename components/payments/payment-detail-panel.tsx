@@ -19,7 +19,6 @@ import {
   paymentStatusLabel,
 } from "@/lib/status-colors"
 import {
-  formatDate,
   formatUsdFull,
   PRODUCT_TYPE_LABEL,
 } from "@/components/projects/project-types"

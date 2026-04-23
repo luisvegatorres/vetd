@@ -16,6 +16,7 @@ import {
   Repeat,
 } from "lucide-react"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -41,12 +42,13 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import {
+  documentStatusBadgeClass,
+  documentStatusLabel,
+} from "@/lib/status-colors"
 import { CancelSubscriptionButton } from "@/components/subscriptions/cancel-subscription-button"
 import { SendSubscriptionLink } from "@/components/subscriptions/send-subscription-link"
-import {
-  DOC_KIND_LABEL,
-  DocumentActionsPopover,
-} from "@/components/documents/document-actions-popover"
+import { DocumentActionsPopover } from "@/components/documents/document-actions-popover"
 import { SendDepositLink } from "./send-deposit-link"
 import {
   formatDate,
@@ -58,14 +60,6 @@ import {
   type ProjectSubscription,
 } from "./project-types"
 
-const DOC_STATUS_LABEL: Record<ProjectDocument["status"], string> = {
-  draft: "Draft",
-  sent: "Sent",
-  viewed: "Viewed",
-  signed: "Signed",
-  void: "Void",
-}
-
 function DocumentItem({ doc }: { doc: ProjectDocument }) {
   return (
     <Item variant="outline" size="sm">
@@ -75,13 +69,19 @@ function DocumentItem({ doc }: { doc: ProjectDocument }) {
             {doc.title}
           </Link>
         </ItemTitle>
-        <ItemDescription>
-          {DOC_KIND_LABEL[doc.kind]} ▪ {DOC_STATUS_LABEL[doc.status]} ▪{" "}
-          {formatDate(doc.created_at)}
-        </ItemDescription>
+        <ItemDescription>{formatDate(doc.created_at)}</ItemDescription>
       </ItemContent>
-      {doc.has_pdf ? (
-        <ItemActions>
+      <ItemActions>
+        <Badge
+          variant="outline"
+          className={cn(
+            "border-transparent uppercase",
+            documentStatusBadgeClass(doc.status)
+          )}
+        >
+          {documentStatusLabel(doc.status)}
+        </Badge>
+        {doc.has_pdf ? (
           <DocumentActionsPopover
             doc={doc}
             trigger={
@@ -94,8 +94,8 @@ function DocumentItem({ doc }: { doc: ProjectDocument }) {
               </Button>
             }
           />
-        </ItemActions>
-      ) : null}
+        ) : null}
+      </ItemActions>
     </Item>
   )
 }

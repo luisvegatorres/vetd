@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { ArrowUpRight } from "lucide-react"
 
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal"
@@ -23,13 +24,21 @@ type Project = {
   category: ProjectCategory
   tagline: string
   meta: string
+  href?: string
 }
 
 const projects: Project[] = [
   {
+    title: "Innovate App Studios CRM",
+    category: "SaaS Products",
+    tagline: "Agency operating system: leads, projects, billing, commissions.",
+    meta: "SaaS product ▪ 2026",
+    href: "/work/innovate-app-studios",
+  },
+  {
     title: "Project Alpha",
     category: "Websites",
-    tagline: "Restaurant marketing site with online reservations.",
+    tagline: "Restaurant site with online reservations.",
     meta: "Website ▪ 2026",
   },
   {
@@ -102,8 +111,8 @@ export function WorkGrid() {
         delayChildren={0.08}
         stagger={0.06}
       >
-        {visible.map((project) => (
-          <RevealItem key={project.title} y={22}>
+        {visible.map((project) => {
+          const card = (
             <Card className="group/project h-full gap-0 rounded-none bg-card p-0 ring-1 ring-border transition-colors hover:ring-foreground/40">
               <div className="relative aspect-[4/3] overflow-hidden border-b border-border bg-muted">
                 <div
@@ -142,8 +151,20 @@ export function WorkGrid() {
                 </p>
               </CardContent>
             </Card>
-          </RevealItem>
-        ))}
+          )
+
+          return (
+            <RevealItem key={project.title} y={22}>
+              {project.href ? (
+                <Link href={project.href} className="block h-full">
+                  {card}
+                </Link>
+              ) : (
+                card
+              )}
+            </RevealItem>
+          )
+        })}
       </RevealGroup>
 
       {visible.length === 0 ? (

@@ -1,6 +1,5 @@
 import { LeadDetailPanel } from "@/components/leads/lead-detail-panel"
 import {
-  deriveStatus,
   type ClientSource,
   type LeadRow,
   type LeadTab,
@@ -9,7 +8,7 @@ import { LeadsPagination } from "@/components/leads/leads-pagination"
 import { LeadsTable } from "@/components/leads/leads-table"
 import { LeadsTabs } from "@/components/leads/leads-tabs"
 import { LeadsFilters, LeadsSearch } from "@/components/leads/leads-toolbar"
-import { NewLeadDialog } from "@/components/leads/lead-form-dialog"
+import { NewEntryDialog } from "@/components/leads/lead-form-dialog"
 import { createClient } from "@/lib/supabase/server"
 import { Constants } from "@/lib/supabase/types"
 
@@ -23,10 +22,22 @@ const VALID_TABS: LeadTab[] = [
   "contacted",
   "qualified",
   "archived",
+  "prospects",
 ]
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+// Leads page scope: the original in-memory filter was
+// status in ('lead','qualified','archived','lost'). Express the same
+// constraint as a reusable list so every count + slice query agrees.
+const LEAD_STATUSES = ["lead", "qualified", "archived", "lost"] as const
+
+const VIEW_COLUMNS = `
+  id, lead_number, name, company, email, phone, address, social_url,
+  score, intent, budget, notes, source, status, kind, created_at,
+  assigned_to, has_interactions
+`
 
 function parseTab(v: string | undefined): LeadTab {
   return v && (VALID_TABS as string[]).includes(v) ? (v as LeadTab) : "all"
@@ -93,104 +104,201 @@ export default async function LeadsPage({
     full_name: r.full_name,
   }))
 
-  // Leads page excludes already-converted active clients.
-  let query = supabase
-    .from("clients")
-    .select(
-      `
-        id, lead_number, name, company, email, phone, address,
-        score, intent, budget, notes, source, status, created_at,
-        owner:profiles!clients_assigned_to_fkey (id, full_name)
-      `,
-    )
-    .in("status", ["lead", "qualified", "archived", "lost"])
+  const qLike = q ? `%${q.replace(/[%_]/g, (c) => `\\${c}`)}%` : null
+  const searchOrClause = qLike
+    ? `name.ilike.${qLike},company.ilike.${qLike},intent.ilike.${qLike}`
+    : null
 
-  if (source !== "all") query = query.eq("source", source)
-  if (q) {
-    const like = `%${q.replace(/[%_]/g, (c) => `\\${c}`)}%`
-    query = query.or(
-      `name.ilike.${like},company.ilike.${like},intent.ilike.${like}`,
-    )
+  // Inline filter chain per tab (same pattern as projects/clients pages).
+  // Base constraint — status in LEAD_STATUSES plus source + search —
+  // applies to every tab; per-tab clauses layer derived-status rules on
+  // top using has_interactions / kind / status columns from the view.
+  function countQuery(tabFilter: LeadTab) {
+    let q = supabase
+      .from("clients_enriched")
+      .select("id", { count: "exact", head: true })
+      .in("status", LEAD_STATUSES as unknown as string[])
+    if (source !== "all") q = q.eq("source", source)
+    if (searchOrClause) q = q.or(searchOrClause)
+
+    if (tabFilter === "all") return q
+    if (tabFilter === "prospects") return q.eq("kind", "prospect")
+    // Remaining tabs scope to real leads (kind='lead').
+    q = q.eq("kind", "lead")
+    if (tabFilter === "new")
+      return q.eq("status", "lead").eq("has_interactions", false)
+    if (tabFilter === "contacted")
+      return q.eq("status", "lead").eq("has_interactions", true)
+    if (tabFilter === "qualified") return q.eq("status", "qualified")
+    if (tabFilter === "archived")
+      return q.in("status", ["archived", "lost"])
+    return q
   }
 
-  if (sort === "age")
-    query = query.order("created_at", { ascending: false, nullsFirst: false })
-  else if (sort === "name")
-    query = query.order("name", { ascending: true })
-  else query = query.order("score", { ascending: false, nullsFirst: false })
+  function visibleSliceQuery() {
+    let q = supabase
+      .from("clients_enriched")
+      .select(VIEW_COLUMNS)
+      .in("status", LEAD_STATUSES as unknown as string[])
+    if (source !== "all") q = q.eq("source", source)
+    if (searchOrClause) q = q.or(searchOrClause)
 
-  const rowsRes = await query
-  if (rowsRes.error) throw rowsRes.error
+    if (tab === "prospects") {
+      q = q.eq("kind", "prospect")
+    } else if (tab !== "all") {
+      q = q.eq("kind", "lead")
+      if (tab === "new")
+        q = q.eq("status", "lead").eq("has_interactions", false)
+      else if (tab === "contacted")
+        q = q.eq("status", "lead").eq("has_interactions", true)
+      else if (tab === "qualified") q = q.eq("status", "qualified")
+      else if (tab === "archived") q = q.in("status", ["archived", "lost"])
+    }
 
-  const visibleClientIds = (rowsRes.data ?? []).map((r) => r.id)
-  const interactionsRes = visibleClientIds.length
+    if (sort === "age")
+      q = q.order("created_at", { ascending: false, nullsFirst: false })
+    else if (sort === "name")
+      q = q.order("name", { ascending: true })
+    else q = q.order("score", { ascending: false, nullsFirst: false })
+
+    return q
+  }
+
+  const [
+    countAllRes,
+    countNewRes,
+    countContactedRes,
+    countQualifiedRes,
+    countArchivedRes,
+    countProspectsRes,
+  ] = await Promise.all([
+    countQuery("all"),
+    countQuery("new"),
+    countQuery("contacted"),
+    countQuery("qualified"),
+    countQuery("archived"),
+    countQuery("prospects"),
+  ])
+
+  const counts: Record<LeadTab, number> = {
+    all: countAllRes.count ?? 0,
+    new: countNewRes.count ?? 0,
+    contacted: countContactedRes.count ?? 0,
+    qualified: countQualifiedRes.count ?? 0,
+    archived: countArchivedRes.count ?? 0,
+    prospects: countProspectsRes.count ?? 0,
+  }
+
+  const totalFiltered = counts[tab]
+  const pageCount = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE))
+  const currentPage = Math.min(page, pageCount)
+  const startIdx = (currentPage - 1) * PAGE_SIZE
+
+  const pageRes = await visibleSliceQuery().range(
+    startIdx,
+    startIdx + PAGE_SIZE - 1,
+  )
+  if (pageRes.error) throw pageRes.error
+  const rawPageRows = pageRes.data ?? []
+
+  const ownerIds = Array.from(
+    new Set(
+      rawPageRows
+        .map((r) => r.assigned_to)
+        .filter((v): v is string => Boolean(v)),
+    ),
+  )
+  const { data: ownerRows } = ownerIds.length
     ? await supabase
-        .from("interactions")
-        .select("client_id")
-        .in("client_id", visibleClientIds)
-    : { data: [] as { client_id: string }[] }
-
-  const contactedIds = new Set(
-    (interactionsRes.data ?? []).map((r) => r.client_id),
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", ownerIds)
+    : { data: null }
+  const ownerById = new Map(
+    (ownerRows ?? []).map((o) => [o.id, { id: o.id, full_name: o.full_name }]),
   )
 
-  const allRows: LeadRow[] = (rowsRes.data ?? []).map((r) => {
-    // Supabase types joins as arrays when FK is not one-to-one, but we only
-    // ever assign one owner — take the first (if any).
-    const ownerObj = Array.isArray(r.owner) ? r.owner[0] : r.owner
+  function hydrate(r: (typeof rawPageRows)[number]): LeadRow {
     return {
-      id: r.id,
-      lead_number: r.lead_number,
-      name: r.name,
+      id: r.id!,
+      lead_number: r.lead_number!,
+      name: r.name!,
       company: r.company,
       email: r.email,
       phone: r.phone,
       address: r.address,
+      social_url: r.social_url,
       score: r.score,
       intent: r.intent,
       budget: r.budget,
       notes: r.notes,
-      source: r.source,
-      status: r.status,
-      created_at: r.created_at,
-      owner: ownerObj
-        ? {
-            id: ownerObj.id,
-            full_name: ownerObj.full_name,
-          }
-        : null,
-      has_interactions: contactedIds.has(r.id),
+      source: r.source!,
+      status: r.status!,
+      kind: r.kind === "prospect" ? "prospect" : "lead",
+      created_at: r.created_at!,
+      owner: r.assigned_to ? (ownerById.get(r.assigned_to) ?? null) : null,
+      has_interactions: Boolean(r.has_interactions),
     }
-  })
-
-  const counts: Record<LeadTab, number> = {
-    all: allRows.length,
-    new: 0,
-    contacted: 0,
-    qualified: 0,
-    archived: 0,
   }
-  for (const row of allRows) counts[deriveStatus(row)] += 1
 
-  const filteredRows =
-    tab === "all"
-      ? allRows
-      : allRows.filter((r) => deriveStatus(r) === tab)
+  const visibleRows = rawPageRows.map(hydrate)
 
-  const totalFiltered = filteredRows.length
-  const pageCount = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE))
-  const currentPage = Math.min(page, pageCount)
-  const startIdx = (currentPage - 1) * PAGE_SIZE
-  const visibleRows = filteredRows.slice(startIdx, startIdx + PAGE_SIZE)
+  // Resolve the selected lead. Off-page selections fetch individually so
+  // the detail panel still renders without a full list re-fetch.
+  let selectedLead: LeadRow | null =
+    (leadParam
+      ? (visibleRows.find((r) => r.id === leadParam) ?? null)
+      : null) ??
+    visibleRows[0] ??
+    null
 
-  const selectedId =
-    leadParam && filteredRows.some((r) => r.id === leadParam)
-      ? leadParam
-      : (visibleRows[0]?.id ?? null)
+  if (
+    leadParam &&
+    !visibleRows.some((r) => r.id === leadParam) &&
+    selectedLead?.id !== leadParam
+  ) {
+    const { data: detail } = await supabase
+      .from("clients_enriched")
+      .select(VIEW_COLUMNS)
+      .eq("id", leadParam)
+      .maybeSingle()
 
-  const selectedLead = selectedId
-    ? (allRows.find((r) => r.id === selectedId) ?? null)
-    : null
+    if (detail) {
+      let detailOwner: LeadRow["owner"] = null
+      if (detail.assigned_to) {
+        const { data: ownerRow } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .eq("id", detail.assigned_to)
+          .maybeSingle()
+        if (ownerRow) {
+          detailOwner = { id: ownerRow.id, full_name: ownerRow.full_name }
+        }
+      }
+      selectedLead = {
+        id: detail.id!,
+        lead_number: detail.lead_number!,
+        name: detail.name!,
+        company: detail.company,
+        email: detail.email,
+        phone: detail.phone,
+        address: detail.address,
+        social_url: detail.social_url,
+        score: detail.score,
+        intent: detail.intent,
+        budget: detail.budget,
+        notes: detail.notes,
+        source: detail.source!,
+        status: detail.status!,
+        kind: detail.kind === "prospect" ? "prospect" : "lead",
+        created_at: detail.created_at!,
+        owner: detailOwner,
+        has_interactions: Boolean(detail.has_interactions),
+      }
+    }
+  }
+
+  const selectedId = selectedLead?.id ?? null
 
   function buildRowHref(id: string) {
     const next = new URLSearchParams()
@@ -212,7 +320,9 @@ export default async function LeadsPage({
             <div className="ml-auto flex items-center gap-2">
               <LeadsSearch q={q} />
               <LeadsFilters source={source} sort={sort} />
-              <NewLeadDialog />
+              <NewEntryDialog
+                defaultKind={tab === "prospects" ? "prospect" : "lead"}
+              />
             </div>
           </div>
           <LeadsTable

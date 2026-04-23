@@ -3,6 +3,7 @@ import type { Database } from "@/lib/supabase/types"
 export type ProjectStage = Database["public"]["Enums"]["project_stage"]
 export type ClientStatus = Database["public"]["Enums"]["client_status"]
 export type PaymentStatus = Database["public"]["Enums"]["payment_status"]
+export type DocumentStatus = Database["public"]["Enums"]["document_status"]
 
 export type StatusTone = {
   label: string
@@ -55,15 +56,17 @@ export function projectStageTone(stage: ProjectStage): StatusTone {
 }
 
 export type LeadDerivedStatus = "new" | "contacted" | "qualified" | "archived"
+export type LeadBadgeStatus = LeadDerivedStatus | "prospect"
 
-const LEAD_STATUS_LABEL: Record<LeadDerivedStatus, string> = {
+const LEAD_STATUS_LABEL: Record<LeadBadgeStatus, string> = {
   new: "New",
   contacted: "Contacted",
   qualified: "Qualified",
   archived: "Archived",
+  prospect: "Prospect",
 }
 
-const LEAD_STATUS_TONE: Record<LeadDerivedStatus, Omit<StatusTone, "label">> = {
+const LEAD_STATUS_TONE: Record<LeadBadgeStatus, Omit<StatusTone, "label">> = {
   new: {
     text: "text-sky-400",
     bar: "bg-sky-400",
@@ -84,9 +87,14 @@ const LEAD_STATUS_TONE: Record<LeadDerivedStatus, Omit<StatusTone, "label">> = {
     bar: "bg-muted-foreground/60",
     badge: "bg-muted text-muted-foreground",
   },
+  prospect: {
+    text: "text-amber-500",
+    bar: "bg-amber-500/60",
+    badge: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  },
 }
 
-export function leadStatusTone(status: LeadDerivedStatus): StatusTone {
+export function leadStatusTone(status: LeadBadgeStatus): StatusTone {
   return { label: LEAD_STATUS_LABEL[status], ...LEAD_STATUS_TONE[status] }
 }
 
@@ -171,4 +179,28 @@ export function paymentStatusLabel(status: string): string {
     (PAYMENT_STATUS_LABEL as Record<string, string>)[status] ??
     status.replace(/_/g, " ")
   )
+}
+
+export const DOCUMENT_STATUS_LABEL: Record<DocumentStatus, string> = {
+  draft: "Draft",
+  sent: "Sent",
+  viewed: "Viewed",
+  signed: "Signed",
+  void: "Void",
+}
+
+const DOCUMENT_STATUS_BADGE: Record<DocumentStatus, string> = {
+  draft: "bg-muted text-muted-foreground",
+  sent: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
+  viewed: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
+  signed: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  void: "bg-destructive/10 text-destructive",
+}
+
+export function documentStatusBadgeClass(status: DocumentStatus): string {
+  return DOCUMENT_STATUS_BADGE[status]
+}
+
+export function documentStatusLabel(status: DocumentStatus): string {
+  return DOCUMENT_STATUS_LABEL[status]
 }

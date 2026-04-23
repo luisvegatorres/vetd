@@ -13,8 +13,8 @@ import { LeadIntentCell } from "./lead-intent-cell"
 import { LeadStatusBadge } from "./lead-status-badge"
 import {
   SOURCE_LABEL,
-  deriveStatus,
   formatAge,
+  leadBadgeStatus,
   scoreBarColorClass,
   type LeadRow,
 } from "./lead-types"
@@ -84,7 +84,7 @@ export function LeadsTable({
       ) : (
         <DataTableBody>
           {rows.map((row) => {
-            const derived = deriveStatus(row)
+            const derived = leadBadgeStatus(row)
             const isSelected = row.id === selectedId
             return (
               <DataTableRow

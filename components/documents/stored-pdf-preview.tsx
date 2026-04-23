@@ -27,6 +27,8 @@ export function StoredPdfPreview({
 
   useEffect(() => {
     const controller = new AbortController()
+    // Reset preview state when the document or revalidate key changes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setStatus("loading")
     setErrorMessage(null)
 

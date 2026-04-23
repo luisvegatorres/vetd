@@ -653,6 +653,7 @@ function TaskDialog({
   const templateGroups = useMemo(() => groupedTemplates(), [])
 
   // Sync form fields when the dialog opens / target task changes.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (state.mode === "closed") return
     if (state.mode === "create") {
@@ -672,6 +673,7 @@ function TaskDialog({
       setAssignee(state.task.assignee?.id ?? defaultAssignee)
     }
   }, [state, defaultAssignee])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   function applyTemplate(id: string) {
     setTemplateId(id)

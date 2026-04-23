@@ -130,6 +130,7 @@ export function PaymentsDateRange({
 
   // Re-seed local state if the URL changes (e.g. clear button, deep link).
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRange(
       fromDate || toDate ? { from: fromDate, to: toDate } : undefined
     )

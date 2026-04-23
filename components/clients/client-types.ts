@@ -53,19 +53,19 @@ export type ClientRow = {
   owner: ClientOwner | null
   lifetime: number
   mrr: number
+  has_at_risk_subscription: boolean
   projects: ClientProjectSummary[]
   subscriptions: ClientSubscriptionSummary[]
 }
 
 export function deriveClientStatus(row: {
   status: ClientStatus
-  subscriptions: { status: SubscriptionStatus }[]
+  has_at_risk_subscription: boolean
 }): ClientDerivedStatus {
   if (row.status === "archived" || row.status === "lost") return "archived"
   if (row.status === "lead") return "lead"
   if (row.status === "qualified") return "qualified"
-  const hasAtRisk = row.subscriptions.some((s) => s.status === "at_risk")
-  if (hasAtRisk) return "at_risk"
+  if (row.has_at_risk_subscription) return "at_risk"
   return "active"
 }
 

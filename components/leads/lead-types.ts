@@ -2,9 +2,16 @@ import type { Database } from "@/lib/supabase/types"
 
 export type ClientStatus = Database["public"]["Enums"]["client_status"]
 export type ClientSource = Database["public"]["Enums"]["client_source"]
+export type LeadKind = "lead" | "prospect"
 
-export type LeadTab = "all" | "new" | "contacted" | "qualified" | "archived"
-export type LeadDerivedStatus = Exclude<LeadTab, "all">
+export type LeadTab =
+  | "all"
+  | "new"
+  | "contacted"
+  | "qualified"
+  | "archived"
+  | "prospects"
+export type LeadDerivedStatus = Exclude<LeadTab, "all" | "prospects">
 
 export type LeadOwner = {
   id: string
@@ -19,12 +26,14 @@ export type LeadRow = {
   email: string | null
   phone: string | null
   address: string | null
+  social_url: string | null
   score: number | null
   intent: string | null
   budget: string | null
   notes: string | null
   source: ClientSource
   status: ClientStatus
+  kind: LeadKind
   created_at: string
   owner: LeadOwner | null
   has_interactions: boolean
@@ -47,6 +56,18 @@ export function deriveStatus(row: {
   if (row.status === "qualified") return "qualified"
   if (row.status === "archived" || row.status === "lost") return "archived"
   return row.has_interactions ? "contacted" : "new"
+}
+
+// Prospects are outbound pre-leads; render them with their own badge regardless
+// of has_interactions, since an outreach visit shouldn't mark them "Contacted"
+// — that's reserved for leads who've responded.
+export function leadBadgeStatus(row: {
+  status: ClientStatus
+  has_interactions: boolean
+  kind: LeadKind
+}): LeadDerivedStatus | "prospect" {
+  if (row.kind === "prospect") return "prospect"
+  return deriveStatus(row)
 }
 
 export function scoreBarColorClass(score: number | null) {

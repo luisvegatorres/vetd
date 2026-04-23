@@ -28,22 +28,16 @@ export default async function ProtectedLayout({
     redirect("/auth/login")
   }
 
-  const [{ data: profile }, leadsRes, interactionsRes] = await Promise.all([
+  const [{ data: profile }, newLeadsRes] = await Promise.all([
     supabase
       .from("profiles")
       .select("role, full_name")
       .eq("id", auth.user.id)
       .single(),
-    supabase.from("clients").select("id").eq("status", "lead"),
-    supabase.from("interactions").select("client_id"),
+    supabase.rpc("new_leads_count"),
   ])
 
-  const contactedIds = new Set(
-    (interactionsRes.data ?? []).map((r) => r.client_id),
-  )
-  const newLeadsCount = (leadsRes.data ?? []).filter(
-    (r) => !contactedIds.has(r.id),
-  ).length
+  const newLeadsCount = newLeadsRes.data ?? 0
 
   const firstName =
     profile?.full_name?.trim().split(/\s+/)[0] ??

@@ -14,11 +14,12 @@ import {
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
+  // Hydration-safe: server snapshot is false, client is true after mount.
+  const mounted = React.useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  )
 
   const isSystem = mounted && theme === "system"
 
@@ -55,4 +56,8 @@ export function ThemeToggle() {
       </DropdownMenuContent>
     </DropdownMenu>
   )
+}
+
+function emptySubscribe() {
+  return () => {}
 }

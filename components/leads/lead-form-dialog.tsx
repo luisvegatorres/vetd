@@ -1,6 +1,6 @@
 "use client"
 
-import { MapPin, Pencil, Phone, Plus, Sparkles } from "lucide-react"
+import { AtSign, MapPin, Pencil, Phone, Plus, Sparkles } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useId, useState, useTransition } from "react"
 import { toast } from "sonner"
@@ -35,11 +35,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { createLead, updateLead } from "@/app/(protected)/leads/actions"
 import {
   SOURCE_LABEL,
   type ClientSource,
+  type LeadKind,
   type LeadRow,
 } from "@/components/leads/lead-types"
 
@@ -74,12 +76,15 @@ type ControlledProps = {
 }
 
 type Props =
-  | ({ mode: "create" } & Partial<ControlledProps>)
+  | ({ mode: "create"; defaultKind?: LeadKind } & Partial<ControlledProps>)
   | ({ mode: "edit"; lead: LeadRow; hideTrigger?: boolean } & Partial<ControlledProps>)
 
 function LeadFormDialog(props: Props) {
   const isEdit = props.mode === "edit"
   const lead = isEdit ? props.lead : null
+  const initialKind: LeadKind = isEdit
+    ? props.lead.kind
+    : (props.defaultKind ?? "lead")
   const hideTrigger = isEdit ? props.hideTrigger === true : false
   const formId = useId()
 
@@ -88,6 +93,8 @@ function LeadFormDialog(props: Props) {
   const open = isControlled ? (props.open as boolean) : internalOpen
   const [error, setError] = useState<string | null>(null)
   const [phone, setPhone] = useState(() => phoneDigits(lead?.phone))
+  const [kind, setKind] = useState<LeadKind>(initialKind)
+  const isProspect = kind === "prospect"
   const [pending, startTransition] = useTransition()
   const router = useRouter()
 
@@ -96,6 +103,7 @@ function LeadFormDialog(props: Props) {
     if (next) {
       setError(null)
       setPhone(phoneDigits(lead?.phone))
+      setKind(initialKind)
     }
     if (isControlled) props.onOpenChange?.(next)
     else setInternalOpen(next)
@@ -112,7 +120,8 @@ function LeadFormDialog(props: Props) {
               </Button>
             ) : (
               <Button className="gap-2 capitalize">
-                <Plus aria-hidden /> New lead
+                <Plus aria-hidden />{" "}
+                {initialKind === "prospect" ? "New prospect" : "New lead"}
               </Button>
             )
           }
@@ -120,8 +129,33 @@ function LeadFormDialog(props: Props) {
       )}
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit lead" : "New lead"}</DialogTitle>
+          <DialogTitle>
+            {isEdit
+              ? isProspect
+                ? "Edit prospect"
+                : "Edit lead"
+              : isProspect
+                ? "New prospect"
+                : "New lead"}
+          </DialogTitle>
         </DialogHeader>
+        {isEdit ? null : (
+          <Tabs
+            value={kind}
+            onValueChange={(v) => {
+              if (v === "lead" || v === "prospect") setKind(v)
+            }}
+          >
+            <TabsList className="w-full">
+              <TabsTrigger value="lead" className="text-overline uppercase">
+                Lead
+              </TabsTrigger>
+              <TabsTrigger value="prospect" className="text-overline uppercase">
+                Prospect
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
         <form
           id={formId}
           className="flex flex-col gap-5"
@@ -132,7 +166,15 @@ function LeadFormDialog(props: Props) {
                 ? await updateLead(lead!.id, formData)
                 : await createLead(formData)
               if (result.ok) {
-                toast.success(isEdit ? "Lead updated" : "Lead created")
+                toast.success(
+                  isEdit
+                    ? isProspect
+                      ? "Prospect updated"
+                      : "Lead updated"
+                    : isProspect
+                      ? "Prospect created"
+                      : "Lead created",
+                )
                 handleOpenChange(false)
                 if (!isEdit) setPhone("")
                 router.refresh()
@@ -142,6 +184,7 @@ function LeadFormDialog(props: Props) {
             })
           }}
         >
+          <input type="hidden" name="kind" value={kind} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
               <Label htmlFor={`${formId}-name`}>Name</Label>
@@ -190,57 +233,64 @@ function LeadFormDialog(props: Props) {
                 />
               </InputGroup>
             </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor={`${formId}-source`}>Source</Label>
-              <Select
-                name="source"
-                defaultValue={lead?.source ?? "contact_form"}
-              >
-                <SelectTrigger
-                  id={`${formId}-source`}
-                  className="w-full"
-                >
-                  <SelectValue>
-                    {(value) =>
-                      value
-                        ? (SOURCE_LABEL[value as ClientSource] ?? "")
-                        : ""
-                    }
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Source</SelectLabel>
-                    {SOURCE_OPTIONS.map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor={`${formId}-budget`}>Budget</Label>
-              <Select name="budget" defaultValue={lead?.budget ?? undefined}>
-                <SelectTrigger
-                  id={`${formId}-budget`}
-                  className="w-full"
-                >
-                  <SelectValue placeholder="Select a range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Budget range</SelectLabel>
-                    {BUDGET_OPTIONS.map((value) => (
-                      <SelectItem key={value} value={value}>
-                        {value}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
+            {isProspect ? null : (
+              <>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor={`${formId}-source`}>Source</Label>
+                  <Select
+                    name="source"
+                    defaultValue={lead?.source ?? "contact_form"}
+                  >
+                    <SelectTrigger
+                      id={`${formId}-source`}
+                      className="w-full"
+                    >
+                      <SelectValue>
+                        {(value) =>
+                          value
+                            ? (SOURCE_LABEL[value as ClientSource] ?? "")
+                            : ""
+                        }
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Source</SelectLabel>
+                        {SOURCE_OPTIONS.map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor={`${formId}-budget`}>Budget</Label>
+                  <Select
+                    name="budget"
+                    defaultValue={lead?.budget ?? undefined}
+                  >
+                    <SelectTrigger
+                      id={`${formId}-budget`}
+                      className="w-full"
+                    >
+                      <SelectValue placeholder="Select a range" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Budget range</SelectLabel>
+                        {BUDGET_OPTIONS.map((value) => (
+                          <SelectItem key={value} value={value}>
+                            {value}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor={`${formId}-address`}>Address</Label>
@@ -258,23 +308,41 @@ function LeadFormDialog(props: Props) {
             </InputGroup>
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor={`${formId}-intent`}>Intent</Label>
+            <Label htmlFor={`${formId}-social`}>Social</Label>
             <InputGroup>
-              <InputGroupTextarea
-                id={`${formId}-intent`}
-                name="intent"
-                rows={3}
-                placeholder="What are they trying to do?"
-                defaultValue={lead?.intent ?? ""}
-              />
-              {/* TODO: wire up AI-generated intent suggestion */}
-              <InputGroupAddon align="block-end" className="justify-end">
-                <InputGroupButton size="icon-xs" aria-label="Suggest intent">
-                  <Sparkles aria-hidden />
-                </InputGroupButton>
+              <InputGroupAddon>
+                <AtSign aria-hidden />
               </InputGroupAddon>
+              <InputGroupInput
+                id={`${formId}-social`}
+                name="social_url"
+                type="url"
+                inputMode="url"
+                placeholder="instagram.com/handle"
+                defaultValue={lead?.social_url ?? ""}
+              />
             </InputGroup>
           </div>
+          {isProspect ? null : (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor={`${formId}-intent`}>Intent</Label>
+              <InputGroup>
+                <InputGroupTextarea
+                  id={`${formId}-intent`}
+                  name="intent"
+                  rows={3}
+                  placeholder="What are they trying to do?"
+                  defaultValue={lead?.intent ?? ""}
+                />
+                {/* TODO: wire up AI-generated intent suggestion */}
+                <InputGroupAddon align="block-end" className="justify-end">
+                  <InputGroupButton size="icon-xs" aria-label="Suggest intent">
+                    <Sparkles aria-hidden />
+                  </InputGroupButton>
+                </InputGroupAddon>
+              </InputGroup>
+            </div>
+          )}
           <div className="flex flex-col gap-2">
             <Label htmlFor={`${formId}-notes`}>Notes</Label>
             <Textarea
@@ -296,7 +364,9 @@ function LeadFormDialog(props: Props) {
                 : "Creating…"
               : isEdit
                 ? "Save changes"
-                : "Create lead"}
+                : isProspect
+                  ? "Create prospect"
+                  : "Create lead"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -304,8 +374,12 @@ function LeadFormDialog(props: Props) {
   )
 }
 
-export function NewLeadDialog() {
-  return <LeadFormDialog mode="create" />
+export function NewEntryDialog({
+  defaultKind = "lead",
+}: {
+  defaultKind?: LeadKind
+} = {}) {
+  return <LeadFormDialog mode="create" defaultKind={defaultKind} />
 }
 
 export function EditLeadDialog({ lead }: { lead: LeadRow }) {

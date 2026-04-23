@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server"
 import { Constants, type Database } from "@/lib/supabase/types"
 
 type ClientSource = Database["public"]["Enums"]["client_source"]
+type ClientKind = "lead" | "prospect"
 type ProjectProductType = Database["public"]["Enums"]["project_product_type"]
 
 const PROJECT_PRODUCT_TITLE: Record<ProjectProductType, string> = {
@@ -50,11 +51,16 @@ export async function createLead(
   const name = titleCase(String(formData.get("name") ?? "").trim())
   if (!name) return { ok: false, error: "Name is required" }
 
+  const kindRaw = String(formData.get("kind") ?? "")
+  const kind: ClientKind = kindRaw === "prospect" ? "prospect" : "lead"
+
   const sourceRaw = String(formData.get("source") ?? "")
   const sources = Constants.public.Enums.client_source as readonly string[]
   const source: ClientSource = sources.includes(sourceRaw)
     ? (sourceRaw as ClientSource)
-    : "contact_form"
+    : kind === "prospect"
+      ? "rep_field"
+      : "contact_form"
 
   const str = (key: string) => {
     const v = String(formData.get(key) ?? "").trim()
@@ -84,11 +90,13 @@ export async function createLead(
       email,
       phone: str("phone"),
       address: str("address"),
+      social_url: str("social_url"),
       budget: str("budget"),
       intent: str("intent"),
       notes: str("notes"),
       source,
       status: "lead",
+      kind,
       assigned_to: assignedTo,
     })
     .select("id")
@@ -103,8 +111,11 @@ export async function createLead(
     clientId: data.id,
     loggedBy: auth.user.id,
     type: "note",
-    title: `New lead — ${name}`,
-    sourceRef: sourceRefFor("lead-created", data.id),
+    title: `${kind === "prospect" ? "New prospect" : "New lead"} — ${name}`,
+    sourceRef: sourceRefFor(
+      kind === "prospect" ? "prospect-created" : "lead-created",
+      data.id,
+    ),
   })
 
   revalidatePath("/leads")
@@ -147,6 +158,7 @@ export async function updateLead(
       email,
       phone: str("phone"),
       address: str("address"),
+      social_url: str("social_url"),
       budget: str("budget"),
       intent: str("intent"),
       notes: str("notes"),
@@ -165,6 +177,43 @@ export async function updateLead(
     type: "note",
     title: `Updated lead — ${name}`,
     sourceRef: sourceRefFor("lead-edit", clientId, today),
+  })
+
+  revalidatePath("/leads")
+  return { ok: true }
+}
+
+export async function promoteProspect(
+  clientId: string
+): Promise<UpdateLeadResult> {
+  const supabase = await createClient()
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth.user) return { ok: false, error: "Not authenticated" }
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("clients")
+    .select("name, kind")
+    .eq("id", clientId)
+    .maybeSingle()
+  if (fetchError) return { ok: false, error: fetchError.message }
+  if (!existing) return { ok: false, error: "Prospect not found" }
+  if (existing.kind !== "prospect") {
+    return { ok: false, error: "Already a lead" }
+  }
+
+  const { error } = await supabase
+    .from("clients")
+    .update({ kind: "lead" })
+    .eq("id", clientId)
+  if (error) return { ok: false, error: error.message }
+
+  await logActivity({
+    supabase,
+    clientId,
+    loggedBy: auth.user.id,
+    type: "note",
+    title: `Promoted to lead — ${existing.name}`,
+    sourceRef: sourceRefFor("prospect-promoted", clientId),
   })
 
   revalidatePath("/leads")

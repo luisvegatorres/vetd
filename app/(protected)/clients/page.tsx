@@ -1,6 +1,5 @@
 import { ClientDetailPanel } from "@/components/clients/client-detail-panel"
 import {
-  deriveClientStatus,
   type ClientRow,
   type ClientTab,
   type SubscriptionStatus,
@@ -41,6 +40,12 @@ function parsePage(v: string | undefined): number {
   const n = Number(v)
   return Number.isInteger(n) && n >= 1 ? n : 1
 }
+
+const VIEW_COLUMNS = `
+  id, lead_number, name, company, email, phone, industry, location,
+  status, notes, created_at, assigned_to,
+  lifetime, mrr, has_at_risk_subscription
+`
 
 export default async function ClientsPage({
   searchParams,
@@ -89,175 +94,239 @@ export default async function ClientsPage({
     full_name: r.full_name,
   }))
 
-  const [clientsRes, projectsRes, subsRes, paymentsRes] = await Promise.all([
-    supabase
-      .from("clients")
-      .select(
-        `
-          id, lead_number, name, company, email, phone, industry, location,
-          status, notes, created_at,
-          owner:profiles!clients_assigned_to_fkey (id, full_name)
-        `,
-      ),
-    supabase
-      .from("projects")
-      .select(
-        "id, client_id, title, stage, payment_status, value, created_at",
-      )
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("subscriptions")
-      .select(
-        "id, client_id, product, plan, monthly_rate, status, started_at, stripe_subscription_id",
-      )
-      .order("started_at", { ascending: false }),
-    supabase
-      .from("payments")
-      .select("project_id, amount, status")
-      .eq("status", "paid"),
+  const qLike = q ? `%${q.replace(/[%_]/g, (c) => `\\${c}`)}%` : null
+  const searchOrClause = qLike
+    ? `name.ilike.${qLike},company.ilike.${qLike},industry.ilike.${qLike},email.ilike.${qLike}`
+    : null
+
+  // One pass to derive all six tab counts. The previous version fired six
+  // count queries against clients_enriched (view with lateral joins) per
+  // navigation; this pulls two scalar columns and tallies in JS. Fine up
+  // to tens of thousands of clients — revisit with a server-side RPC if
+  // the filtered set ever exceeds ~50k rows.
+  function tabCountSourceQuery() {
+    let q = supabase
+      .from("clients_enriched")
+      .select("status, has_at_risk_subscription")
+    if (industry !== "all") q = q.eq("industry", industry)
+    if (searchOrClause) q = q.or(searchOrClause)
+    return q
+  }
+
+  function visibleSliceQuery() {
+    let q = supabase.from("clients_enriched").select(VIEW_COLUMNS)
+    if (industry !== "all") q = q.eq("industry", industry)
+    if (searchOrClause) q = q.or(searchOrClause)
+    if (tab === "lead") q = q.eq("status", "lead")
+    else if (tab === "qualified") q = q.eq("status", "qualified")
+    else if (tab === "archived") q = q.in("status", ["archived", "lost"])
+    else if (tab === "active")
+      q = q.eq("status", "active_client").eq("has_at_risk_subscription", false)
+    else if (tab === "at_risk")
+      q = q.eq("status", "active_client").eq("has_at_risk_subscription", true)
+
+    if (sort === "name") {
+      q = q.order("name", { ascending: true })
+    } else if (sort === "mrr") {
+      q = q
+        .order("mrr", { ascending: false, nullsFirst: false })
+        .order("lifetime", { ascending: false, nullsFirst: false })
+    } else if (sort === "recent") {
+      q = q.order("created_at", { ascending: false, nullsFirst: false })
+    } else {
+      q = q
+        .order("lifetime", { ascending: false, nullsFirst: false })
+        .order("mrr", { ascending: false, nullsFirst: false })
+    }
+    return q
+  }
+
+  // Distinct industries populate the filter dropdown. Pulling one short
+  // column is cheap even at 5k clients; no need for a dedicated RPC.
+  const industryOptionsPromise = supabase
+    .from("clients")
+    .select("industry")
+    .not("industry", "is", null)
+    .order("industry", { ascending: true })
+
+  const [tabCountSourceRes, industryOptionsRes] = await Promise.all([
+    tabCountSourceQuery(),
+    industryOptionsPromise,
   ])
 
-  if (clientsRes.error) throw clientsRes.error
-
-  // Sum lifetime per client by joining payments → projects → client.
-  const projectToClient = new Map<string, string>()
-  for (const p of projectsRes.data ?? []) {
-    projectToClient.set(p.id, p.client_id)
-  }
-  const lifetimeByClient = new Map<string, number>()
-  for (const pay of paymentsRes.data ?? []) {
-    const cid = projectToClient.get(pay.project_id)
-    if (!cid) continue
-    lifetimeByClient.set(
-      cid,
-      (lifetimeByClient.get(cid) ?? 0) + Number(pay.amount),
-    )
-  }
-
-  const projectsByClient = new Map<string, ClientRow["projects"]>()
-  for (const p of projectsRes.data ?? []) {
-    const list = projectsByClient.get(p.client_id) ?? []
-    list.push({
-      id: p.id,
-      title: p.title,
-      stage: p.stage,
-      payment_status: p.payment_status,
-      value: p.value != null ? Number(p.value) : null,
-    })
-    projectsByClient.set(p.client_id, list)
-  }
-
-  const subsByClient = new Map<string, ClientRow["subscriptions"]>()
-  const mrrByClient = new Map<string, number>()
-  for (const s of subsRes.data ?? []) {
-    const list = subsByClient.get(s.client_id) ?? []
-    list.push({
-      id: s.id,
-      product: s.product,
-      plan: s.plan,
-      monthly_rate: Number(s.monthly_rate),
-      status: s.status as SubscriptionStatus,
-      started_at: s.started_at,
-      stripe_subscription_id: s.stripe_subscription_id,
-    })
-    subsByClient.set(s.client_id, list)
-    if (s.status === "active" || s.status === "at_risk") {
-      mrrByClient.set(
-        s.client_id,
-        (mrrByClient.get(s.client_id) ?? 0) + Number(s.monthly_rate),
-      )
-    }
-  }
-
-  const allRows: ClientRow[] = (clientsRes.data ?? []).map((c) => {
-    const ownerObj = Array.isArray(c.owner) ? c.owner[0] : c.owner
-    return {
-      id: c.id,
-      client_number: c.lead_number,
-      name: c.name,
-      company: c.company,
-      email: c.email,
-      phone: c.phone,
-      industry: c.industry,
-      location: c.location,
-      status: c.status,
-      notes: c.notes,
-      created_at: c.created_at,
-      owner: ownerObj
-        ? { id: ownerObj.id, full_name: ownerObj.full_name }
-        : null,
-      lifetime: lifetimeByClient.get(c.id) ?? 0,
-      mrr: mrrByClient.get(c.id) ?? 0,
-      projects: projectsByClient.get(c.id) ?? [],
-      subscriptions: subsByClient.get(c.id) ?? [],
-    }
-  })
-
-  // Industry options come from real data so the filter never lists empties.
-  const industries = Array.from(
-    new Set(
-      allRows
-        .map((r) => r.industry)
-        .filter((v): v is string => Boolean(v && v.trim())),
-    ),
-  ).sort((a, b) => a.localeCompare(b))
-
-  // Search + industry filter.
-  const ql = q.toLowerCase()
-  const filteredBase = allRows.filter((r) => {
-    if (industry !== "all" && (r.industry ?? "") !== industry) return false
-    if (!ql) return true
-    return (
-      r.name.toLowerCase().includes(ql) ||
-      (r.company ?? "").toLowerCase().includes(ql) ||
-      (r.industry ?? "").toLowerCase().includes(ql) ||
-      (r.email ?? "").toLowerCase().includes(ql)
-    )
-  })
-
   const counts: Record<ClientTab, number> = {
-    all: filteredBase.length,
+    all: 0,
     active: 0,
     lead: 0,
     qualified: 0,
     at_risk: 0,
     archived: 0,
   }
-  for (const row of filteredBase) counts[deriveClientStatus(row)] += 1
-
-  const tabFiltered =
-    tab === "all"
-      ? filteredBase
-      : filteredBase.filter((r) => deriveClientStatus(r) === tab)
-
-  const sorted = [...tabFiltered].sort((a, b) => {
-    if (sort === "name") {
-      return a.name.localeCompare(b.name)
+  for (const row of tabCountSourceRes.data ?? []) {
+    counts.all += 1
+    if (row.status === "lead") counts.lead += 1
+    else if (row.status === "qualified") counts.qualified += 1
+    else if (row.status === "archived" || row.status === "lost")
+      counts.archived += 1
+    else if (row.status === "active_client") {
+      if (row.has_at_risk_subscription) counts.at_risk += 1
+      else counts.active += 1
     }
-    if (sort === "mrr") return b.mrr - a.mrr || b.lifetime - a.lifetime
-    if (sort === "recent") {
-      return (
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      )
-    }
-    // lifetime (default)
-    return b.lifetime - a.lifetime || b.mrr - a.mrr
-  })
+  }
 
-  const totalFiltered = sorted.length
+  const totalFiltered = counts[tab]
   const pageCount = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE))
   const currentPage = Math.min(page, pageCount)
   const startIdx = (currentPage - 1) * PAGE_SIZE
-  const visibleRows = sorted.slice(startIdx, startIdx + PAGE_SIZE)
 
-  const selectedId =
-    clientParam && sorted.some((r) => r.id === clientParam)
-      ? clientParam
-      : (visibleRows[0]?.id ?? null)
+  const pageRes = await visibleSliceQuery().range(
+    startIdx,
+    startIdx + PAGE_SIZE - 1,
+  )
+  if (pageRes.error) throw pageRes.error
+  const rawPageRows = pageRes.data ?? []
 
-  const selectedClient = selectedId
-    ? (allRows.find((r) => r.id === selectedId) ?? null)
-    : null
+  const industries = Array.from(
+    new Set(
+      (industryOptionsRes.data ?? [])
+        .map((r) => r.industry)
+        .filter((v): v is string => Boolean(v && v.trim())),
+    ),
+  )
+
+  // Owner names — single profiles query for the visible IDs (≤10 rows).
+  const ownerIds = Array.from(
+    new Set(
+      rawPageRows
+        .map((r) => r.assigned_to)
+        .filter((v): v is string => Boolean(v)),
+    ),
+  )
+  const { data: ownerRows } = ownerIds.length
+    ? await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", ownerIds)
+    : { data: null }
+  const ownerById = new Map(
+    (ownerRows ?? []).map((o) => [o.id, { id: o.id, full_name: o.full_name }]),
+  )
+
+  // List rows only need the scalar aggregates (lifetime/mrr) and booleans;
+  // projects[]/subscriptions[] stay empty here. The detail panel fetches
+  // the full child arrays for the selected client below.
+  const visibleRows: ClientRow[] = rawPageRows.map((c) => ({
+    id: c.id!,
+    client_number: c.lead_number!,
+    name: c.name!,
+    company: c.company,
+    email: c.email,
+    phone: c.phone,
+    industry: c.industry,
+    location: c.location,
+    status: c.status!,
+    notes: c.notes,
+    created_at: c.created_at!,
+    owner: c.assigned_to ? (ownerById.get(c.assigned_to) ?? null) : null,
+    lifetime: Number(c.lifetime ?? 0),
+    mrr: Number(c.mrr ?? 0),
+    has_at_risk_subscription: Boolean(c.has_at_risk_subscription),
+    projects: [],
+    subscriptions: [],
+  }))
+
+  // Only hydrate the detail panel when the user explicitly picked a row
+  // (?client=...). Auto-selecting the first visible row on every tab
+  // switch fired projects + subscriptions queries for a client the user
+  // hadn't asked to see — the empty-state panel is the right default.
+  const selectedId = clientParam ?? null
+
+  // Hydrate the selected client with its real child arrays. Off-page
+  // selections go through the same path — one point-lookup plus two
+  // scoped child queries, never a full-table scan.
+  let selectedClient: ClientRow | null = null
+  if (selectedId) {
+    const onPage = visibleRows.find((r) => r.id === selectedId) ?? null
+    let base = onPage
+
+    if (!base) {
+      const { data: detail } = await supabase
+        .from("clients_enriched")
+        .select(VIEW_COLUMNS)
+        .eq("id", selectedId)
+        .maybeSingle()
+
+      if (detail) {
+        let detailOwner: ClientRow["owner"] = null
+        if (detail.assigned_to) {
+          const { data: ownerRow } = await supabase
+            .from("profiles")
+            .select("id, full_name")
+            .eq("id", detail.assigned_to)
+            .maybeSingle()
+          if (ownerRow) {
+            detailOwner = { id: ownerRow.id, full_name: ownerRow.full_name }
+          }
+        }
+        base = {
+          id: detail.id!,
+          client_number: detail.lead_number!,
+          name: detail.name!,
+          company: detail.company,
+          email: detail.email,
+          phone: detail.phone,
+          industry: detail.industry,
+          location: detail.location,
+          status: detail.status!,
+          notes: detail.notes,
+          created_at: detail.created_at!,
+          owner: detailOwner,
+          lifetime: Number(detail.lifetime ?? 0),
+          mrr: Number(detail.mrr ?? 0),
+          has_at_risk_subscription: Boolean(detail.has_at_risk_subscription),
+          projects: [],
+          subscriptions: [],
+        }
+      }
+    }
+
+    if (base) {
+      const [projectsRes, subsRes] = await Promise.all([
+        supabase
+          .from("projects")
+          .select("id, title, stage, payment_status, value")
+          .eq("client_id", base.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("subscriptions")
+          .select(
+            "id, product, plan, monthly_rate, status, started_at, stripe_subscription_id",
+          )
+          .eq("client_id", base.id)
+          .order("started_at", { ascending: false }),
+      ])
+
+      selectedClient = {
+        ...base,
+        projects: (projectsRes.data ?? []).map((p) => ({
+          id: p.id,
+          title: p.title,
+          stage: p.stage,
+          payment_status: p.payment_status,
+          value: p.value != null ? Number(p.value) : null,
+        })),
+        subscriptions: (subsRes.data ?? []).map((s) => ({
+          id: s.id,
+          product: s.product,
+          plan: s.plan,
+          monthly_rate: Number(s.monthly_rate),
+          status: s.status as SubscriptionStatus,
+          started_at: s.started_at,
+          stripe_subscription_id: s.stripe_subscription_id,
+        })),
+      }
+    }
+  }
 
   function buildRowHref(id: string) {
     const next = new URLSearchParams()

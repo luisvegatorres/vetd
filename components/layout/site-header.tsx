@@ -18,6 +18,7 @@ export function SiteHeader() {
 
   // Close the panel whenever the route changes.
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOpen(false)
   }, [pathname])
 

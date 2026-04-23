@@ -28,15 +28,32 @@ async function alreadyProcessed(
   supabase: AdminClient,
   event: Stripe.Event,
 ): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("processed_stripe_events")
+    .select("id")
+    .eq("id", event.id)
+    .maybeSingle()
+  if (error) {
+    console.error("[stripe webhook] processed_events select failed", error)
+    // Fail open — better to process twice (and rely on per-row unique
+    // constraints in subscription_invoices / ledger / payments to dedupe)
+    // than to skip silently.
+    return false
+  }
+  return data !== null
+}
+
+async function markProcessed(
+  supabase: AdminClient,
+  event: Stripe.Event,
+): Promise<void> {
   const { error } = await supabase
     .from("processed_stripe_events")
     .insert({ id: event.id, event_type: event.type })
-  if (!error) return false
-  // Unique-violation on primary key = already processed.
-  if (error.code === "23505") return true
-  console.error("[stripe webhook] processed_events insert failed", error)
-  // Fail open — better to process twice than skip silently.
-  return false
+  // Unique-violation is fine — a concurrent delivery beat us to it.
+  if (error && error.code !== "23505") {
+    console.error("[stripe webhook] processed_events insert failed", error)
+  }
 }
 
 // ============================================================================
@@ -278,6 +295,7 @@ async function handleCheckoutCompleted(
     product: "Website",
     plan: plan.label,
     monthly_rate: plan.monthlyRate,
+    status: "pending",
     started_at: new Date().toISOString().slice(0, 10),
     monthly_residual_amount: monthlyResidual,
     stripe_customer_id: stripeCustomerId,
@@ -693,10 +711,14 @@ export async function POST(request: Request) {
     }
   } catch (err) {
     console.error(`[stripe webhook] handler error for ${event.type}`, err)
-    // Roll back the idempotency entry so Stripe retries the event.
-    await supabase.from("processed_stripe_events").delete().eq("id", event.id)
+    // Not marked processed — Stripe will retry.
     return NextResponse.json({ error: "handler_failed" }, { status: 500 })
   }
 
+  // Mark processed only after the handler succeeds. A crash between
+  // completion and this insert means Stripe retries — the handlers are
+  // idempotent by design (upsert + unique constraints on
+  // subscription_invoices, commission ledger, payments).
+  await markProcessed(supabase, event)
   return NextResponse.json({ ok: true })
 }

@@ -81,7 +81,7 @@ export async function PipelineSnapshot() {
     new Set(opportunities.map((o) => o.client_id).filter(Boolean) as string[]),
   )
 
-  let lastTouchByClient = new Map<string, string>()
+  const lastTouchByClient = new Map<string, string>()
   if (clientIds.length > 0) {
     const { data: touches } = await supabase
       .from("interactions")

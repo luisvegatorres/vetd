@@ -26,12 +26,14 @@ export type Database = {
           industry: string | null
           intake: Json | null
           intent: string | null
+          kind: string
           lead_number: number
           location: string | null
           name: string
           notes: string | null
           phone: string | null
           score: number | null
+          social_url: string | null
           source: Database["public"]["Enums"]["client_source"]
           status: Database["public"]["Enums"]["client_status"]
           stripe_customer_id: string | null
@@ -48,12 +50,14 @@ export type Database = {
           industry?: string | null
           intake?: Json | null
           intent?: string | null
+          kind?: string
           lead_number?: number
           location?: string | null
           name: string
           notes?: string | null
           phone?: string | null
           score?: number | null
+          social_url?: string | null
           source?: Database["public"]["Enums"]["client_source"]
           status?: Database["public"]["Enums"]["client_status"]
           stripe_customer_id?: string | null
@@ -70,12 +74,14 @@ export type Database = {
           industry?: string | null
           intake?: Json | null
           intent?: string | null
+          kind?: string
           lead_number?: number
           location?: string | null
           name?: string
           notes?: string | null
           phone?: string | null
           score?: number | null
+          social_url?: string | null
           source?: Database["public"]["Enums"]["client_source"]
           status?: Database["public"]["Enums"]["client_status"]
           stripe_customer_id?: string | null
@@ -230,6 +236,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_enriched"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "documents_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
@@ -322,6 +335,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interactions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_enriched"
             referencedColumns: ["id"]
           },
           {
@@ -685,6 +705,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_enriched"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "projects_sold_by_fkey"
             columns: ["sold_by"]
             isOneToOne: false
@@ -1025,6 +1052,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "subscriptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_enriched"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "subscriptions_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
@@ -1108,6 +1142,59 @@ export type Database = {
         }
         Relationships: []
       }
+      clients_enriched: {
+        Row: {
+          address: string | null
+          assigned_to: string | null
+          budget: string | null
+          company: string | null
+          created_at: string | null
+          email: string | null
+          has_at_risk_subscription: boolean | null
+          has_interactions: boolean | null
+          id: string | null
+          industry: string | null
+          intake: Json | null
+          intent: string | null
+          kind: string | null
+          lead_number: number | null
+          lifetime: number | null
+          location: string | null
+          mrr: number | null
+          name: string | null
+          notes: string | null
+          phone: string | null
+          score: number | null
+          social_url: string | null
+          source: Database["public"]["Enums"]["client_source"] | null
+          status: Database["public"]["Enums"]["client_status"] | null
+          stripe_customer_id: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "admin_analytics_team_performance"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "clients_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "admin_rep_activity"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "clients_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       auth_role: {
@@ -1115,6 +1202,7 @@ export type Database = {
         Returns: Database["public"]["Enums"]["user_role"]
       }
       calculate_lead_score: { Args: { p_client_id: string }; Returns: number }
+      new_leads_count: { Args: never; Returns: number }
     }
     Enums: {
       client_source:

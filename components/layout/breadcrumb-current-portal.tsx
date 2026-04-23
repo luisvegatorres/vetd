@@ -16,6 +16,9 @@ export function BreadcrumbCurrentPortal({
   const [target, setTarget] = React.useState<HTMLElement | null>(null)
 
   React.useEffect(() => {
+    // Look up the slot element after mount; the slot is rendered by the
+    // header above us in the tree.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTarget(document.getElementById("breadcrumb-current-slot"))
   }, [])
 
@@ -31,6 +34,9 @@ export function BreadcrumbParentPortal({
   const [target, setTarget] = React.useState<HTMLElement | null>(null)
 
   React.useEffect(() => {
+    // Look up the slot element after mount; the slot is rendered by the
+    // header above us in the tree.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTarget(document.getElementById("breadcrumb-parent-slot"))
   }, [])
 

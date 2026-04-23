@@ -61,6 +61,7 @@ export function TemplatePreview({
 
   useEffect(() => {
     if (!resolved) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStatus("error")
       setErrorMessage(parseError)
       return

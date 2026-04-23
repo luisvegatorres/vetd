@@ -12,6 +12,7 @@ const TABS: { value: LeadTab; label: string }[] = [
   { value: "contacted", label: "Contacted" },
   { value: "qualified", label: "Qualified" },
   { value: "archived", label: "Archived" },
+  { value: "prospects", label: "Prospects" },
 ]
 
 export function LeadsTabs({

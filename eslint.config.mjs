@@ -12,6 +12,12 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Project-specific: keep worktrees, tooling scaffolds, and deploy
+    // artifacts out of the lint set.
+    ".claude/**",
+    ".codex-skill-build/**",
+    ".vercel/**",
+    "node_modules/**",
   ]),
 ]);
 
