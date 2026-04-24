@@ -2,7 +2,7 @@
 
 // Popover menu next to the body editor that lets reps insert block scaffolds
 // and merge tokens at the cursor. Keeps the scheme discoverable without a
-// separate docs page — the options in here ARE the grammar of a template.
+// separate docs page; the options in here ARE the grammar of a template.
 
 import { PlusIcon } from "lucide-react"
 import type { RefObject } from "react"

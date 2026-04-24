@@ -148,7 +148,7 @@ export function DocumentPDF({
                   : block.level === 2
                     ? styles.h2
                     : styles.h3
-              // Keep headings glued to the next block — prevents a heading
+              // Keep headings glued to the next block. Prevents a heading
               // from orphaning at the bottom of a page with its content on
               // the next. minPresenceAhead reserves runway below the heading.
               return (

@@ -258,7 +258,7 @@ export function PaymentDetailPanel({
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">
-          Actions coming soon — refunds and receipts are read-only for now.
+          Actions coming soon. Refunds and receipts are read-only for now.
         </p>
       </CardFooter>
     </Card>

@@ -38,7 +38,7 @@ export async function getAccessTokenForRep(
 
   const fresh = await refreshAccessToken(config, data.refresh_token)
   const newExpiresAt = new Date(Date.now() + fresh.expires_in * 1000)
-  // Google doesn't always return a new refresh_token on refresh — keep the
+  // Google doesn't always return a new refresh_token on refresh; keep the
   // existing one in that case.
   const refreshToken = fresh.refresh_token ?? data.refresh_token
 

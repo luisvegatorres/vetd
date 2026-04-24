@@ -134,7 +134,7 @@ export function TemplateEditor({ template }: { template?: TemplateProps }) {
             />
             <p className="text-xs text-muted-foreground">
               Tokens like <code>{"{{client.business}}"}</code> are allowed in the
-              name — they resolve at render time.
+              name; they resolve at render time.
             </p>
           </div>
 
@@ -162,7 +162,7 @@ export function TemplateEditor({ template }: { template?: TemplateProps }) {
               onValueChange={setBody}
             />
             <p className="text-xs text-muted-foreground">
-              Array of blocks — <code>heading</code>, <code>paragraph</code>,{" "}
+              Array of blocks: <code>heading</code>, <code>paragraph</code>,{" "}
               <code>bullets</code>, <code>kv</code>, <code>divider</code>,{" "}
               <code>spacer</code>, <code>signature</code>.
             </p>
@@ -250,7 +250,7 @@ const STARTER_NAME_BY_KIND: Record<string, string> = {
   invoice_terms: "Invoice Terms",
 }
 
-// Starter scaffolds per kind — dropped into the body when the user picks a
+// Starter scaffolds per kind, dropped into the body when the user picks a
 // kind on a NEW template. Intentionally minimal: real content lives in the
 // seeded templates or whatever the user writes next.
 const STARTER_BODY_BY_KIND: Record<string, DocumentBody> = {

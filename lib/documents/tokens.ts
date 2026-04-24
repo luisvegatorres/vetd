@@ -3,7 +3,7 @@
 // "Proposal for {{client.business}} — {{project.title}}", returns the string
 // with tokens replaced by the corresponding values.
 //
-// Intentionally not AI — merge fields must be exact. AI-generated narrative
+// Intentionally not AI: merge fields must be exact. AI-generated narrative
 // sections are a separate concern (see lib/documents/ai-blocks.ts if added).
 
 import { DocumentBody, type DocumentBlock } from "./blocks"

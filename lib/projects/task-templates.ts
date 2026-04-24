@@ -16,7 +16,7 @@ export type NamedTaskTemplate = {
   dueInDays?: number
 }
 
-// Shared intake phase — same across product types.
+// Shared intake phase, same across product types.
 const INTAKE: NamedTaskTemplate[] = [
   {
     id: "intake-proposal",
@@ -53,7 +53,7 @@ const INTAKE: NamedTaskTemplate[] = [
   },
 ]
 
-// Shared delivery phase — same across product types.
+// Shared delivery phase, same across product types.
 const DELIVERY: NamedTaskTemplate[] = [
   {
     id: "delivery-qa",

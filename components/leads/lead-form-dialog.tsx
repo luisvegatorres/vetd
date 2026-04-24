@@ -349,7 +349,7 @@ function LeadFormDialog(props: Props) {
               id={`${formId}-notes`}
               name="notes"
               rows={3}
-              placeholder="Internal notes — context, next steps, gotchas."
+              placeholder="Internal notes: context, next steps, gotchas."
               defaultValue={lead?.notes ?? ""}
             />
           </div>

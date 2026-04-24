@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils"
 
 /**
  * Parse/format YYYY-MM-DD dates without crossing into the local timezone.
- * Critical for <input type="date"> compat — `new Date("2026-04-20")` would
+ * Critical for <input type="date"> compat: `new Date("2026-04-20")` would
  * otherwise shift to UTC and show as the 19th in negative-offset zones.
  */
 function parseIsoDate(iso: string | null | undefined): Date | undefined {

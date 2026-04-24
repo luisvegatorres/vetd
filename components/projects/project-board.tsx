@@ -636,7 +636,7 @@ function TaskDialog({
 
   // Default assignee is the current user (rep-self-assign) when they're in the
   // reps list; otherwise the first rep; otherwise "" (form won't submit until
-  // they pick one — required).
+  // they pick one; required).
   const defaultAssignee =
     currentUserId && reps.some((r) => r.id === currentUserId)
       ? currentUserId

@@ -78,7 +78,7 @@ function subscriptionProductLabel(
 
 /**
  * A project's deposit has cleared (payment_status='paid') or the stage has
- * advanced past proposal — the client is paying and should leave the leads
+ * advanced past proposal. The client is paying and should leave the leads
  * list. Guarded so we never downgrade active_client/at_risk/canceled.
  */
 async function promoteClientToActive(
@@ -406,7 +406,7 @@ export type ActivateRecurringPlanResult =
  * Stripe-managed (Stripe auto-activates via the webhook on first paid
  * invoice). For priced projects, gates enforce that the one-time build is
  * delivered and paid before monthly billing starts. Pure recurring (unpriced)
- * subs have no gates — the rep activates once the client is paying offline.
+ * subs have no gates; the rep activates once the client is paying offline.
  */
 export async function activateRecurringPlan(
   projectId: string,

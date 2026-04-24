@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import {
   motion,
   useReducedMotion,
@@ -11,17 +12,15 @@ import {
 } from "motion/react"
 import { ArrowUpRight } from "lucide-react"
 
-import { financing, type Product } from "@/lib/site"
+import { products, type Product } from "@/lib/site"
 
 type ProductsScrollAccordionProps = {
-  products: readonly Product[]
   header?: React.ReactNode
 }
 
 const SPRING = { stiffness: 320, damping: 40, mass: 0.4 } as const
 
 export function ProductsScrollAccordion({
-  products,
   header,
 }: ProductsScrollAccordionProps) {
   const sectionRef = React.useRef<HTMLDivElement>(null)
@@ -62,6 +61,15 @@ export function ProductsScrollAccordion({
   )
 }
 
+type ProductMessages = {
+  name: string
+  tagline: string
+  description: string
+  timeline: string
+  pricingTiers?: string[]
+  includes?: string[]
+}
+
 function StackCard({
   product,
   index,
@@ -74,8 +82,11 @@ function StackCard({
   progress: MotionValue<number>
 }) {
   const reduceMotion = useReducedMotion()
+  const tProducts = useTranslations("products")
+  const productCopy = tProducts.raw(product.id) as ProductMessages
+  const tShared = useTranslations("home.products")
+  const tFinancing = useTranslations("financingShared")
   const N = total
-  // Use N - 1 slots so the last card arrives at progress = 1.
   const slot = 1 / (N - 1)
   const slotStart = index * slot
   const nextStart = (index + 1) * slot
@@ -103,6 +114,8 @@ function StackCard({
   const opacity = useSpring(rawOpacity, SPRING)
 
   const number = String(index + 1).padStart(2, "0")
+  const pricingTiers = productCopy.pricingTiers ?? null
+  const includes = productCopy.includes ?? null
 
   return (
     <motion.article
@@ -124,21 +137,21 @@ function StackCard({
               </span>
               <span className="h-px w-12 bg-foreground/30" />
               <span className="text-xs text-muted-foreground uppercase">
-                {index + 1} of {total}
+                {tShared("indexOf", { current: index + 1, total })}
               </span>
             </div>
 
             <div className="space-y-4">
               <h3 className="font-heading text-xl leading-section text-foreground capitalize sm:text-2xl lg:text-3xl">
-                {product.name}
+                {productCopy.name}
               </h3>
               <p className="text-xs text-muted-foreground uppercase sm:text-sm">
-                {product.tagline}
+                {productCopy.tagline}
               </p>
             </div>
 
             <p className="max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-              {product.description}
+              {productCopy.description}
             </p>
 
             {!isLast ? (
@@ -147,25 +160,27 @@ function StackCard({
                   className="size-4 text-foreground"
                   strokeWidth={1.5}
                 />
-                Scroll to continue
+                {tShared("scrollToContinue")}
               </div>
             ) : null}
           </div>
 
           <div className="grid content-start gap-6 border-t border-border pt-8 sm:grid-cols-2 lg:grid-cols-1 lg:border-t-0 lg:pt-0 lg:pl-12">
-            <MetaBlock label="Timeline">{product.timeline}</MetaBlock>
+            <MetaBlock label={tShared("labels.timeline")}>
+              {productCopy.timeline}
+            </MetaBlock>
             {product.financingEligible ? (
-              <MetaBlock label="Financing">
-                {financing.headlineShort}
+              <MetaBlock label={tShared("labels.financing")}>
+                {tFinancing("headlineShort")}
               </MetaBlock>
             ) : null}
-            {product.pricingTiers ? (
+            {pricingTiers ? (
               <div className="space-y-2 sm:col-span-2 lg:col-span-1">
                 <p className="text-xs text-muted-foreground uppercase">
-                  Tiers
+                  {tShared("labels.tiers")}
                 </p>
                 <ul className="space-y-1">
-                  {product.pricingTiers.map((tier) => (
+                  {pricingTiers.map((tier) => (
                     <li
                       key={tier}
                       className="text-xs leading-relaxed text-muted-foreground"
@@ -176,13 +191,13 @@ function StackCard({
                 </ul>
               </div>
             ) : null}
-            {product.includes ? (
+            {includes ? (
               <div className="space-y-3 sm:col-span-2 lg:col-span-1">
                 <p className="text-xs text-muted-foreground uppercase">
-                  What&apos;s included
+                  {tShared("labels.included")}
                 </p>
                 <ul className="space-y-2">
-                  {product.includes.map((item) => (
+                  {includes.map((item) => (
                     <li
                       key={item}
                       className="flex gap-3 text-xs leading-relaxed text-muted-foreground sm:text-sm"
@@ -200,7 +215,7 @@ function StackCard({
             {product.tools ? (
               <div className="space-y-3 sm:col-span-2 lg:col-span-1">
                 <p className="text-xs text-muted-foreground uppercase">
-                  Built with
+                  {tShared("labels.builtWith")}
                 </p>
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
                   {product.tools.map((tool) => (

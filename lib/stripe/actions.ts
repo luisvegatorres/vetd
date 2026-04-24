@@ -70,7 +70,7 @@ export async function createSubscriptionCheckoutSession(input: {
   if (!client.data.email) {
     return {
       ok: false,
-      error: "Client has no email — add one before sending a checkout link",
+      error: "Client has no email. Add one before sending a checkout link.",
     }
   }
 
@@ -186,7 +186,7 @@ export async function createProjectDepositCheckoutSession(input: {
   if (!client?.email) {
     return {
       ok: false,
-      error: "Client has no email — add one before sending a checkout link",
+      error: "Client has no email. Add one before sending a checkout link.",
     }
   }
 
@@ -269,7 +269,7 @@ export async function createProjectDepositCheckoutSession(input: {
 /**
  * Cancel a subscription. If the row is linked to Stripe we cancel there
  * (the webhook then flips the CRM row to canceled); otherwise we update the
- * CRM row directly — that covers legacy/manually-recorded subscriptions that
+ * CRM row directly. That covers legacy/manually-recorded subscriptions that
  * never went through Stripe Checkout.
  */
 export async function cancelClientSubscription(input: {

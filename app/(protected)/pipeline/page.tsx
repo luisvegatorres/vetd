@@ -6,7 +6,7 @@ import {
 import { type ProjectRow } from "@/components/projects/project-types"
 import { createClient } from "@/lib/supabase/server"
 
-// Loose SQL bound — any terminal deal created within the last 2 years can land
+// Loose SQL bound: any terminal deal created within the last 2 years can land
 // on the board. The user-facing filter below narrows further by effective won
 // date, so this only exists to keep the query from scanning the whole table as
 // the CRM ages.

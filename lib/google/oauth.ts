@@ -16,7 +16,7 @@ export type GoogleTokenResponse = {
 
 export type DecodedIdToken = {
   email?: string
-  hd?: string // hosted domain — present on Workspace accounts
+  hd?: string // hosted domain; present on Workspace accounts
   sub?: string
 }
 
@@ -83,7 +83,7 @@ export async function refreshAccessToken(
 }
 
 /**
- * Quick JWT payload decode. We don't verify the signature here — the token
+ * Quick JWT payload decode. We don't verify the signature here; the token
  * was returned directly from Google's token endpoint over TLS, so it's
  * trusted for identification purposes (reading `email` / `hd`).
  */

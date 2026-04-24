@@ -24,7 +24,7 @@ export type GoogleConfig = {
 /**
  * Returns config when all Google vars are present, otherwise null. Callers
  * use this to cleanly disable integration surfaces (UI, routes, cron) in
- * environments that haven't provisioned Google Workspace yet — no crashes.
+ * environments that haven't provisioned Google Workspace yet. No crashes.
  */
 export function getGoogleConfig(): GoogleConfig | null {
   const clientId = process.env.GOOGLE_CLIENT_ID

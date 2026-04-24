@@ -147,7 +147,7 @@ export default async function RepActivityPage() {
             <code className="rounded bg-muted px-1 font-mono text-xs">
               lib/rep-activity.ts
             </code>{" "}
-            to tune — the contractor agreement should reference the same
+            to tune; the contractor agreement should reference the same
             numbers.
           </p>
           <ul className="mt-4 grid gap-2 text-sm sm:grid-cols-2">

@@ -62,7 +62,7 @@ type Props =
       reps: { id: string; full_name: string | null }[]
     }
 
-// `negotiation` is hidden from the form — reps only pick between the real
+// `negotiation` is hidden from the form. Reps only pick between the real
 // three pipeline states. Legacy rows in that stage still render their label
 // via PROJECT_STAGE_LABEL until they're resolved.
 const STAGE_OPTIONS = (
@@ -150,7 +150,7 @@ function ProjectFormDialog(props: Props) {
   const clientMap = new Map(props.clients.map((c) => [c.id, c]))
 
   const numericValue = Number(valueStr)
-  // Websites are a pure recurring service (Squarespace-style) — the client
+  // Websites are a pure recurring service (Squarespace-style). The client
   // pays monthly, doesn't own the build, and it goes away when they cancel.
   // So there's no one-time value, no deposit, no one-time payment status.
   const isWebsite = productType === "business_website"
@@ -476,7 +476,7 @@ function ProjectFormDialog(props: Props) {
               <p className="text-sm font-medium">Recurring plan</p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {isWebsite
-                  ? "Websites are sold as a monthly service — pick the plan."
+                  ? "Websites are sold as a monthly service. Pick the plan."
                   : "Attach an optional monthly service alongside the one-time build."}
               </p>
             </div>

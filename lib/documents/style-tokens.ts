@@ -1,7 +1,7 @@
 // Shared visual tokens consumed by both the server-side PDF renderer
 // (lib/documents/pdf.tsx, @react-pdf/renderer) and the client-side HTML
 // preview (components/documents/document-html.tsx). All values are in points
-// (pt) — the PDF renderer uses pt natively, and the HTML renderer applies
+// (pt). The PDF renderer uses pt natively, and the HTML renderer applies
 // them via CSS pt units so proportions stay identical between the two.
 
 export const PAGE = {

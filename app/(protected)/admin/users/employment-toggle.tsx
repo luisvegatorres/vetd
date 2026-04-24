@@ -25,8 +25,8 @@ export function EmploymentToggle({
       if (result.ok) {
         toast.success(
           newStatus === "terminated"
-            ? "Marked as terminated — residuals stopped"
-            : "Marked as active — residuals will resume on next billing cycle",
+            ? "Marked as terminated. Residuals stopped."
+            : "Marked as active. Residuals will resume on next billing cycle.",
         )
       } else {
         toast.error(result.error)

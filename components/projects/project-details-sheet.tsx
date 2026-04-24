@@ -159,7 +159,7 @@ function resolveSubscriptionStatus(
       short: "Awaiting checkout",
       dialogTitle: "Stripe isn't collecting yet",
       dialogBody:
-        "This plan is set up in the CRM but Stripe isn't charging the client. Send a checkout link to activate billing — once the client pays, Stripe starts the monthly cycle automatically.",
+        "This plan is set up in the CRM but Stripe isn't charging the client. Send a checkout link to activate billing. Once the client pays, Stripe starts the monthly cycle automatically.",
     }
   }
   if (sub.status === "at_risk") {

@@ -257,7 +257,7 @@ export function CommissionsView({
 
   // Admin-only team rollup: one row per rep with active subs, MRC, and ledger
   // totals. Terminated reps keep their ledger history but MRC projects to $0
-  // because residuals stop accruing on termination. Admins are excluded —
+  // because residuals stop accruing on termination. Admins are excluded:
   // the owner keeps 100% of MRR through the company, not the payout ledger.
   const teamRollup = useMemo(() => {
     if (!isAdmin) return []
@@ -388,7 +388,7 @@ export function CommissionsView({
   ])
 
   function handleMarkPaid(rowId: string) {
-    // rowId is prefixed "sub:<id>" or "proj:<id>" — strip the prefix and pass
+    // rowId is prefixed "sub:<id>" or "proj:<id>". Strip the prefix and pass
     // the kind so the server action knows which table to update.
     const [prefix, id] = rowId.split(":")
     const source: LedgerSource = prefix === "proj" ? "project" : "subscription"
@@ -542,7 +542,7 @@ export function CommissionsView({
           <header className="border-b border-border/60 p-6">
             <h2 className="font-heading text-lg font-medium">My subscriptions</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Active recurring clients you closed. Stay in touch — every month
+              Active recurring clients you closed. Stay in touch. Every month
               they stay is a residual you earn.
             </p>
           </header>
@@ -725,8 +725,8 @@ export function CommissionsView({
                         className="text-sm tabular-nums text-muted-foreground"
                         title={
                           row.source === "subscription"
-                            ? "Monthly rate — commission is 10% of this"
-                            : "Project value — commission is 10% of this"
+                            ? "Monthly rate. Commission is 10% of this."
+                            : "Project value. Commission is 10% of this."
                         }
                       >
                         {fmtMoney.format(row.amount / COMMISSION_RATE)}

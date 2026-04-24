@@ -283,7 +283,7 @@ export async function deleteLead(
     if (error.code === "23503") {
       return {
         ok: false,
-        error: "This lead has linked records — archive it instead",
+        error: "This lead has linked records. Archive it instead.",
       }
     }
     return { ok: false, error: error.message }

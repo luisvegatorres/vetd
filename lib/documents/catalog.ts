@@ -59,7 +59,7 @@ export const BLOCKS: BlockOption[] = [
   {
     key: "spacer",
     label: "Spacer",
-    description: "Vertical spacing — sm, md, or lg",
+    description: "Vertical spacing: sm, md, or lg",
     snippet: `{
   "type": "spacer",
   "size": "md"
@@ -147,7 +147,7 @@ export const TOKEN_GROUPS: TokenGroup[] = [
   },
 ]
 
-/** Flattened { name, description, group } list — easier for CodeMirror completions. */
+/** Flattened { name, description, group } list, easier for CodeMirror completions. */
 export const ALL_TOKENS = TOKEN_GROUPS.flatMap((g) =>
   g.tokens.map((tok) => ({ ...tok, group: g.label })),
 )

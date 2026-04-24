@@ -201,7 +201,7 @@ export async function rerenderDocumentWithBody(input: {
 }
 
 /**
- * Re-render a document from the current template body — picks up template
+ * Re-render a document from the current template body. Picks up template
  * edits made since the doc was first generated. Clears any per-doc body edits.
  */
 export async function regenerateDocumentFromTemplate(
@@ -266,7 +266,7 @@ export async function regenerateDocumentFromTemplate(
     })
   if (uploadRes.error) return { ok: false, error: uploadRes.error.message }
 
-  // Drop any per-doc body edits — the user just asked for the template's version.
+  // Drop any per-doc body edits; the user just asked for the template's version.
   const { _edits: _ignored, ...contextWithoutEdits } = context
   void _ignored
 
@@ -284,7 +284,7 @@ export async function regenerateDocumentFromTemplate(
 }
 
 /**
- * The current working body for a document — either the per-doc edited body
+ * The current working body for a document: either the per-doc edited body
  * stored under `data._edits.body`, or the template body resolved against
  * `data`. Callers use this to seed the edit-mode code editor.
  */
@@ -332,7 +332,7 @@ export async function getDocumentWorkingBody(
 
 /**
  * Returns a short-lived signed URL for an existing document's PDF.
- * Storage is private — we never expose the raw bucket path client-side.
+ * Storage is private. We never expose the raw bucket path client-side.
  */
 export async function getDocumentDownloadUrl(
   documentId: string,

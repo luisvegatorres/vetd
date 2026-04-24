@@ -8,7 +8,7 @@ type AdminClient = ReturnType<typeof createAdminClient>
  * Canonical task titles. The Stripe webhook uses these strings to find and
  * auto-complete template-seeded tasks when the corresponding real-world event
  * happens (deposit paid, subscription activated). Keep in sync with
- * task-templates.ts — if you rename a template task, rename its key here.
+ * task-templates.ts. If you rename a template task, rename its key here.
  */
 export const TASK_TITLES = {
   sendDepositInvoice: "Send Stripe deposit invoice",

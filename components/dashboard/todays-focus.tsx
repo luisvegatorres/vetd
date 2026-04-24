@@ -193,7 +193,7 @@ export async function TodaysFocus() {
 
           {topAttention.length === 0 ? (
             <p className="text-xs uppercase text-muted-foreground">
-              Nothing pressing — nice.
+              Nothing pressing. Nice.
             </p>
           ) : (
             <ul className="flex flex-col divide-y divide-border/60 -mx-6">

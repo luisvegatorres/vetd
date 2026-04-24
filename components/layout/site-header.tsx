@@ -1,20 +1,32 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 
+import { LocaleSwitcher } from "@/components/layout/locale-switcher"
 import { buttonVariants } from "@/components/ui/button"
+import { Link, usePathname } from "@/i18n/navigation"
 import { cn } from "@/lib/utils"
-import { nav, site } from "@/lib/site"
+import { site } from "@/lib/site"
 
 const PANEL_EASE = [0.22, 1, 0.36, 1] as const
+
+const NAV_KEYS = [
+  { href: "/#home", key: "home" },
+  { href: "/#products", key: "products" },
+  { href: "/#process", key: "process" },
+  { href: "/#work", key: "work" },
+  { href: "/#about", key: "about" },
+  { href: "/financing", key: "financing" },
+  { href: "/contact", key: "contact" },
+] as const
 
 export function SiteHeader() {
   const [open, setOpen] = React.useState(false)
   const pathname = usePathname()
   const shouldReduceMotion = useReducedMotion()
+  const tNav = useTranslations("nav")
 
   // Close the panel whenever the route changes.
   React.useEffect(() => {
@@ -54,37 +66,29 @@ export function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex">
-          {nav.map((item) => (
+          {NAV_KEYS.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className="text-xs font-medium text-muted-foreground uppercase transition-colors hover:text-foreground"
             >
-              {item.label}
+              {tNav(item.key)}
             </Link>
           ))}
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link
-            href="/contact"
-            className={cn(
-              buttonVariants({ size: "sm" }),
-              "hidden text-xs font-medium lg:inline-flex"
-            )}
-          >
-            Start a project
-          </Link>
+          <LocaleSwitcher className="hidden lg:inline-flex" />
 
           <button
             type="button"
-            aria-label={open ? "Close menu" : "Open menu"}
+            aria-label={open ? tNav("closeMenu") : tNav("openMenu")}
             aria-expanded={open}
             aria-controls="mobile-nav-panel"
             onClick={() => setOpen((value) => !value)}
             className="relative inline-flex h-10 w-10 items-center justify-center rounded-none border border-border/60 text-foreground transition-colors hover:bg-muted lg:hidden"
           >
-            <span className="sr-only">Toggle menu</span>
+            <span className="sr-only">{tNav("toggleMenu")}</span>
             <span className="relative block h-3 w-5">
               <motion.span
                 aria-hidden
@@ -132,7 +136,7 @@ export function SiteHeader() {
             className="absolute inset-x-0 top-16 border-b border-border/60 bg-background lg:hidden"
           >
             <nav className="flex flex-col px-6 py-6 sm:px-10">
-              {nav.map((item, index) => (
+              {NAV_KEYS.map((item, index) => (
                 <motion.div
                   key={item.href}
                   initial={{ opacity: 0, y: 8 }}
@@ -153,7 +157,7 @@ export function SiteHeader() {
                         : "text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    {item.label}
+                    {tNav(item.key)}
                   </Link>
                 </motion.div>
               ))}
@@ -163,11 +167,12 @@ export function SiteHeader() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
                   duration: shouldReduceMotion ? 0 : 0.35,
-                  delay: shouldReduceMotion ? 0 : 0.04 * nav.length,
+                  delay: shouldReduceMotion ? 0 : 0.04 * NAV_KEYS.length,
                   ease: PANEL_EASE,
                 }}
-                className="pt-6"
+                className="space-y-4 pt-6"
               >
+                <LocaleSwitcher className="w-full justify-center" />
                 <Link
                   href="/contact"
                   onClick={() => setOpen(false)}
@@ -176,7 +181,7 @@ export function SiteHeader() {
                     "w-full text-xs font-medium"
                   )}
                 >
-                  Start a project
+                  {tNav("startProject")}
                 </Link>
               </motion.div>
             </nav>

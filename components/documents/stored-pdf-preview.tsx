@@ -18,7 +18,7 @@ export function StoredPdfPreview({
   revalidateKey,
 }: {
   documentId: string
-  /** Bump to force a reload — e.g. after an edit or regenerate. */
+  /** Bump to force a reload (e.g. after an edit or regenerate). */
   revalidateKey?: string | number
 }) {
   const [pages, setPages] = useState<PdfPage[]>([])

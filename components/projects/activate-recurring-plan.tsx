@@ -54,7 +54,7 @@ export function ActivateRecurringPlanBanner({ project }: Props) {
       </ItemMedia>
       <ItemContent>
         <ItemTitle>
-          Recurring plan is pending — billing starts when you activate it.
+          Recurring plan is pending. Billing starts when you activate it.
         </ItemTitle>
         <ItemDescription>
           {gate.ok
@@ -70,7 +70,7 @@ export function ActivateRecurringPlanBanner({ project }: Props) {
             startTransition(async () => {
               const result = await activateRecurringPlan(project.id)
               if (result.ok) {
-                toast.success("Plan activated — first bill runs today")
+                toast.success("Plan activated. First bill runs today.")
                 router.refresh()
               } else {
                 toast.error(result.error)

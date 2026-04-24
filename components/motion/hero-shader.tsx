@@ -14,7 +14,7 @@ type HeroShaderProps = React.HTMLAttributes<HTMLDivElement> & {
   intensity?: number
   /**
    * Extra classes for the children wrapper (useful when the container has a
-   * fixed height and the content needs to fill it — e.g. `"h-full"`).
+   * fixed height and the content needs to fill it, e.g. `"h-full"`).
    */
   contentClassName?: string
 }
@@ -200,7 +200,7 @@ export function HeroShader({
           // smoothstep for a soft, rounded falloff.
           const eased = normalized * normalized * (3 - 2 * normalized)
           const influence = eased * intensity
-          // Push dots radially AWAY from the cursor — the cursor leaves a
+          // Push dots radially AWAY from the cursor. The cursor leaves a
           // subtle hole in the grid instead of dragging dots along with it.
           const push = influence * MAX_PUSH
           const dir = distance > 0.001 ? 1 / distance : 0
@@ -288,7 +288,7 @@ export function HeroShader({
       if (shouldReduceMotion) return
       updatePointer(event)
       // If the cursor was already inside on mount/navigation, pointerenter
-      // never fires — activate on first move so the effect wakes up.
+      // never fires. Activate on first move so the effect wakes up.
       activity.set(1)
     },
     [activity, shouldReduceMotion, updatePointer]

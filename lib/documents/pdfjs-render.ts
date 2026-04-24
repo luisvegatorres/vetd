@@ -5,7 +5,7 @@
 // that size but pixelates when the container is wider or the display is
 // retina. Exposing per-page render fns lets the carousel render directly to
 // its on-screen canvas at devicePixelRatio × containerWidth, so the preview
-// stays crisp at any size — same fidelity as a native PDF viewer.
+// stays crisp at any size, same fidelity as a native PDF viewer.
 
 let workerConfigured = false
 
@@ -23,7 +23,7 @@ export type PdfPage = {
 
 export type LoadedPdf = {
   pages: PdfPage[]
-  /** Call when the consumer is done — tears down pdfjs's internal worker refs. */
+  /** Call when the consumer is done; tears down pdfjs's internal worker refs. */
   destroy: () => void
 }
 
@@ -65,7 +65,7 @@ export async function loadPdfPages(
       render: async (canvas, scale) => {
         // React strict-mode can re-run a parent effect cleanup (which destroys
         // the doc) before the carousel's effect that calls render() has torn
-        // down — so we may be invoked after destroy. Bail instead of calling
+        // down. So we may be invoked after destroy. Bail instead of calling
         // into a PDFPageProxy whose transport.messageHandler is now null.
         if (destroyed) return
         if (renderTask) renderTask.cancel()

@@ -1,0 +1,599 @@
+{
+  "site": {
+    "name": "Innovate App Studios",
+    "tagline": "Productos digitales que hacen crecer negocios.",
+    "description": "Sitios web, apps móviles, productos SaaS e integraciones de IA construidos para rendir y diseñados para convertir.",
+    "location": "Global ▪ 100% remoto",
+    "responseTime": "En menos de 24 horas, usualmente el mismo día."
+  },
+  "nav": {
+    "home": "Inicio",
+    "products": "Productos",
+    "process": "Proceso",
+    "work": "Proyectos",
+    "about": "Nosotros",
+    "financing": "Financiamiento",
+    "contact": "Contacto",
+    "startProject": "Iniciar proyecto",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "toggleMenu": "Alternar menú"
+  },
+  "footer": {
+    "navigate": "Navegar",
+    "contact": "Contacto",
+    "bookCall": "Agendar llamada",
+    "rights": "© {year} {name}. Construido para negocios en todo el mundo."
+  },
+  "localeSwitcher": {
+    "label": "Idioma",
+    "english": "Inglés",
+    "spanish": "Español"
+  },
+  "home": {
+    "metaTitle": "Innovate App Studios — Productos digitales que hacen crecer negocios.",
+    "metaDescription": "Sitios web, apps móviles, productos SaaS e integraciones de IA construidos para rendir y diseñados para convertir. Alcance fijo, precio fijo, sin facturación por hora.",
+    "ogAlt": "Innovate App Studios — estudio de productos digitales",
+    "hero": {
+      "badge": "Inicio",
+      "headlineLine1": "Construimos productos",
+      "headlineLine2": "digitales que hacen crecer",
+      "headlineLine3": "tu negocio.",
+      "subhead": "Sitios web. Apps móviles. Productos SaaS. Integraciones de IA. Construidos para rendir, diseñados para convertir.",
+      "ctaBookCall": "Agendar llamada de descubrimiento",
+      "panelEyebrow": "/ 001 - Estudio de productos digitales",
+      "panelFooter": "Sitios ▪ Apps ▪ SaaS ▪ IA",
+      "offer": {
+        "systemLabel": "Oferta",
+        "title": "De la idea al lanzamiento, sin precio abierto.",
+        "copy": "Una llamada convierte el proyecto en alcance, tiempo y forma de pago antes de escribir una línea de código.",
+        "products": {
+          "website": {
+            "title": "Sitios web",
+            "copy": "Presencia rápida, SEO base y conversión desde el primer día.",
+            "tag": "5-7 días"
+          },
+          "app": {
+            "title": "Apps móviles",
+            "copy": "iOS y Android desde una sola base, con diseño, backend y publicación.",
+            "tag": "4-12 sem."
+          },
+          "saas": {
+            "title": "SaaS",
+            "copy": "Portales, dashboards, pagos y permisos listos para operar.",
+            "tag": "3-8 sem."
+          },
+          "ai": {
+            "title": "IA aplicada",
+            "copy": "Automatización, asistentes y flujos inteligentes dentro de tu producto.",
+            "tag": "Por alcance"
+          }
+        },
+        "termsEyebrow": "Antes de empezar",
+        "terms": {
+          "scope": {
+            "value": "Fijo",
+            "label": "Alcance y precio cerrados"
+          },
+          "payments": {
+            "value": "0%",
+            "label": "12 pagos en proyectos $5K+"
+          },
+          "handoff": {
+            "value": "Tuyo",
+            "label": "Código, cuentas y activos"
+          }
+        }
+      },
+      "stats": {
+        "linesValue": "4",
+        "linesLabel": "Líneas principales de producto",
+        "financingValue": "0%",
+        "financingLabel": "Financiamiento en proyectos $5K+ ▪ 12 pagos mensuales",
+        "fixedValue": "Fijo",
+        "fixedLabel": "Alcance, tiempo y precio antes de empezar"
+      }
+    },
+    "products": {
+      "eyebrow": "001 — Lo que construimos",
+      "title": "El kit completo, en un solo estudio.",
+      "subtitle": "Elige lo que necesitas. Nosotros nos encargamos del resto.",
+      "scrollToContinue": "Desplázate para continuar",
+      "indexOf": "{current} de {total}",
+      "labels": {
+        "timeline": "Tiempo",
+        "financing": "Financiamiento",
+        "tiers": "Planes",
+        "included": "Qué incluye",
+        "builtWith": "Construido con"
+      }
+    },
+    "process": {
+      "eyebrow": "002 — Cómo trabajamos",
+      "title": "Proceso simple. Cero sorpresas.",
+      "subtitle": "Siempre sabes qué está pasando, qué sigue y cuánto cuesta.",
+      "stepByStep": "Paso a paso",
+      "stepOf": "Paso {current} de {total}",
+      "jumpAria": "Ir al paso {step}"
+    },
+    "about": {
+      "eyebrow": "003 — Sobre nosotros",
+      "title": "Un estudio operado como un producto, no como una agencia.",
+      "p1": "Innovate App Studios es un equipo pequeño y enfocado que construye sitios web, apps y sistemas para negocios que quieren crecer. Sin relleno. Sin burocracia. Solo trabajo terminado, entregado a tiempo.",
+      "p2": "Cobramos por alcance, no por hora. Construimos con herramientas que funcionan. Y cuando termina el proyecto, tú eres dueño de cada línea.",
+      "values": {
+        "ship": {
+          "title": "Entregamos productos, no horas",
+          "copy": "Alcances fijos, precios fijos, trabajo terminado. Sin retainers abiertos, sin juegos de horas facturadas."
+        },
+        "speed": {
+          "title": "La velocidad es una característica",
+          "copy": "Un sitio en 7 días. Un MVP en semanas. El impulso se acumula. Los proyectos lentos rara vez se recuperan."
+        },
+        "tools": {
+          "title": "Elegimos herramientas que funcionan",
+          "copy": "Next.js, Flutter, Supabase, shadcn, Claude. Solo stacks probados. Sin experimentos del framework del mes a tu costa."
+        },
+        "ownership": {
+          "title": "Tú eres dueño de todo",
+          "copy": "Código, dominio, cuentas, contenido. Sin amarres, sin dependencias de nosotros para mantenerlo en marcha."
+        },
+        "remote": {
+          "title": "Remoto por defecto",
+          "copy": "Clientes en distintas industrias, zonas horarias y mercados, con el mismo estándar de oficio y comunicación."
+        },
+        "straight": {
+          "title": "Respuestas claras, siempre",
+          "copy": "Si algo no se puede hacer, te lo decimos temprano. Sin jerga, sin rodeos, sin lenguaje de vendedor."
+        }
+      }
+    },
+    "work": {
+      "eyebrow": "004 — Nuestro trabajo",
+      "title": "Productos que hemos construido y lanzado.",
+      "filters": {
+        "all": "Todos",
+        "websites": "Sitios web",
+        "mobile": "Apps móviles",
+        "saas": "Productos SaaS"
+      },
+      "empty": "Aún no hay proyectos en esta categoría.",
+      "metaWebsite": "Sitio web ▪ {year}",
+      "metaMobile": "App móvil ▪ {year}",
+      "metaSaas": "Producto SaaS ▪ {year}",
+      "projects": {
+        "innovate-app-studios": {
+          "title": "CRM de Innovate App Studios",
+          "tagline": "Sistema operativo de la agencia: leads, proyectos, facturación, comisiones."
+        },
+        "alpha": {
+          "title": "Proyecto Alpha",
+          "tagline": "Sitio de restaurante con reservaciones en línea."
+        },
+        "beta": {
+          "title": "Proyecto Beta",
+          "tagline": "App acompañante para iOS y Android de una marca de fitness."
+        },
+        "gamma": {
+          "title": "Proyecto Gamma",
+          "tagline": "Portal interno de reservaciones que reemplaza hojas de cálculo manuales."
+        },
+        "delta": {
+          "title": "Proyecto Delta",
+          "tagline": "SEO local y motor de contenido para un negocio de servicios."
+        },
+        "epsilon": {
+          "title": "Proyecto Epsilon",
+          "tagline": "Landing page de producto que impulsa pre-órdenes en el lanzamiento."
+        },
+        "zeta": {
+          "title": "Proyecto Zeta",
+          "tagline": "Dashboard administrativo con analítica y reportes a la medida."
+        }
+      }
+    },
+    "faq": {
+      "eyebrow": "005 — Preguntas",
+      "title": "Preguntas frecuentes.",
+      "items": {
+        "cost": {
+          "q": "¿Cuánto cuesta mi proyecto?",
+          "a": "Los sitios web empiezan desde $97/mes o como una entrega única. Apps móviles y productos SaaS se cotizan por alcance en la llamada de descubrimiento. Saldrás de la llamada con un rango concreto, sin adivinanzas, sin pitches de seguimiento."
+        },
+        "who": {
+          "q": "¿Quién construye realmente mi proyecto?",
+          "a": "Trabajas directamente con el fundador y desarrollador principal. Sin gerentes de cuenta, sin subcontratistas en el extranjero. Cada línea de código y cada decisión de diseño es nuestra."
+        },
+        "payment": {
+          "q": "¿Cómo funcionan los pagos?",
+          "a": "Cada proyecto arranca con un depósito del 30%. Para construcciones de $5,000 o más, puedes pagar el 70% restante a la entrega o dividirlo en 12 meses al 0% de interés. El mismo total en cualquier caso. Sin cargos, sin verificación de crédito."
+        },
+        "after": {
+          "q": "¿Qué pasa después del lanzamiento?",
+          "a": "Los planes de sitios web incluyen hosting, SEO y actualizaciones de contenido continuas. Los lanzamientos de apps y SaaS vienen con garantía de 30 días sobre bugs, más retainers mensuales opcionales si quieres que sigamos construyendo."
+        },
+        "ownership": {
+          "q": "¿Soy dueño del código, dominio y cuentas?",
+          "a": "Sí, todo es tuyo desde el día uno. Código, dominio, archivos de diseño, cuentas de hosting, integraciones. Nunca estás amarrado y puedes llevar el proyecto a donde quieras."
+        },
+        "start": {
+          "q": "¿Qué necesitas de mí para empezar?",
+          "a": "Solo una llamada de descubrimiento de 20 minutos o el formulario de contacto. Respondemos en menos de 24 horas con los siguientes pasos. No necesitas wireframes, especificación ni assets. Nosotros nos encargamos."
+        }
+      }
+    },
+    "cta": {
+      "title": "¿Listo para construir algo?",
+      "subtitle": "Cuéntanos sobre tu proyecto. Sin compromiso, sin presión.",
+      "button": "Iniciar proyecto"
+    }
+  },
+  "products": {
+    "marketing-website": {
+      "name": "Sitio Web",
+      "tagline": "Hazte visible. Genera credibilidad. Convierte visitantes.",
+      "description": "Un sitio web rápido y mobile-first construido con SEO desde el día uno. Diseñado para convertir tráfico en leads, llamadas y ventas. Disponible como entrega única o mensual. El plan mensual incluye SEO continuo, Google Business, reportes y actualizaciones de contenido.",
+      "timeline": "5–7 días",
+      "pricingTiers": [
+        "Presence: $97/mes — sitio, hosting, SEO básico",
+        "Growth: $247/mes — SEO completo, contenido, reseñas, reportes mensuales",
+        "Proyecto único: cotización a medida",
+        "Sin contrato. Cancela cuando quieras."
+      ],
+      "includes": [
+        "Diseño y copy a la medida",
+        "Hosting, dominio, SSL",
+        "SEO on-page y analítica",
+        "Integración de formulario de contacto"
+      ]
+    },
+    "mobile-app": {
+      "name": "App Móvil",
+      "tagline": "Tu producto en cada bolsillo.",
+      "description": "Apps nativas para iOS y Android construidas con Flutter. Te llevamos desde la idea hasta la App Store: arquitectura, diseño, desarrollo y lanzamiento. Construido para rendimiento y escala.",
+      "timeline": "4–12 semanas",
+      "includes": [
+        "iOS y Android desde un solo código",
+        "Diseño de producto y UX",
+        "Backend y autenticación",
+        "Lanzamiento en App Store y Play Store"
+      ]
+    },
+    "web-app": {
+      "name": "Producto SaaS",
+      "tagline": "Software por el que tus clientes pagan.",
+      "description": "Productos SaaS a la medida: plataformas de reservación, portales de cliente, dashboards administrativos y apps listas para suscripciones. Construido con Next.js y Supabase. Diseñado para entregar rápido y escalar.",
+      "timeline": "3–8 semanas",
+      "includes": [
+        "Autenticación y permisos basados en roles",
+        "Base de datos y dashboard administrativo",
+        "Integraciones y automatizaciones",
+        "Analítica y reportes"
+      ]
+    },
+    "ai-integration": {
+      "name": "Integración de IA",
+      "tagline": "Haz tu producto más inteligente.",
+      "description": "Agregamos funciones con IA a cualquier sitio, app o herramienta: chatbots inteligentes, recomendaciones personalizadas, automatización de contenido y más. Impulsado por los modelos más recientes de Anthropic, OpenAI y Google.",
+      "timeline": "Depende del alcance",
+      "includes": [
+        "Chatbots y asistentes",
+        "Recomendaciones personalizadas",
+        "Automatización de contenido y flujos",
+        "Soporte para Claude, GPT y Gemini"
+      ]
+    }
+  },
+  "financingShared": {
+    "headlineShort": "0% ▪ Divide el 70% restante en 12 meses",
+    "eligibilityNote": "Proyectos de $5K+"
+  },
+  "processSteps": {
+    "01": {
+      "title": "Descubrimiento",
+      "copy": "Conocemos tu negocio, tus metas y cómo se ve el éxito. Empieza con una llamada gratis de 20 minutos. Sin pitch, sin presión."
+    },
+    "02": {
+      "title": "Propuesta",
+      "copy": "Recibes un alcance, tiempo y precio claros por escrito. Sin facturación por hora, sin costos ocultos, y nada arranca hasta que apruebes."
+    },
+    "03": {
+      "title": "Diseño y desarrollo",
+      "copy": "Diseñamos y desarrollamos tu producto en sprints enfocados con revisiones regulares. La retroalimentación es parte del proceso, no algo que se deja al final."
+    },
+    "04": {
+      "title": "Lanzamiento",
+      "copy": "Desplegamos, probamos y manejamos el QA final. Cuando entregamos, tú eres dueño del código, dominio, cuentas y datos."
+    },
+    "05": {
+      "title": "Soporte",
+      "copy": "¿Necesitas ayuda continua? Ofrecemos soporte mensual, gestión de SEO y mantenimiento de producto. O escríbenos cuando lo necesites."
+    }
+  },
+  "processArtifacts": {
+    "01": {
+      "kicker": "Entregable ▪ 01",
+      "title": "Llamada de descubrimiento",
+      "bullets": [
+        "Metas y restricciones",
+        "Criterios de éxito",
+        "Alcance y tiempos preliminares"
+      ],
+      "meta": "20 min ▪ Gratis ▪ Sin pitch"
+    },
+    "02": {
+      "kicker": "Entregable ▪ 02",
+      "title": "Propuesta escrita",
+      "bullets": ["Alcance detallado", "Tiempo fijo", "Precio fijo, sin horas"],
+      "meta": "Firma → arranque"
+    },
+    "03": {
+      "kicker": "Entregable ▪ 03",
+      "title": "Diseño + desarrollo",
+      "bullets": [
+        "Wireframes y flujos",
+        "Diseño visual",
+        "Construcción de producción"
+      ],
+      "meta": "Sprints ▪ Revisiones semanales"
+    },
+    "04": {
+      "kicker": "Entregable ▪ 04",
+      "title": "Despliegue en vivo",
+      "bullets": [
+        "Dominio y hosting",
+        "QA y pruebas finales",
+        "Entrega completa"
+      ],
+      "meta": "Código ▪ Cuentas ▪ Datos — tuyos"
+    },
+    "05": {
+      "kicker": "Entregable ▪ 05",
+      "title": "Cuidado continuo",
+      "bullets": [
+        "Mantenimiento mensual",
+        "Gestión de SEO",
+        "Arreglos bajo demanda"
+      ],
+      "meta": "Mensual ▪ Sin contrato"
+    }
+  },
+  "tools": {
+    "nextdotjs": "Nuestro framework de React preferido para sitios, web apps y builds optimizados para SEO.",
+    "shadcnui": "Sistema de componentes componibles que usamos para construir interfaces rápidas, consistentes y fáciles de extender.",
+    "tailwindcss": "Estilos utility-first que nos permiten diseñar y entregar interfaces pulidas sin frenar la implementación.",
+    "vercel": "Infraestructura de despliegue y hosting para releases rápidos, previews y entregas confiables en producción.",
+    "flutter": "Framework cross-platform para construir productos móviles con un solo código y UX que se siente nativa.",
+    "supabase": "Plataforma backend que usamos para auth, bases de datos, almacenamiento y features en tiempo real sin sobrecarga.",
+    "postgresql": "La capa de base de datos detrás de productos estructurados y escalables que requieren consultas potentes y confiabilidad a largo plazo.",
+    "anthropic": "Modelos de IA que integramos cuando los productos necesitan razonamiento avanzado, asistentes o automatización de flujos.",
+    "openai": "Una plataforma de IA central en nuestro stack para funciones conversacionales, automatización y experiencias inteligentes.",
+    "figma": "Donde la estructura del producto, los sistemas de interfaz y las decisiones de diseño se moldean antes del desarrollo.",
+    "framer": "Útil para builds de marketing veloces, prototipos interactivos y narrativa visual en la web."
+  },
+  "contact": {
+    "metaTitle": "Contacto",
+    "metaDescription": "Agenda una llamada de descubrimiento gratis de 20 minutos o envía una consulta. Respondemos en menos de 24 horas y cerramos alcance, precio y tiempo antes de empezar.",
+    "badge": "Contacto",
+    "headlineLine1": "Construyamos",
+    "headlineLine2": "algo juntos.",
+    "subhead": "Agenda una llamada de descubrimiento gratis de 20 minutos, o envía una consulta. Respondemos en menos de 24 horas.",
+    "bookButton": "Agendar llamada de descubrimiento",
+    "highlights": {
+      "freeValue": "Gratis",
+      "freeLabel": "Llamada 20 min ▪ Sin pitch, sin presión",
+      "financingValue": "0%",
+      "financingLabel": "Financiamiento en $5K+ ▪ 12 meses, sin interés",
+      "fixedValue": "Fijo",
+      "fixedLabel": "Precio y tiempo cerrados antes de empezar"
+    },
+    "form": {
+      "eyebrow": "Formulario de consulta",
+      "title": "Cuéntanos al respecto",
+      "name": "Tu nombre",
+      "namePlaceholder": "Juana Pérez",
+      "email": "Correo",
+      "emailPlaceholder": "juana@empresa.com",
+      "phone": "Teléfono",
+      "phonePlaceholder": "(555) 123-4567",
+      "business": "Negocio",
+      "optional": "(opcional)",
+      "businessPlaceholder": "Greenfield Eats",
+      "projectType": "¿Qué quieres construir?",
+      "projectTypePlaceholder": "Selecciona uno",
+      "projectTypeLabel": "Tipo de proyecto",
+      "budget": "Rango de presupuesto",
+      "budgetPlaceholder": "Selecciona un rango",
+      "details": "Cuéntanos sobre tu proyecto",
+      "detailsPlaceholder": "¿Qué estás construyendo, para quién es y qué debe lograr?",
+      "submit": "Enviar consulta",
+      "submitting": "Enviando...",
+      "buildOptions": {
+        "website": "Sitio Web",
+        "mobile": "App Móvil",
+        "saas": "Producto SaaS",
+        "ai": "Integración de IA",
+        "unsure": "Aún no estoy seguro"
+      },
+      "budgetOptions": {
+        "u1k": "Menos de $1K",
+        "1k5k": "$1K-$5K",
+        "5k15k": "$5K-$15K",
+        "15kplus": "$15K+",
+        "monthly": "Plan mensual"
+      }
+    },
+    "toast": {
+      "errorTitle": "No se pudo enviar la consulta",
+      "successTitle": "Consulta recibida.",
+      "successDescription": "Respondemos en menos de 24 horas."
+    }
+  },
+  "financing": {
+    "metaTitle": "Financiamiento",
+    "metaDescription": "Construye ahora, paga en 12 meses. Financiamiento interno en proyectos de $5K+. Depósito del 30%, pagos mensuales, sin verificación de crédito.",
+    "badge": "Financiamiento",
+    "headlineLine1": "Constrúyelo este mes.",
+    "headlineLine2": "Págalo en 12.",
+    "intro": "Cada proyecto arranca con un depósito del {deposit}%. Para proyectos de más de ${min}, puedes pagar el 70% restante a la entrega, o dividirlo en {months} meses al 0%. El mismo total en cualquier caso. Sin bancos, sin verificación de crédito. Solo un contrato claro entre nosotros.",
+    "ctaTalk": "Hablemos sobre tus números",
+    "trustEyebrow": "001 — Puntos de confianza",
+    "trustIntro": "Tres cosas que dejamos por escrito, antes de que entre el depósito.",
+    "trust": {
+      "zeroInterest": {
+        "title": "0% de interés",
+        "copy": "El mismo total en cualquier caso. Divide el 70% en 12 meses o paga a la entrega. Nunca un centavo más."
+      },
+      "noCredit": {
+        "title": "Sin verificación de crédito",
+        "copy": "Trabajamos con base en confianza y un contrato, no una solicitud de préstamo. Sin consultas, sin scoring."
+      },
+      "noSurprises": {
+        "title": "Sin sorpresas en el contrato",
+        "copy": "Un acuerdo claro. Términos de pagos atrasados y default escritos en lenguaje sencillo."
+      }
+    },
+    "stepsEyebrow": "002 — Cómo funciona",
+    "stepsTitle": "Cuatro pasos, una firma.",
+    "steps": {
+      "scope": {
+        "title": "Definimos el alcance",
+        "copy": "Llamada de descubrimiento gratis. Acordamos alcance, tiempo y precio antes de mover algo."
+      },
+      "deposit": {
+        "title": "El 30% inicial arranca todo",
+        "copy": "Cada proyecto inicia con un depósito del 30%. Una factura, un pago. La construcción comienza esa misma semana."
+      },
+      "choose": {
+        "title": "Eliges cómo pagar el 70%",
+        "copy": "Ya sea el saldo completo a la entrega, o 12 pagos mensuales iguales al 0%. Decides al firmar."
+      },
+      "deliver": {
+        "title": "Entregamos, lanzamos, eres dueño",
+        "copy": "Lo usas desde el día uno. El código fuente y la entrega completa de cuentas se hace cuando se liquida el saldo."
+      }
+    },
+    "pathsEyebrow": "003 — Dos formas de pagar",
+    "pathsTitle": "El mismo total. A tu ritmo.",
+    "pathsIntro": "Ejemplo en un proyecto de $10,000. $3,000 de depósito en cualquier caso. El 70% restante es donde tú decides.",
+    "pathA": {
+      "tag": "Camino A",
+      "title": "Saldo a la entrega",
+      "price": "30% depósito ▪ 70% al entregar",
+      "copy": "Estructura clásica de dos pagos. Paga el saldo la semana en que entregamos.",
+      "exampleLabel": "Proyecto de $10,000",
+      "exampleAmount": "$3,000 depósito + $7,000 a la entrega",
+      "exampleMeta": "Dos pagos ▪ $10,000 total",
+      "fieldDeposit": "Depósito",
+      "fieldBalance": "A la entrega",
+      "fieldTotal": "Total"
+    },
+    "pathB": {
+      "tag": "Camino B",
+      "title": "Saldo en 12 meses",
+      "price": "30% depósito ▪ 0% interés ▪ 12 pagos iguales",
+      "copy": "El mismo total que el Camino A, repartido en el año. Empieza este mes, paga mientras lo usas.",
+      "exampleLabel": "Proyecto de $10,000",
+      "exampleAmount": "$3,000 depósito + $583.33/mes",
+      "exampleMeta": "12 meses ▪ $10,000 total",
+      "emphasis": "Más popular",
+      "fieldDeposit": "Depósito",
+      "fieldMonthly": "Luego al mes",
+      "fieldDuration": "Por",
+      "fieldDurationValue": "12 meses",
+      "calculatorCta": "Calcula tus pagos"
+    },
+    "calculator": {
+      "title": "Calcula tus números",
+      "description": "Ingresa el monto del proyecto para ver el depósito del 30% y los 12 pagos mensuales al 0%.",
+      "amountLabel": "Monto del proyecto",
+      "amountPlaceholder": "10,000",
+      "currency": "USD",
+      "depositLabel": "Depósito del 30% hoy",
+      "monthlyLabel": "Luego al mes",
+      "durationLabel": "Durante 12 meses",
+      "totalLine": "Total {total} ▪ 0% interés ▪ Sin verificación de crédito",
+      "minimumNote": "El financiamiento comienza en {min}"
+    },
+    "faqEyebrow": "004 — Preguntas",
+    "faqTitle": "Respuestas, de frente.",
+    "faq": {
+      "qualifies": {
+        "q": "¿Quién califica para el financiamiento?",
+        "a": "Cualquier proyecto cotizado en $5,000 o más. Pedimos que tu negocio tenga al menos 12 meses operando. Sin papeleo, solo la conversación."
+      },
+      "loan": {
+        "q": "¿Esto es un préstamo? ¿Verificarán mi crédito?",
+        "a": "No. Es un acuerdo de pago directamente con nosotros. Sin verificación de crédito, sin reporte a buró. Trabajamos con base en un contrato firmado."
+      },
+      "interest": {
+        "q": "¿De verdad es 0% de interés?",
+        "a": "Sí. En un proyecto de $10,000 pagarías el mismo depósito de $3,000 en cualquier caso. Luego $583.33/mes por 12 meses, o $7,000 a la entrega. Ambos suman $10,000. Sin interés, sin cargo de financiamiento, sin cargos ocultos."
+      },
+      "deposit": {
+        "q": "¿Necesito depósito en cualquier caso?",
+        "a": "Sí. Cada proyecto, sin importar cómo pagues el saldo, arranca con un depósito del 30%. Esto cubre el alcance, diseño y el primer sprint de construcción. El saldo del 70% es donde se separan las dos rutas."
+      },
+      "free": {
+        "q": "¿Por qué ofrecerían esto gratis?",
+        "a": "Porque preferimos ayudarte a entregar ahora que perder el proyecto por flujo de caja. Apostamos a que volverás por el siguiente, y nos referirás a alguien más."
+      },
+      "early": {
+        "q": "¿Y si quiero pagar antes?",
+        "a": "Págalo cuando quieras sin penalización. Liquida el saldo restante y cerramos la cuenta."
+      },
+      "late": {
+        "q": "¿Qué pasa si falla un pago?",
+        "a": "Reintentamos la tarjeta en 3 días hábiles. Después de 30 días vencidos, el trabajo se pausa y pausamos el acceso al hosting hasta resolverlo. Siempre preferimos hablar antes que perseguir. Escríbenos si algo cambia."
+      },
+      "ownership": {
+        "q": "¿De qué soy dueño mientras sigo pagando?",
+        "a": "Usas el producto desde el día uno: hosting, dominio, tu software funcionando. La entrega del código fuente y cuentas completas ocurre con el último pago."
+      }
+    },
+    "ctaTitle": "Calculemos los números juntos.",
+    "ctaSubtitle": "Llamada de descubrimiento de 20 minutos. Te diremos cuánto cuesta el proyecto y te mostraremos ambas rutas de pago. Sin presión.",
+    "ctaButton": "Agendar llamada de descubrimiento"
+  },
+  "caseStudy": {
+    "back": "Volver a proyectos",
+    "kicker": "Caso de estudio",
+    "lead": "Un recorrido de proceso y decisiones del CRM con el que operamos el estudio.",
+    "labels": {
+      "year": "Año",
+      "duration": "Duración",
+      "role": "Rol",
+      "category": "Categoría"
+    },
+    "chapters": {
+      "overview": {
+        "title": "Resumen",
+        "caption": "Cómo lo abordamos."
+      },
+      "constraints": {
+        "title": "Restricciones",
+        "caption": "Las cuatro reglas que escribimos antes de que existiera el repo."
+      },
+      "decisions": {
+        "title": "Decisiones",
+        "caption": "Cinco lugares donde elegimos la opción aburrida y bien tipada y seguimos adelante."
+      },
+      "stack": {
+        "title": "El stack",
+        "caption": "Compañías, frameworks y servicios detrás de la construcción."
+      },
+      "wrote": {
+        "title": "Lo que escribimos",
+        "caption": "Los artefactos de ingeniería que salieron de la construcción."
+      },
+      "numbers": {
+        "title": "En números",
+        "caption": "Una foto rápida de la forma del código."
+      }
+    },
+    "ctaTitle": "¿Tienes un proyecto así?",
+    "ctaSubtitle": "Agenda una llamada de descubrimiento de 20 minutos. Saldrás con un alcance concreto, un tiempo y un precio.",
+    "ctaPrimary": "Iniciar proyecto",
+    "ctaSecondary": "Ver más trabajo"
+  }
+}

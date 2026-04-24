@@ -35,7 +35,7 @@ async function alreadyProcessed(
     .maybeSingle()
   if (error) {
     console.error("[stripe webhook] processed_events select failed", error)
-    // Fail open — better to process twice (and rely on per-row unique
+    // Fail open: better to process twice (and rely on per-row unique
     // constraints in subscription_invoices / ledger / payments to dedupe)
     // than to skip silently.
     return false
@@ -50,7 +50,7 @@ async function markProcessed(
   const { error } = await supabase
     .from("processed_stripe_events")
     .insert({ id: event.id, event_type: event.type })
-  // Unique-violation is fine — a concurrent delivery beat us to it.
+  // Unique-violation is fine; a concurrent delivery beat us to it.
   if (error && error.code !== "23505") {
     console.error("[stripe webhook] processed_events insert failed", error)
   }
@@ -108,7 +108,7 @@ function priceIdFromInvoiceLine(line: Stripe.InvoiceLineItem): string | null {
 }
 
 // Under API 2026-03-25.dahlia, invoice.lines is paginated and webhook events
-// don't always inline the line items — leaving invoice.lines.data empty. Fall
+// don't always inline the line items, leaving invoice.lines.data empty. Fall
 // back to an explicit listLineItems call so we can always resolve period/price.
 async function resolveFirstInvoiceLine(
   invoice: Stripe.Invoice,
@@ -147,7 +147,7 @@ function periodMonthFromLine(
 }
 
 // Gate for commission ledger inserts: only write rows for active non-admin
-// reps. Admin-sold deals intentionally earn no commission — the owner keeps
+// reps. Admin-sold deals intentionally earn no commission. The owner keeps
 // 100% of the MRR through the company, not through the payout ledger.
 async function isRepEligibleForCommission(
   supabase: AdminClient,
@@ -163,7 +163,7 @@ async function isRepEligibleForCommission(
   return data.employment_status === "active"
 }
 
-// True when the profile is an admin — used to null out commission amounts on
+// True when the profile is an admin, used to null out commission amounts on
 // the subscription row itself so admin-owned subs don't show up in Team MRC
 // projections (which read subscriptions.monthly_residual_amount).
 async function isAdminRep(
@@ -259,7 +259,7 @@ async function handleCheckoutCompleted(
       .is("stripe_customer_id", null)
   }
 
-  // Admin-owned subs earn no commission — null the residual so Team MRC
+  // Admin-owned subs earn no commission. Null the residual so Team MRC
   // projections stay out of the rollup.
   const adminSold = await isAdminRep(supabase, meta.sold_by)
   const monthlyResidual = adminSold
@@ -360,7 +360,7 @@ async function handleDepositCompleted(
   }
 
   // Auto-advance pipeline stage: a paid deposit is the hard signal that the
-  // deal is won. Only advance pre-sale rows — don't clobber completed or
+  // deal is won. Only advance pre-sale rows; don't clobber completed or
   // cancelled projects (e.g. a late payment on a refunded deal).
   const { error: stageError } = await supabase
     .from("projects")
@@ -390,7 +390,7 @@ async function handleDepositCompleted(
   // clears. Idempotent via the unique (project_id) constraint.
   await recordProjectCommission(supabase, projectId)
 
-  // Tick the "Send Stripe deposit invoice" task on the board — the deposit
+  // Tick the "Send Stripe deposit invoice" task on the board. The deposit
   // just landed, so the deliverable is done.
   await markProjectTaskDoneByTitle(
     supabase,
@@ -438,13 +438,13 @@ async function handleInvoicePaid(
   // Race: invoice.payment_succeeded can arrive before checkout.session.completed
   // finishes writing the CRM subscription row (the checkout handler makes a
   // Stripe API call first). Throw so the outer catch rolls back the
-  // idempotency entry — Stripe retries the event and by then the sub row
+  // idempotency entry. Stripe retries the event and by then the sub row
   // exists. Silently returning here is what caused subscription_invoices to
   // stay empty even though both events were processed.
   const sub = await findSubscriptionByStripeId(supabase, stripeSubId)
   if (!sub) {
     throw new Error(
-      `invoice ${invoice.id} has no matching CRM subscription for ${stripeSubId} — will retry`,
+      `invoice ${invoice.id} has no matching CRM subscription for ${stripeSubId}; will retry`,
     )
   }
 
@@ -482,7 +482,7 @@ async function handleInvoicePaid(
     return
   }
 
-  // Resolve the plan label for the onboarding task only — commission is a
+  // Resolve the plan label for the onboarding task only. Commission is a
   // flat 10% of what the client actually paid, so the ledger write below
   // doesn't need the catalog plan at all.
   const priceId = (lineItem ? priceIdFromInvoiceLine(lineItem) : null) ??
@@ -494,7 +494,7 @@ async function handleInvoicePaid(
   // audit, but must not reactivate the sub or credit new commission.
   if (sub.status === "canceled") {
     console.warn(
-      `[stripe webhook] paid invoice ${invoice.id} received for canceled subscription ${sub.id} — skipping reactivation and commission`,
+      `[stripe webhook] paid invoice ${invoice.id} received for canceled subscription ${sub.id}; skipping reactivation and commission`,
     )
     return
   }
@@ -505,12 +505,12 @@ async function handleInvoicePaid(
     .update({ status: "active", stripe_status: "active" })
     .eq("id", sub.id)
 
-  // A paid invoice proves the client is paying — promote them off the leads
+  // A paid invoice proves the client is paying. Promote them off the leads
   // list. Skip if already active_client/at_risk to avoid redundant writes
   // and to preserve downstream lifecycle states.
   await promoteClientToActive(supabase, sub.client_id)
 
-  // Every paid invoice — first month or renewal — generates a 10% residual
+  // Every paid invoice, first month or renewal, generates a 10% residual
   // ledger row for the period it covers. Idempotent via the
   // (subscription_id, period_month) unique constraint.
   const periodMonth = periodMonthFromLine(lineItem)
@@ -557,7 +557,7 @@ async function handleInvoicePaid(
     return
   }
 
-  // Renewal — drop a monthly check-in task on the board.
+  // Renewal: drop a monthly check-in task on the board.
   if (
     invoice.billing_reason === "subscription_cycle" ||
     invoice.billing_reason === "subscription_update"
@@ -711,12 +711,12 @@ export async function POST(request: Request) {
     }
   } catch (err) {
     console.error(`[stripe webhook] handler error for ${event.type}`, err)
-    // Not marked processed — Stripe will retry.
+    // Not marked processed; Stripe will retry.
     return NextResponse.json({ error: "handler_failed" }, { status: 500 })
   }
 
   // Mark processed only after the handler succeeds. A crash between
-  // completion and this insert means Stripe retries — the handlers are
+  // completion and this insert means Stripe retries; the handlers are
   // idempotent by design (upsert + unique constraints on
   // subscription_invoices, commission ledger, payments).
   await markProcessed(supabase, event)

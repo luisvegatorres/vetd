@@ -10,7 +10,7 @@ import {
 } from "@/lib/status-colors"
 import { cn } from "@/lib/utils"
 
-// Stages we *load* from Postgres — legacy negotiation rows still exist in
+// Stages we *load* from Postgres. Legacy negotiation rows still exist in
 // the DB and roll up into the Proposal column.
 const PIPELINE_LOAD_STAGES: Stage[] = ["proposal", "negotiation", "active"]
 // Stages we *display* in the snapshot grid.

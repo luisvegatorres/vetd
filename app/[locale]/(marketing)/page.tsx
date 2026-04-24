@@ -1,5 +1,7 @@
-import Link from "next/link"
+import type { Metadata } from "next"
 import { ArrowRight } from "lucide-react"
+import { setRequestLocale } from "next-intl/server"
+import { getTranslations } from "next-intl/server"
 
 import { AboutValuesGrid } from "@/components/home/about-values-grid"
 import { CraftLogoCloud } from "@/components/home/craft-logo-cloud"
@@ -9,6 +11,7 @@ import { ProductsScrollAccordion } from "@/components/home/products-scroll-accor
 import { WorkGrid } from "@/components/home/work-grid"
 import { Section } from "@/components/layout/section"
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal"
+import { JsonLd } from "@/components/seo/json-ld"
 import {
   Accordion,
   AccordionContent,
@@ -16,41 +19,62 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { buttonVariants } from "@/components/ui/button"
+import { Link } from "@/i18n/navigation"
+import { routing, type Locale } from "@/i18n/routing"
+import { buildAlternates } from "@/lib/seo"
+import { serviceSchemas } from "@/lib/structured-data"
 import { cn } from "@/lib/utils"
-import { processSteps, products } from "@/lib/site"
-
-const homeFaq = [
-  {
-    q: "How much will my project cost?",
-    a: "Websites start at $97/mo or as a one-time build. Mobile apps and SaaS products are quoted per scope on the discovery call. You'll leave the call with a concrete range — no guesswork, no follow-up pitches.",
-  },
-  {
-    q: "Who actually builds my project?",
-    a: "You work directly with the founder and lead developer. No account managers, no offshore subcontractors. Every line of code and every design decision is ours.",
-  },
-  {
-    q: "How does payment work?",
-    a: "Every project kicks off with a 30% deposit. For builds $5,000 and up, you can pay the 70% balance on delivery or split it over 12 months at 0% interest — same total either way. No fees, no credit checks.",
-  },
-  {
-    q: "What happens after launch?",
-    a: "Website plans include ongoing hosting, SEO, and content updates. Apps and SaaS launches come with a 30-day warranty on bugs, plus optional monthly retainers if you want us to keep building.",
-  },
-  {
-    q: "Do I own the code, domain, and accounts?",
-    a: "Yes — everything is yours from day one. Code, domain, design files, hosting accounts, third-party integrations. You're never locked in, and you can take the project anywhere.",
-  },
-  {
-    q: "What do you need from me to start?",
-    a: "Just a 20-minute discovery call or the contact form. We respond within 24 hours with next steps. You don't need wireframes, a spec doc, or existing assets — we handle that.",
-  },
-] as const
 
 const sectionAnchor = "scroll-mt-20"
 
-export default function HomePage() {
+const FAQ_KEYS = [
+  "cost",
+  "who",
+  "payment",
+  "after",
+  "ownership",
+  "start",
+] as const
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  if (!routing.locales.includes(locale as Locale)) return {}
+  const t = await getTranslations({ locale, namespace: "home" })
+  const alternates = buildAlternates(locale as Locale)
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    alternates,
+    openGraph: {
+      title: t("metaTitle"),
+      description: t("metaDescription"),
+      url: alternates.canonical,
+      type: "website",
+    },
+  }
+}
+
+export default async function HomePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  setRequestLocale(locale)
+
+  const t = await getTranslations("home")
+  const tFaq = await getTranslations("home.faq.items")
+  const services = serviceSchemas(locale as Locale)
+
   return (
     <>
+      {services.map((service, i) => (
+        <JsonLd key={`service-${i}`} data={service} />
+      ))}
       <HomeHero />
 
       <Section size="sm">
@@ -61,18 +85,17 @@ export default function HomePage() {
 
       <div id="products" className={sectionAnchor}>
         <ProductsScrollAccordion
-          products={products}
           header={
             <div className="px-6 pt-16 sm:px-10 sm:pt-24 lg:px-20">
               <p className="mb-6 text-xs font-medium text-muted-foreground uppercase">
-                001 — What we build
+                {t("products.eyebrow")}
               </p>
               <div className="max-w-3xl space-y-4">
                 <h2 className="leading-section font-heading text-4xl text-foreground capitalize sm:text-5xl">
-                  The complete toolkit, under one studio.
+                  {t("products.title")}
                 </h2>
                 <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
-                  Pick what fits. We handle the rest.
+                  {t("products.subtitle")}
                 </p>
               </div>
             </div>
@@ -81,21 +104,13 @@ export default function HomePage() {
       </div>
 
       <div id="process" className={sectionAnchor}>
-        <ProcessHorizontalChapters
-          steps={processSteps}
-          heading={{
-            eyebrow: "002 — How we work",
-            title: "Simple process. No surprises.",
-            subtitle:
-              "You always know what's happening, what's next, and what it costs.",
-          }}
-        />
+        <ProcessHorizontalChapters />
       </div>
 
       <Section
         id="about"
         size="sm"
-        eyebrow="003 — About us"
+        eyebrow={t("about.eyebrow")}
         className={cn(sectionAnchor, "border-b-0")}
       >
         <div className="mb-20 grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
@@ -106,7 +121,7 @@ export default function HomePage() {
           >
             <RevealItem y={20}>
               <h2 className="leading-section font-heading text-4xl text-foreground capitalize sm:text-5xl">
-                A studio run like a product — not an agency.
+                {t("about.title")}
               </h2>
             </RevealItem>
           </RevealGroup>
@@ -117,17 +132,10 @@ export default function HomePage() {
             stagger={0.08}
           >
             <RevealItem y={22}>
-              <p>
-                Innovate App Studios is a small, focused team building
-                websites, apps, and systems for businesses that want to grow.
-                No bloat. No bureaucracy. Just finished work, shipped on time.
-              </p>
+              <p>{t("about.p1")}</p>
             </RevealItem>
             <RevealItem y={22}>
-              <p>
-                We price by scope, not by the hour. We build on tools that
-                win. And when the project ends, you own every line of it.
-              </p>
+              <p>{t("about.p2")}</p>
             </RevealItem>
           </RevealGroup>
         </div>
@@ -135,7 +143,12 @@ export default function HomePage() {
         <AboutValuesGrid />
       </Section>
 
-      <Section id="work" size="sm" eyebrow="004 — Our work" className={sectionAnchor}>
+      <Section
+        id="work"
+        size="sm"
+        eyebrow={t("work.eyebrow")}
+        className={sectionAnchor}
+      >
         <RevealGroup
           className="mb-20 max-w-3xl space-y-4"
           delayChildren={0.08}
@@ -143,7 +156,7 @@ export default function HomePage() {
         >
           <RevealItem y={18}>
             <h2 className="leading-section font-heading text-4xl text-foreground capitalize sm:text-5xl">
-              Products we&apos;ve built and shipped.
+              {t("work.title")}
             </h2>
           </RevealItem>
         </RevealGroup>
@@ -151,23 +164,23 @@ export default function HomePage() {
         <WorkGrid />
       </Section>
 
-      <Section size="sm" eyebrow="005 — FAQ">
+      <Section size="sm" eyebrow={t("faq.eyebrow")}>
         <div className="faq-split-grid grid gap-12">
           <Reveal y={18}>
             <h2 className="leading-section font-heading text-4xl text-foreground capitalize sm:text-5xl">
-              Common questions.
+              {t("faq.title")}
             </h2>
           </Reveal>
           <Reveal y={24} x={20}>
             <Accordion>
-              {homeFaq.map((item) => (
-                <AccordionItem key={item.q} value={item.q}>
+              {FAQ_KEYS.map((key) => (
+                <AccordionItem key={key} value={key}>
                   <AccordionTrigger className="text-left text-base uppercase">
-                    {item.q}
+                    {tFaq(`${key}.q`)}
                   </AccordionTrigger>
                   <AccordionContent>
                     <p className="text-sm leading-relaxed text-muted-foreground">
-                      {item.a}
+                      {tFaq(`${key}.a`)}
                     </p>
                   </AccordionContent>
                 </AccordionItem>
@@ -185,24 +198,18 @@ export default function HomePage() {
         >
           <RevealItem y={18}>
             <h2 className="leading-section font-heading text-4xl text-foreground capitalize sm:text-5xl">
-              Ready to build something?
+              {t("cta.title")}
             </h2>
           </RevealItem>
           <RevealItem y={22}>
             <p className="text-base leading-relaxed text-muted-foreground">
-              Tell us about your project. No commitment, no pressure.
+              {t("cta.subtitle")}
             </p>
           </RevealItem>
           <RevealItem y={26}>
             <div className="flex justify-center">
-              <Link
-                href="/contact"
-                className={cn(
-                  buttonVariants({ size: "lg" }),
-                  ""
-                )}
-              >
-                Start a project
+              <Link href="/contact" className={cn(buttonVariants({ size: "lg" }))}>
+                {t("cta.button")}
                 <ArrowRight className="size-4" />
               </Link>
             </div>

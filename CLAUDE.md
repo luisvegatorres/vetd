@@ -53,7 +53,7 @@ Supabase clients are not interchangeable — pick the right one:
 Expected in `.env.local`:
 - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — public browser/SSR client
 - `SUPABASE_SERVICE_ROLE_KEY` — admin client only
-- `NEXT_PUBLIC_CALENDLY_URL`, `NEXT_PUBLIC_CAL_LINK`, `NEXT_PUBLIC_WHATSAPP_DISPLAY`/`NEXT_PUBLIC_WHATSAPP_NUMBER` — marketing-site CTAs; `lib/site.ts` falls back to defaults when missing.
+- `NEXT_PUBLIC_CALENDLY_URL`, `NEXT_PUBLIC_CAL_LINK` — marketing-site CTAs; `lib/site.ts` falls back to defaults when missing.
 - `CAL_WEBHOOK_SECRET` — HMAC-SHA256 secret used by `app/api/webhooks/cal/route.ts` to verify Cal.com webhook payloads. Set the same value in the Cal.com webhook config. The route handles `BOOKING_CREATED` / `BOOKING_RESCHEDULED` / `BOOKING_CANCELLED` and upserts `interactions` rows keyed on `(source, source_ref)`.
 - `STRIPE_SECRET_KEY` (`sk_test_...` / `sk_live_...`) — server-only Stripe Node SDK client; used by `lib/stripe/server.ts`, the checkout server action, and the webhook route. **Do not expose to the client.**
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (`pk_test_...` / `pk_live_...`) — public; only needed if/when we use Stripe Elements. Hosted Checkout (current flow) does not require it.

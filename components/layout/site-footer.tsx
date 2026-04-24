@@ -1,15 +1,27 @@
-import Link from "next/link"
-import { Calendar, Mail, MessageCircle, Timer } from "lucide-react"
+import { Calendar, Mail, Timer } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 
 import { ThemeSwitch } from "@/components/actions/theme-switch"
 import { RevealGroup, RevealItem } from "@/components/motion/reveal"
 import { Separator } from "@/components/ui/separator"
-import { nav, site } from "@/lib/site"
-import { whatsappHref } from "@/lib/whatsapp"
+import { Link } from "@/i18n/navigation"
+import { site } from "@/lib/site"
 
-export function SiteFooter() {
+const NAV_KEYS = [
+  { href: "/#home", key: "home" },
+  { href: "/#products", key: "products" },
+  { href: "/#process", key: "process" },
+  { href: "/#work", key: "work" },
+  { href: "/#about", key: "about" },
+  { href: "/financing", key: "financing" },
+  { href: "/contact", key: "contact" },
+] as const
+
+export async function SiteFooter() {
   const year = new Date().getFullYear()
-  const whatsappLink = whatsappHref("Hi, I'd like to talk about a project.")
+  const tFooter = await getTranslations("footer")
+  const tNav = await getTranslations("nav")
+  const tSite = await getTranslations("site")
   const discoveryIsExternal = site.discoveryCallHref.startsWith("http")
 
   return (
@@ -27,7 +39,7 @@ export function SiteFooter() {
                 {site.name}
               </p>
               <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
-                {site.description}
+                {tSite("description")}
               </p>
             </div>
           </RevealItem>
@@ -35,16 +47,16 @@ export function SiteFooter() {
           <RevealItem y={18}>
             <div>
               <p className="mb-4 text-xs font-medium text-muted-foreground uppercase">
-                Navigate
+                {tFooter("navigate")}
               </p>
               <ul className="space-y-3">
-                {nav.map((item) => (
+                {NAV_KEYS.map((item) => (
                   <li key={item.href}>
                     <Link
                       href={item.href}
                       className="text-sm text-muted-foreground uppercase transition-colors hover:text-foreground"
                     >
-                      {item.label}
+                      {tNav(item.key)}
                     </Link>
                   </li>
                 ))}
@@ -55,21 +67,29 @@ export function SiteFooter() {
           <RevealItem y={18}>
             <div>
               <p className="mb-4 text-xs font-medium text-muted-foreground uppercase">
-                Contact
+                {tFooter("contact")}
               </p>
               <ul className="space-y-3 text-sm">
                 <li>
-                  <a
-                    href={site.discoveryCallHref}
-                    target={discoveryIsExternal ? "_blank" : undefined}
-                    rel={
-                      discoveryIsExternal ? "noopener noreferrer" : undefined
-                    }
-                    className="inline-flex items-center gap-2 text-foreground hover:text-primary"
-                  >
-                    <Calendar className="size-4" />
-                    Book a call
-                  </a>
+                  {discoveryIsExternal ? (
+                    <a
+                      href={site.discoveryCallHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-foreground hover:text-primary"
+                    >
+                      <Calendar className="size-4" />
+                      {tFooter("bookCall")}
+                    </a>
+                  ) : (
+                    <Link
+                      href={site.discoveryCallHref}
+                      className="inline-flex items-center gap-2 text-foreground hover:text-primary"
+                    >
+                      <Calendar className="size-4" />
+                      {tFooter("bookCall")}
+                    </Link>
+                  )}
                 </li>
                 <li>
                   <a
@@ -80,26 +100,9 @@ export function SiteFooter() {
                     {site.email}
                   </a>
                 </li>
-                <li>
-                  <a
-                    href={whatsappLink}
-                    target={
-                      whatsappLink.startsWith("http") ? "_blank" : undefined
-                    }
-                    rel={
-                      whatsappLink.startsWith("http")
-                        ? "noopener noreferrer"
-                        : undefined
-                    }
-                    className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground"
-                  >
-                    <MessageCircle className="size-4" />
-                    {site.whatsappDisplay}
-                  </a>
-                </li>
                 <li className="inline-flex items-center gap-2 text-muted-foreground">
                   <Timer className="size-4" />
-                  {site.responseTime}
+                  {tSite("responseTime")}
                 </li>
               </ul>
             </div>
@@ -115,13 +118,11 @@ export function SiteFooter() {
           viewport={{ once: true, amount: 0.12 }}
         >
           <RevealItem y={14}>
-            <p>
-              © {year} {site.name}. Built for businesses worldwide.
-            </p>
+            <p>{tFooter("rights", { year, name: site.name })}</p>
           </RevealItem>
           <RevealItem y={14}>
             <div className="flex items-center gap-6">
-              <p>{site.location}</p>
+              <p>{tSite("location")}</p>
               <ThemeSwitch />
             </div>
           </RevealItem>

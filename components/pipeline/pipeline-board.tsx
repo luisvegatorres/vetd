@@ -143,7 +143,7 @@ export function PipelineBoard({ projects }: { projects: ProjectRow[] }) {
 
     if (from === "won" || from === "lost") {
       toast.error(
-        "This deal has left the pipeline — edit it from the project page.",
+        "This deal has left the pipeline. Edit it from the project page.",
       )
       return
     }

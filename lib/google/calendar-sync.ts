@@ -91,7 +91,7 @@ export async function syncCalendarForRep(
         { headers: { authorization: `Bearer ${accessToken}` } },
       )
       if (res.status === 410) {
-        // Sync token expired — force a full reseed next call.
+        // Sync token expired. Force a full reseed next call.
         await supabase
           .from("rep_integrations")
           .update({ sync_state: { ...syncState, calendarNextSyncToken: null } })
@@ -114,7 +114,7 @@ export async function syncCalendarForRep(
   }
 
   // Build email → client_id map from owned-email matches. We fetch all
-  // clients with an email once per sync — the n of clients is small enough
+  // clients with an email once per sync; the n of clients is small enough
   // that a hash-join in memory beats n round-trips.
   const clientEmailMap = await buildClientEmailMap(supabase)
 

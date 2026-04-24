@@ -74,7 +74,7 @@ export async function GET(request: Request) {
 
   if (!tokenResponse.refresh_token) {
     // Google only returns refresh_token on first consent. Our start route
-    // sets prompt=consent so we should always get one — if we don't, the
+    // sets prompt=consent so we should always get one; if we don't, the
     // connection is unusable for cron sync.
     return settingsRedirect(origin, {
       google: "error",

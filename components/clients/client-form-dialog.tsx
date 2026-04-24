@@ -290,7 +290,7 @@ function ClientFormDialog(props: Props) {
               id={`${formId}-notes`}
               name="notes"
               rows={3}
-              placeholder="Internal notes — context, history, gotchas."
+              placeholder="Internal notes: context, history, gotchas."
               defaultValue={client?.notes ?? ""}
             />
           </div>

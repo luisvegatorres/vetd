@@ -5,13 +5,31 @@ export const site = {
     "Websites, mobile apps, SaaS products, and AI integrations built to perform and designed to convert.",
   email: "hello@innovateappstudios.com",
   location: "Global ▪ Remote-first",
-  responseTime: "Within 24 hours — usually same day.",
+  responseTime: "Within 24 hours, usually same day.",
   discoveryCallHref: process.env.NEXT_PUBLIC_CALENDLY_URL || "/contact",
   calLink: process.env.NEXT_PUBLIC_CAL_LINK || "",
-  whatsappDisplay:
-    process.env.NEXT_PUBLIC_WHATSAPP_DISPLAY ||
-    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ||
-    "[your number]",
+  url: "https://innovateappstudios.com",
+  twitterHandle: "@innovateapps",
+  defaultLocale: "en",
+  supportedLocales: ["en", "es"],
+  sameAs: [
+    "https://www.linkedin.com/company/innovate-app-studios",
+    "https://twitter.com/innovateapps",
+  ],
+} as const
+
+export const siteMeta = {
+  en: {
+    title: "Innovate App Studios — Digital products that grow businesses.",
+    description:
+      "Websites, mobile apps, SaaS products, and AI integrations built to perform and designed to convert.",
+  },
+  es: {
+    title:
+      "Innovate App Studios — Productos digitales que hacen crecer negocios.",
+    description:
+      "Sitios web, apps móviles, SaaS e integraciones de IA construidos para rendir y diseñados para convertir.",
+  },
 } as const
 
 export const nav = [
@@ -81,7 +99,7 @@ export const recurringPlans: RecurringPlan[] = [
 
 export type BillablePlanId = Exclude<RecurringPlanId, "custom">
 
-// Commission is a flat 10% of whatever the client actually pays — on both
+// Commission is a flat 10% of whatever the client actually pays, on both
 // project value and every recurring subscription invoice. No per-plan tiers.
 export const COMMISSION_RATE = 0.1
 
@@ -129,7 +147,7 @@ export const products: Product[] = [
     name: "Website",
     tagline: "Get found. Look credible. Convert visitors.",
     description:
-      "A fast, mobile-first website built with SEO from day one. Designed to turn traffic into leads, calls, and sales. Available as a one-time build or monthly — monthly includes ongoing SEO, Google Business, reports, and content updates.",
+      "A fast, mobile-first website built with SEO from day one. Designed to turn traffic into leads, calls, and sales. Available as a one-time build or monthly. Monthly includes ongoing SEO, Google Business, reports, and content updates.",
     timeline: "5–7 days",
     pricingTiers: [
       "Presence: $97/mo — website, hosting, basic SEO",
@@ -141,7 +159,7 @@ export const products: Product[] = [
       "Custom design & copy",
       "Hosting, domain, SSL",
       "On-page SEO & analytics",
-      "WhatsApp & contact integration",
+      "Contact form integration",
     ],
     tools: [
       { name: "Next.js", slug: "nextdotjs" },
@@ -156,7 +174,7 @@ export const products: Product[] = [
     tagline: "Your product in every pocket.",
     financingEligible: true,
     description:
-      "Native iOS and Android apps built in Flutter. We take you from idea to App Store — architecture, design, development, and launch. Built for performance and scale.",
+      "Native iOS and Android apps built in Flutter. We take you from idea to App Store: architecture, design, development, and launch. Built for performance and scale.",
     timeline: "4–12 weeks",
     includes: [
       "iOS & Android from one codebase",
@@ -177,7 +195,7 @@ export const products: Product[] = [
     tagline: "Software your customers pay for.",
     financingEligible: true,
     description:
-      "Custom SaaS products — booking platforms, client portals, admin dashboards, and subscription-ready apps. Built with Next.js and Supabase. Designed to ship fast and scale.",
+      "Custom SaaS products: booking platforms, client portals, admin dashboards, and subscription-ready apps. Built with Next.js and Supabase. Designed to ship fast and scale.",
     timeline: "3–8 weeks",
     includes: [
       "Role-based auth & permissions",
@@ -197,7 +215,7 @@ export const products: Product[] = [
     tagline: "Make your product smarter.",
     financingEligible: true,
     description:
-      "We add AI-powered features to any website, app, or tool — intelligent chatbots, personalized recommendations, content automation, and more. Powered by the latest models from Anthropic, OpenAI, and Google.",
+      "We add AI-powered features to any website, app, or tool: intelligent chatbots, personalized recommendations, content automation, and more. Powered by the latest models from Anthropic, OpenAI, and Google.",
     timeline: "Depends on scope",
     includes: [
       "Chatbots & assistants",
@@ -283,7 +301,7 @@ export const processSteps: ProcessStep[] = [
   {
     number: "01",
     title: "Discovery",
-    copy: "We learn your business, your goals, and what success looks like. This starts with a free 20-minute call — no pitch, no pressure.",
+    copy: "We learn your business, your goals, and what success looks like. This starts with a free 20-minute call. No pitch, no pressure.",
   },
   {
     number: "02",

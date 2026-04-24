@@ -102,7 +102,7 @@ export default async function ClientsPage({
   // One pass to derive all six tab counts. The previous version fired six
   // count queries against clients_enriched (view with lateral joins) per
   // navigation; this pulls two scalar columns and tallies in JS. Fine up
-  // to tens of thousands of clients — revisit with a server-side RPC if
+  // to tens of thousands of clients; revisit with a server-side RPC if
   // the filtered set ever exceeds ~50k rows.
   function tabCountSourceQuery() {
     let q = supabase
@@ -194,7 +194,7 @@ export default async function ClientsPage({
     ),
   )
 
-  // Owner names — single profiles query for the visible IDs (≤10 rows).
+  // Owner names: single profiles query for the visible IDs (≤10 rows).
   const ownerIds = Array.from(
     new Set(
       rawPageRows
@@ -238,11 +238,11 @@ export default async function ClientsPage({
   // Only hydrate the detail panel when the user explicitly picked a row
   // (?client=...). Auto-selecting the first visible row on every tab
   // switch fired projects + subscriptions queries for a client the user
-  // hadn't asked to see — the empty-state panel is the right default.
+  // hadn't asked to see; the empty-state panel is the right default.
   const selectedId = clientParam ?? null
 
   // Hydrate the selected client with its real child arrays. Off-page
-  // selections go through the same path — one point-lookup plus two
+  // selections go through the same path: one point-lookup plus two
   // scoped child queries, never a full-table scan.
   let selectedClient: ClientRow | null = null
   if (selectedId) {

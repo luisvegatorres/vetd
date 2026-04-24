@@ -32,7 +32,7 @@ export async function GET() {
   const state = randomBytes(24).toString("hex")
   const response = NextResponse.redirect(buildAuthUrl(config, state))
 
-  // httpOnly state cookies — verified in the callback. Lax SameSite is fine
+  // httpOnly state cookies, verified in the callback. Lax SameSite is fine
   // since Google redirects back to us via a top-level navigation.
   const cookieOptions = {
     httpOnly: true,

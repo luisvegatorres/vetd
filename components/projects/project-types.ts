@@ -112,7 +112,7 @@ export function isDepositPending(row: {
 }
 
 // Priced, pre-won project that still needs a signed contract on file. Matches
-// the server-side gate in migration 0031 — "agreement" means exactly a
+// the server-side gate in migration 0031. "Agreement" means exactly a
 // document of kind='contract' with status='signed'.
 export function isContractPending(row: {
   value: number | null

@@ -22,7 +22,7 @@ const ALLOWED_TARGETS: ProjectStage[] = ["proposal", "active", "cancelled"]
  * Advance a project to a new stage from the pipeline Kanban. Only pre-sale
  * stages are draggable; terminal stages (active/completed/cancelled) stay
  * read-only. The deposit-gate trigger in Postgres enforces that moves to
- * `active` require a paid deposit — we surface that failure as a toast.
+ * `active` require a paid deposit; we surface that failure as a toast.
  */
 export async function moveProjectInPipeline(input: {
   projectId: string
@@ -49,7 +49,7 @@ export async function moveProjectInPipeline(input: {
   if (!DRAGGABLE_FROM.includes(project.stage)) {
     return {
       ok: false,
-      error: "This deal has left the pipeline — edit it from the project page.",
+      error: "This deal has left the pipeline. Edit it from the project page.",
     }
   }
 

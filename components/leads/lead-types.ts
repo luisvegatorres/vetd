@@ -59,8 +59,8 @@ export function deriveStatus(row: {
 }
 
 // Prospects are outbound pre-leads; render them with their own badge regardless
-// of has_interactions, since an outreach visit shouldn't mark them "Contacted"
-// — that's reserved for leads who've responded.
+// of has_interactions, since an outreach visit shouldn't mark them "Contacted";
+// that's reserved for leads who've responded.
 export function leadBadgeStatus(row: {
   status: ClientStatus
   has_interactions: boolean

@@ -178,8 +178,8 @@ export function ConvertLeadDialog({
       if (result.ok) {
         toast.success(
           buildEnabled
-            ? "Project created — deposit invoice next"
-            : "Project created — subscription active"
+            ? "Project created. Deposit invoice next."
+            : "Project created. Subscription active."
         )
         setOpen(false)
         if (buildEnabled) {

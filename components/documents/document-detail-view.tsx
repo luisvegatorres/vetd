@@ -66,7 +66,7 @@ export type DocumentDetailProps = {
   templateLinked: boolean
   /** Already-resolved body string (JSON) used to seed the editor. */
   initialBody: string
-  /** Origin of the current body — edited per-doc or freshly resolved from template. */
+  /** Origin of the current body: edited per-doc or freshly resolved from template. */
   bodySource: "edited" | "template"
   createdAt: string | null
   sentAt: string | null

@@ -1,7 +1,7 @@
 "use client"
 
 // CodeMirror 6-based JSON editor. Uses @uiw/react-codemirror's defaults for
-// chrome and syntax colors — we only layer on:
+// chrome and syntax colors. We only layer on:
 //   1. JSON language.
 //   2. A `{{token}}` decoration so merge fields stand out.
 //   3. A context-aware completion source for tokens / block types / spacer sizes.
@@ -39,8 +39,8 @@ export type BodyEditorHandle = {
 }
 
 /**
- * Decorator that marks every `{{token.path}}` span — including mid-type
- * partials — so reps get feedback while writing a token.
+ * Decorator that marks every `{{token.path}}` span, including mid-type
+ * partials, so reps get feedback while writing a token.
  */
 const tokenHighlighter = ViewPlugin.fromClass(
   class {
@@ -73,7 +73,7 @@ const tokenHighlighter = ViewPlugin.fromClass(
 
 // The Lezer string highlighter wraps the token text in its own nested span
 // (directly around the text node). Since the nested span is a closer parent
-// to the text, *its* color wins — so we set our color on .cm-token and force
+// to the text, *its* color wins. So we set our color on .cm-token and force
 // any descendant spans to inherit it instead of their own inline color.
 const tokenTheme = EditorView.baseTheme({
   ".cm-token": {

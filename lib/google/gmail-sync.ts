@@ -140,7 +140,7 @@ async function fetchMessageMetadata(
   accessToken: string,
   id: string,
 ): Promise<GmailMessage | null> {
-  // Gmail accepts repeated `metadataHeaders` params — URLSearchParams dedupes
+  // Gmail accepts repeated `metadataHeaders` params, but URLSearchParams dedupes
   // keys, so build the query string manually.
   const url =
     `${GMAIL_LIST_ENDPOINT}/${id}?format=metadata` +

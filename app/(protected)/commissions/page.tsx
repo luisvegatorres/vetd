@@ -89,7 +89,7 @@ export default async function CommissionsPage() {
         .in("id", clientIds)
     : { data: [] }
 
-  // Book of business — clients the rep has been assigned (includes active,
+  // Book of business: clients the rep has been assigned (includes active,
   // closed_won, and anyone else in their pipeline). Admins don't need this.
   let assignedClientsCount = 0
   if (isRep) {

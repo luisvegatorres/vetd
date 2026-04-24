@@ -1,4 +1,7 @@
+"use client"
+
 import { ArrowRight } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { BookCallButton } from "@/components/actions/book-call-button"
 import { Section } from "@/components/layout/section"
@@ -6,15 +9,19 @@ import { HeroShader } from "@/components/motion/hero-shader"
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal"
 import { Badge } from "@/components/ui/badge"
 
+const OFFER_PRODUCT_KEYS = ["website", "app", "saas", "ai"] as const
+const OFFER_TERM_KEYS = ["scope", "payments", "handoff"] as const
+
 export function HomeHero() {
+  const t = useTranslations("home.hero")
+  const tProducts = useTranslations("home.hero.offer.products")
+  const tTerms = useTranslations("home.hero.offer.terms")
+
   return (
-    <HeroShader
-      id="home"
-      className="scroll-mt-20 border-b border-border/60"
-    >
+    <HeroShader id="home" className="scroll-mt-20 border-b border-border/60">
       <Section
         size="sm"
-        className="flex min-h-screen-minus-header items-center border-b-0 py-12 sm:py-16"
+        className="min-h-screen-minus-header flex items-center border-b-0 py-12 sm:py-16"
       >
         <div className="hero-split-grid grid items-center gap-12">
           <RevealGroup
@@ -28,19 +35,18 @@ export function HomeHero() {
                 variant="outline"
                 className="rounded-none border-border bg-transparent px-3 py-1 text-muted-foreground uppercase"
               >
-                Home
+                {t("badge")}
               </Badge>
             </RevealItem>
 
             <RevealItem className="space-y-4" y={24}>
-              <h1 className="hero-display-scale leading-hero font-heading text-5xl font-normal text-foreground capitalize sm:text-6xl md:text-7xl">
-                <span className="block">We build digital</span>
-                <span className="block">products that grow</span>
-                <span className="block">businesses.</span>
+              <h1 className="hero-display-scale font-heading text-5xl leading-hero font-normal text-foreground capitalize sm:text-6xl md:text-7xl">
+                <span className="block">{t("headlineLine1")}</span>
+                <span className="block">{t("headlineLine2")}</span>
+                <span className="block">{t("headlineLine3")}</span>
               </h1>
               <p className="max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                Websites. Mobile apps. SaaS products. AI integrations.
-                Built to perform, designed to convert.
+                {t("subhead")}
               </p>
             </RevealItem>
 
@@ -48,11 +54,8 @@ export function HomeHero() {
               className="flex flex-col gap-3 sm:flex-row sm:items-center"
               y={28}
             >
-              <BookCallButton
-                size="lg"
-                className="group"
-              >
-                Book a discovery call
+              <BookCallButton size="lg" className="group">
+                {t("ctaBookCall")}
                 <ArrowRight
                   data-icon="inline-end"
                   className="transition-transform duration-300 group-hover/button:translate-x-1"
@@ -62,58 +65,79 @@ export function HomeHero() {
           </RevealGroup>
 
           <Reveal
-            className="panel-blur-soft bg-card/80 ring-1 ring-border"
+            className="panel-blur-soft relative overflow-hidden border border-border bg-card/80"
             delay={0.24}
             x={32}
             y={20}
             viewport={{ once: true, amount: 0.35 }}
           >
             <RevealGroup
-              className="flex h-full flex-col justify-between gap-8 p-8"
+              className="grid min-h-[34rem] grid-rows-[auto_1fr_auto] gap-8 p-6 sm:p-8 lg:p-10"
               delayChildren={0.18}
               stagger={0.08}
               viewport={{ once: true, amount: 0.5 }}
             >
-              <RevealItem y={14}>
-                <p className="text-overline text-muted-foreground uppercase">
-                  / 001 - Digital product studio
-                </p>
+              <RevealItem className="space-y-5" y={14}>
+                <div className="flex items-center justify-between gap-4">
+                  <p className="text-overline text-muted-foreground uppercase">
+                    {t("panelEyebrow")}
+                  </p>
+                  <p className="text-overline hidden text-muted-foreground/70 uppercase sm:block">
+                    {t("offer.systemLabel")}
+                  </p>
+                </div>
+                <div className="max-w-sm space-y-3">
+                  <h2 className="font-heading text-2xl leading-subheading text-foreground sm:text-3xl">
+                    {t("offer.title")}
+                  </h2>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {t("offer.copy")}
+                  </p>
+                </div>
               </RevealItem>
-              <div className="space-y-6">
-                {[
-                  {
-                    value: "4",
-                    label: "Core product lines",
-                  },
-                  {
-                    value: "0%",
-                    label: "Financing on projects $5K+ ▪ 12 monthly payments",
-                  },
-                  {
-                    value: "Fixed",
-                    label: "Scope, timeline, and pricing before build starts",
-                  },
-                ].map((item, index) => (
+
+              <div className="self-center border-y border-border">
+                {OFFER_PRODUCT_KEYS.map((key, index) => (
                   <RevealItem
-                    key={item.label}
-                    className="border-t border-border pt-4"
+                    key={key}
+                    className="grid grid-cols-[3rem_1fr] gap-4 border-b border-border py-4 last:border-b-0 sm:grid-cols-[3.5rem_1fr_auto] sm:items-center"
                     x={20 + index * 2}
                     y={0}
                   >
-                    <p className="font-heading text-4xl text-foreground">
-                      {item.value}
+                    <p className="font-heading text-sm text-muted-foreground">
+                      0{index + 1}
                     </p>
-                    <p className="mt-1 text-xs text-muted-foreground uppercase">
-                      {item.label}
+                    <div className="min-w-0 space-y-1">
+                      <p className="font-heading text-base text-foreground uppercase">
+                        {tProducts(`${key}.title`)}
+                      </p>
+                      <p className="text-sm leading-relaxed text-muted-foreground">
+                        {tProducts(`${key}.copy`)}
+                      </p>
+                    </div>
+                    <p className="text-overline hidden border border-border px-2 py-1 text-muted-foreground uppercase sm:block">
+                      {tProducts(`${key}.tag`)}
                     </p>
                   </RevealItem>
                 ))}
               </div>
-              <RevealItem
-                className="text-overline text-muted-foreground/70 uppercase"
-                y={12}
-              >
-                Websites ▪ Apps ▪ SaaS ▪ AI
+
+              <RevealItem y={12}>
+                <p className="text-overline mb-4 text-muted-foreground uppercase">
+                  {t("offer.termsEyebrow")}
+                </p>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  {OFFER_TERM_KEYS.map((key) => (
+                    <div key={key} className="space-y-1">
+                      <p className="font-heading text-lg text-foreground uppercase">
+                        {tTerms(`${key}.value`)}
+                      </p>
+                      <p className="text-xs leading-relaxed text-muted-foreground uppercase">
+                        {tTerms(`${key}.label`)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </RevealItem>
             </RevealGroup>
           </Reveal>

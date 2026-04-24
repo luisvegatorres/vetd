@@ -1,0 +1,587 @@
+{
+  "site": {
+    "name": "Innovate App Studios",
+    "tagline": "Digital products that grow businesses.",
+    "description": "Websites, mobile apps, SaaS products, and AI integrations built to perform and designed to convert.",
+    "location": "Global ▪ Remote-first",
+    "responseTime": "Within 24 hours, usually same day."
+  },
+  "nav": {
+    "home": "Home",
+    "products": "Products",
+    "process": "Process",
+    "work": "Work",
+    "about": "About",
+    "financing": "Financing",
+    "contact": "Contact",
+    "startProject": "Start a project",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "toggleMenu": "Toggle menu"
+  },
+  "footer": {
+    "navigate": "Navigate",
+    "contact": "Contact",
+    "bookCall": "Book a call",
+    "rights": "© {year} {name}. Built for businesses worldwide."
+  },
+  "localeSwitcher": {
+    "label": "Language",
+    "english": "English",
+    "spanish": "Spanish"
+  },
+  "home": {
+    "metaTitle": "Innovate App Studios — Digital products that grow businesses.",
+    "metaDescription": "Websites, mobile apps, SaaS products, and AI integrations built to perform and designed to convert. Fixed scope, fixed price, no hourly billing.",
+    "ogAlt": "Innovate App Studios — digital product studio",
+    "hero": {
+      "badge": "Home",
+      "headlineLine1": "We build digital",
+      "headlineLine2": "products that grow",
+      "headlineLine3": "businesses.",
+      "subhead": "Websites. Mobile apps. SaaS products. AI integrations. Built to perform, designed to convert.",
+      "ctaBookCall": "Book a discovery call",
+      "panelEyebrow": "/ 001 - Digital product studio",
+      "panelFooter": "Websites ▪ Apps ▪ SaaS ▪ AI",
+      "offer": {
+        "systemLabel": "Offer",
+        "title": "From idea to launch, without an open-ended bill.",
+        "copy": "One call turns the project into scope, timeline, and payment path before a line of code is written.",
+        "products": {
+          "website": {
+            "title": "Websites",
+            "copy": "Fast presence, baseline SEO, and conversion from day one.",
+            "tag": "5-7 days"
+          },
+          "app": {
+            "title": "Mobile apps",
+            "copy": "iOS and Android from one codebase, with design, backend, and launch.",
+            "tag": "4-12 wks"
+          },
+          "saas": {
+            "title": "SaaS",
+            "copy": "Portals, dashboards, payments, and permissions ready to operate.",
+            "tag": "3-8 wks"
+          },
+          "ai": {
+            "title": "Applied AI",
+            "copy": "Automation, assistants, and intelligent flows inside your product.",
+            "tag": "By scope"
+          }
+        },
+        "termsEyebrow": "Before we start",
+        "terms": {
+          "scope": {
+            "value": "Fixed",
+            "label": "Scope and price locked"
+          },
+          "payments": {
+            "value": "0%",
+            "label": "12 payments on $5K+ projects"
+          },
+          "handoff": {
+            "value": "Yours",
+            "label": "Code, accounts, and assets"
+          }
+        }
+      },
+      "stats": {
+        "linesValue": "4",
+        "linesLabel": "Core product lines",
+        "financingValue": "0%",
+        "financingLabel": "Financing on projects $5K+ ▪ 12 monthly payments",
+        "fixedValue": "Fixed",
+        "fixedLabel": "Scope, timeline, and pricing before build starts"
+      }
+    },
+    "products": {
+      "eyebrow": "001 — What we build",
+      "title": "The complete toolkit, under one studio.",
+      "subtitle": "Pick what fits. We handle the rest.",
+      "scrollToContinue": "Scroll to continue",
+      "indexOf": "{current} of {total}",
+      "labels": {
+        "timeline": "Timeline",
+        "financing": "Financing",
+        "tiers": "Tiers",
+        "included": "What's included",
+        "builtWith": "Built with"
+      }
+    },
+    "process": {
+      "eyebrow": "002 — How we work",
+      "title": "Simple process. No surprises.",
+      "subtitle": "You always know what's happening, what's next, and what it costs.",
+      "stepByStep": "Step by step",
+      "stepOf": "Step {current} of {total}",
+      "jumpAria": "Jump to step {step}"
+    },
+    "about": {
+      "eyebrow": "003 — About us",
+      "title": "A studio run like a product, not an agency.",
+      "p1": "Innovate App Studios is a small, focused team building websites, apps, and systems for businesses that want to grow. No bloat. No bureaucracy. Just finished work, shipped on time.",
+      "p2": "We price by scope, not by the hour. We build on tools that win. And when the project ends, you own every line of it.",
+      "values": {
+        "ship": {
+          "title": "We ship products, not hours",
+          "copy": "Fixed scopes, fixed prices, finished work. No open-ended retainers, no billable-hour games."
+        },
+        "speed": {
+          "title": "Speed is a feature",
+          "copy": "A marketing site in 7 days. An MVP in weeks. Momentum compounds. Slow projects rarely recover."
+        },
+        "tools": {
+          "title": "We pick tools that win",
+          "copy": "Next.js, Flutter, Supabase, shadcn, Claude. Proven stacks only. No framework-of-the-month experiments on your budget."
+        },
+        "ownership": {
+          "title": "You own everything",
+          "copy": "Code, domain, accounts, content. No lock-in, no dependencies on us to keep the lights on."
+        },
+        "remote": {
+          "title": "Remote by default",
+          "copy": "Clients across industries, time zones, and markets, held to the same standard of craft and communication."
+        },
+        "straight": {
+          "title": "Straight answers, always",
+          "copy": "If something can't be done, we tell you early. No jargon, no hedging, no vendor-speak."
+        }
+      }
+    },
+    "work": {
+      "eyebrow": "004 — Our work",
+      "title": "Products we've built and shipped.",
+      "filters": {
+        "all": "All",
+        "websites": "Websites",
+        "mobile": "Mobile Apps",
+        "saas": "SaaS Products"
+      },
+      "empty": "No projects in this category yet.",
+      "metaWebsite": "Website ▪ {year}",
+      "metaMobile": "Mobile app ▪ {year}",
+      "metaSaas": "SaaS product ▪ {year}",
+      "projects": {
+        "innovate-app-studios": {
+          "title": "Innovate App Studios CRM",
+          "tagline": "Agency operating system: leads, projects, billing, commissions."
+        },
+        "alpha": {
+          "title": "Project Alpha",
+          "tagline": "Restaurant site with online reservations."
+        },
+        "beta": {
+          "title": "Project Beta",
+          "tagline": "iOS and Android companion app for a fitness brand."
+        },
+        "gamma": {
+          "title": "Project Gamma",
+          "tagline": "Internal booking portal replacing manual spreadsheets."
+        },
+        "delta": {
+          "title": "Project Delta",
+          "tagline": "Local SEO and content engine for a service business."
+        },
+        "epsilon": {
+          "title": "Project Epsilon",
+          "tagline": "Product landing page driving pre-orders at launch."
+        },
+        "zeta": {
+          "title": "Project Zeta",
+          "tagline": "Admin dashboard with custom analytics and reporting."
+        }
+      }
+    },
+    "faq": {
+      "eyebrow": "005 — FAQ",
+      "title": "Common questions.",
+      "items": {
+        "cost": {
+          "q": "How much will my project cost?",
+          "a": "Websites start at $97/mo or as a one-time build. Mobile apps and SaaS products are quoted per scope on the discovery call. You'll leave the call with a concrete range. No guesswork, no follow-up pitches."
+        },
+        "who": {
+          "q": "Who actually builds my project?",
+          "a": "You work directly with the founder and lead developer. No account managers, no offshore subcontractors. Every line of code and every design decision is ours."
+        },
+        "payment": {
+          "q": "How does payment work?",
+          "a": "Every project kicks off with a 30% deposit. For builds $5,000 and up, you can pay the 70% balance on delivery or split it over 12 months at 0% interest. Same total either way. No fees, no credit checks."
+        },
+        "after": {
+          "q": "What happens after launch?",
+          "a": "Website plans include ongoing hosting, SEO, and content updates. Apps and SaaS launches come with a 30-day warranty on bugs, plus optional monthly retainers if you want us to keep building."
+        },
+        "ownership": {
+          "q": "Do I own the code, domain, and accounts?",
+          "a": "Yes, everything is yours from day one. Code, domain, design files, hosting accounts, third-party integrations. You're never locked in, and you can take the project anywhere."
+        },
+        "start": {
+          "q": "What do you need from me to start?",
+          "a": "Just a 20-minute discovery call or the contact form. We respond within 24 hours with next steps. You don't need wireframes, a spec doc, or existing assets. We handle that."
+        }
+      }
+    },
+    "cta": {
+      "title": "Ready to build something?",
+      "subtitle": "Tell us about your project. No commitment, no pressure.",
+      "button": "Start a project"
+    }
+  },
+  "products": {
+    "marketing-website": {
+      "name": "Website",
+      "tagline": "Get found. Look credible. Convert visitors.",
+      "description": "A fast, mobile-first website built with SEO from day one. Designed to turn traffic into leads, calls, and sales. Available as a one-time build or monthly. Monthly includes ongoing SEO, Google Business, reports, and content updates.",
+      "timeline": "5–7 days",
+      "pricingTiers": [
+        "Presence: $97/mo — website, hosting, basic SEO",
+        "Growth: $247/mo — full SEO, content, reviews, monthly reports",
+        "One-time project: custom quote",
+        "No contract. Cancel anytime."
+      ],
+      "includes": [
+        "Custom design & copy",
+        "Hosting, domain, SSL",
+        "On-page SEO & analytics",
+        "Contact form integration"
+      ]
+    },
+    "mobile-app": {
+      "name": "Mobile App",
+      "tagline": "Your product in every pocket.",
+      "description": "Native iOS and Android apps built in Flutter. We take you from idea to App Store: architecture, design, development, and launch. Built for performance and scale.",
+      "timeline": "4–12 weeks",
+      "includes": [
+        "iOS & Android from one codebase",
+        "Product & UX design",
+        "Backend & authentication",
+        "App Store & Play Store launch"
+      ]
+    },
+    "web-app": {
+      "name": "SaaS Product",
+      "tagline": "Software your customers pay for.",
+      "description": "Custom SaaS products: booking platforms, client portals, admin dashboards, and subscription-ready apps. Built with Next.js and Supabase. Designed to ship fast and scale.",
+      "timeline": "3–8 weeks",
+      "includes": [
+        "Role-based auth & permissions",
+        "Database & admin dashboard",
+        "Integrations & automations",
+        "Analytics & reporting"
+      ]
+    },
+    "ai-integration": {
+      "name": "AI Integration",
+      "tagline": "Make your product smarter.",
+      "description": "We add AI-powered features to any website, app, or tool: intelligent chatbots, personalized recommendations, content automation, and more. Powered by the latest models from Anthropic, OpenAI, and Google.",
+      "timeline": "Depends on scope",
+      "includes": [
+        "Chatbots & assistants",
+        "Personalized recommendations",
+        "Content & workflow automation",
+        "Claude, GPT, and Gemini support"
+      ]
+    }
+  },
+  "financingShared": {
+    "headlineShort": "0% ▪ Spread the 70% balance over 12 months",
+    "eligibilityNote": "Projects $5K+"
+  },
+  "processSteps": {
+    "01": {
+      "title": "Discovery",
+      "copy": "We learn your business, your goals, and what success looks like. This starts with a free 20-minute call. No pitch, no pressure."
+    },
+    "02": {
+      "title": "Proposal",
+      "copy": "You get a clear written scope, timeline, and price. No hourly billing, no hidden costs, and nothing starts until you approve it."
+    },
+    "03": {
+      "title": "Design & Build",
+      "copy": "We design and develop your product in focused sprints with regular check-ins. Feedback is part of the process, not an afterthought."
+    },
+    "04": {
+      "title": "Launch",
+      "copy": "We deploy, test, and handle final QA. When we hand it off, you own the code, domain, accounts, and data."
+    },
+    "05": {
+      "title": "Support",
+      "copy": "Need ongoing help? We offer monthly support, SEO management, and product maintenance. Or reach out whenever you need us."
+    }
+  },
+  "processArtifacts": {
+    "01": {
+      "kicker": "Deliverable ▪ 01",
+      "title": "Discovery call",
+      "bullets": [
+        "Goals & constraints",
+        "Success criteria",
+        "Rough scope & timeline"
+      ],
+      "meta": "20 min ▪ Free ▪ No pitch"
+    },
+    "02": {
+      "kicker": "Deliverable ▪ 02",
+      "title": "Written proposal",
+      "bullets": ["Detailed scope", "Fixed timeline", "Fixed price, no hourly"],
+      "meta": "Sign → kickoff"
+    },
+    "03": {
+      "kicker": "Deliverable ▪ 03",
+      "title": "Design + build",
+      "bullets": ["Wireframes & flows", "Visual design", "Production build"],
+      "meta": "Sprints ▪ Weekly reviews"
+    },
+    "04": {
+      "kicker": "Deliverable ▪ 04",
+      "title": "Live deployment",
+      "bullets": ["Domain & hosting", "QA & final testing", "Full handoff"],
+      "meta": "Code ▪ Accounts ▪ Data — yours"
+    },
+    "05": {
+      "kicker": "Deliverable ▪ 05",
+      "title": "Ongoing care",
+      "bullets": ["Monthly maintenance", "SEO management", "On-demand fixes"],
+      "meta": "Monthly ▪ No contract"
+    }
+  },
+  "tools": {
+    "nextdotjs": "Our go-to React framework for high-performance websites, web apps, and SEO-friendly builds.",
+    "shadcnui": "A composable component system we use to build interfaces that stay fast, consistent, and easy to extend.",
+    "tailwindcss": "Utility-first styling that lets us design and ship polished interfaces without slowing implementation down.",
+    "vercel": "Deployment and hosting infrastructure for fast releases, previews, and reliable production delivery.",
+    "flutter": "Cross-platform app framework for building mobile products with a single codebase and native-feeling UX.",
+    "supabase": "Backend platform we use for auth, databases, storage, and real-time features without heavy overhead.",
+    "postgresql": "The database layer behind structured, scalable products that need strong querying and long-term reliability.",
+    "anthropic": "AI models we integrate when products need advanced reasoning, assistants, or workflow automation.",
+    "openai": "A core AI platform in our stack for conversational features, automation, and intelligent product experiences.",
+    "figma": "Where product structure, interface systems, and design decisions get shaped before development starts.",
+    "framer": "Useful for fast-moving marketing builds, interactive prototypes, and visual storytelling on the web."
+  },
+  "contact": {
+    "metaTitle": "Contact",
+    "metaDescription": "Book a free 20-minute discovery call or send an inquiry. We respond within 24 hours and lock scope, price, and timeline before any work starts.",
+    "badge": "Contact",
+    "headlineLine1": "Let's build",
+    "headlineLine2": "something.",
+    "subhead": "Book a free 20-minute discovery call, or send an inquiry. We respond within 24 hours.",
+    "bookButton": "Book a discovery call",
+    "highlights": {
+      "freeValue": "Free",
+      "freeLabel": "20-min call ▪ No pitch, no pressure",
+      "financingValue": "0%",
+      "financingLabel": "Financing on $5K+ ▪ 12 months, no interest",
+      "fixedValue": "Fixed",
+      "fixedLabel": "Price and timeline locked before we start"
+    },
+    "form": {
+      "eyebrow": "Inquiry form",
+      "title": "Tell us about it",
+      "name": "Your name",
+      "namePlaceholder": "Jane Smith",
+      "email": "Email",
+      "emailPlaceholder": "jane@company.com",
+      "phone": "Phone",
+      "phonePlaceholder": "(555) 123-4567",
+      "business": "Business",
+      "optional": "(optional)",
+      "businessPlaceholder": "Greenfield Eats",
+      "projectType": "What are you looking to build?",
+      "projectTypePlaceholder": "Choose one",
+      "projectTypeLabel": "Project type",
+      "budget": "Budget range",
+      "budgetPlaceholder": "Choose a range",
+      "details": "Tell us about your project",
+      "detailsPlaceholder": "What are you building, who is it for, and what should it achieve?",
+      "submit": "Send inquiry",
+      "submitting": "Sending...",
+      "buildOptions": {
+        "website": "Website",
+        "mobile": "Mobile App",
+        "saas": "SaaS Product",
+        "ai": "AI Integration",
+        "unsure": "Not sure yet"
+      },
+      "budgetOptions": {
+        "u1k": "Under $1K",
+        "1k5k": "$1K-$5K",
+        "5k15k": "$5K-$15K",
+        "15kplus": "$15K+",
+        "monthly": "Monthly plan"
+      }
+    },
+    "toast": {
+      "errorTitle": "Couldn't send inquiry",
+      "successTitle": "Inquiry received.",
+      "successDescription": "We respond within 24 hours."
+    }
+  },
+  "financing": {
+    "metaTitle": "Financing",
+    "metaDescription": "Build now, pay over 12 months. In-house financing on projects $5K+. 30% deposit, monthly payments, no credit checks.",
+    "badge": "Financing",
+    "headlineLine1": "Build it this month.",
+    "headlineLine2": "Pay over 12.",
+    "intro": "Every project kicks off with a {deposit}% deposit. For projects over ${min}, you can pay the 70% balance on delivery, or spread it over {months} months at 0%. Same total either way. No banks, no credit checks. Just a clear contract between us.",
+    "ctaTalk": "Talk through your numbers",
+    "trustEyebrow": "001 — Trust points",
+    "trustIntro": "Three things we commit to in writing, before the deposit clears.",
+    "trust": {
+      "zeroInterest": {
+        "title": "0% interest",
+        "copy": "Same total either way. Split the 70% over 12 months or pay it on delivery. Never a cent more."
+      },
+      "noCredit": {
+        "title": "No credit checks",
+        "copy": "We work off trust and a contract, not a loan application. No pulls, no scoring."
+      },
+      "noSurprises": {
+        "title": "No contract surprises",
+        "copy": "One clear agreement. Late-payment terms and default terms written in plain English."
+      }
+    },
+    "stepsEyebrow": "002 — How it works",
+    "stepsTitle": "Four steps, one signature.",
+    "steps": {
+      "scope": {
+        "title": "Scope the project",
+        "copy": "Free discovery call. We agree on scope, timeline, and price before anything moves."
+      },
+      "deposit": {
+        "title": "30% deposit kicks off",
+        "copy": "Every project starts with a 30% deposit. One invoice, one payment. Build begins the same week."
+      },
+      "choose": {
+        "title": "Choose how to pay the 70%",
+        "copy": "Either the full balance on delivery, or 12 equal monthly payments at 0%. Decide at signing."
+      },
+      "deliver": {
+        "title": "Deliver, launch, own",
+        "copy": "You use it from day one. Source code and full account handover when the balance is settled."
+      }
+    },
+    "pathsEyebrow": "003 — Two ways to pay",
+    "pathsTitle": "Same total. Your pace.",
+    "pathsIntro": "Example on a $10,000 project. $3,000 deposit either way. The 70% balance is where you choose.",
+    "pathA": {
+      "tag": "Path A",
+      "title": "Balance on delivery",
+      "price": "30% deposit ▪ 70% when it ships",
+      "copy": "Classic two-payment structure. Pay the balance the week we deliver.",
+      "exampleLabel": "$10,000 project",
+      "exampleAmount": "$3,000 deposit + $7,000 on delivery",
+      "exampleMeta": "Two payments ▪ $10,000 total",
+      "fieldDeposit": "Deposit",
+      "fieldBalance": "On delivery",
+      "fieldTotal": "Total"
+    },
+    "pathB": {
+      "tag": "Path B",
+      "title": "Balance over 12 months",
+      "price": "30% deposit ▪ 0% interest ▪ 12 equal payments",
+      "copy": "Same total as Path A, spread across the year. Start this month, pay as you use it.",
+      "exampleLabel": "$10,000 project",
+      "exampleAmount": "$3,000 deposit + $583.33/mo",
+      "exampleMeta": "12 months ▪ $10,000 total",
+      "emphasis": "Most popular",
+      "fieldDeposit": "Deposit",
+      "fieldMonthly": "Then monthly",
+      "fieldDuration": "For",
+      "fieldDurationValue": "12 months",
+      "calculatorCta": "Calculate your payments"
+    },
+    "calculator": {
+      "title": "Run your numbers",
+      "description": "Enter a project amount to see the 30% deposit and 12 monthly payments at 0%.",
+      "amountLabel": "Project amount",
+      "amountPlaceholder": "10,000",
+      "currency": "USD",
+      "depositLabel": "30% deposit today",
+      "monthlyLabel": "Then monthly",
+      "durationLabel": "For 12 months",
+      "totalLine": "Total {total} ▪ 0% interest ▪ No credit check",
+      "minimumNote": "Financing starts at {min}"
+    },
+    "faqEyebrow": "004 — FAQ",
+    "faqTitle": "Answers, up front.",
+    "faq": {
+      "qualifies": {
+        "q": "Who qualifies for financing?",
+        "a": "Any project quoted at $5,000 or more. We ask that your business has been operating at least 12 months. No paperwork, just the conversation."
+      },
+      "loan": {
+        "q": "Is this a loan? Will you pull my credit?",
+        "a": "No. This is a payment agreement directly with us. No credit check, no credit bureau reporting. We work off a signed contract."
+      },
+      "interest": {
+        "q": "Is there really 0% interest?",
+        "a": "Yes. On a $10,000 project, you'd pay the same $3,000 deposit either way. Then $583.33/mo for 12 months, or $7,000 on delivery. Both total $10,000. No interest, no financing fee, no hidden charges."
+      },
+      "deposit": {
+        "q": "Do I need a deposit either way?",
+        "a": "Yes. Every project, regardless of how you pay the balance, kicks off with a 30% deposit. This covers scoping, design, and the first sprint of build work. The 70% balance is where the two payment paths split."
+      },
+      "free": {
+        "q": "Why would you offer this for free?",
+        "a": "Because we'd rather help you ship now than lose the project to cash flow. We bet that you'll come back for the next one, and refer us to someone else."
+      },
+      "early": {
+        "q": "What if I want to pay off early?",
+        "a": "Pay it off anytime with no penalty. Settle the remaining balance and we close the account."
+      },
+      "late": {
+        "q": "What happens if a payment fails?",
+        "a": "We retry the card in 3 business days. After 30 days past due, work pauses and we pause access to hosting until it's resolved. We'd always rather talk than chase. Reach out if something changes."
+      },
+      "ownership": {
+        "q": "What do I own while I'm still making payments?",
+        "a": "You use the product from day one: hosting, domain, your working software. Source code and full account handover happens on the final payment."
+      }
+    },
+    "ctaTitle": "Run the numbers together.",
+    "ctaSubtitle": "20-minute discovery call. We'll tell you what the project costs and show you both payment paths. No pressure.",
+    "ctaButton": "Book a discovery call"
+  },
+  "caseStudy": {
+    "back": "Back to work",
+    "kicker": "Case study",
+    "lead": "A process-and-decisions walkthrough of the CRM we run the studio on.",
+    "labels": {
+      "year": "Year",
+      "duration": "Duration",
+      "role": "Role",
+      "category": "Category"
+    },
+    "chapters": {
+      "overview": {
+        "title": "Overview",
+        "caption": "How we approached it."
+      },
+      "constraints": {
+        "title": "Constraints",
+        "caption": "The four rules we wrote down before the repo existed."
+      },
+      "decisions": {
+        "title": "Decisions",
+        "caption": "Five places where we picked the boring, well-typed option and moved on."
+      },
+      "stack": {
+        "title": "The stack",
+        "caption": "Companies, frameworks, and services behind the build."
+      },
+      "wrote": {
+        "title": "What we wrote",
+        "caption": "The engineering artifacts that came out of the build."
+      },
+      "numbers": {
+        "title": "By the numbers",
+        "caption": "A quick snapshot of the codebase shape."
+      }
+    },
+    "ctaTitle": "Have a project like this?",
+    "ctaSubtitle": "Book a 20-minute discovery call. You'll leave with a concrete scope, a timeline, and a price.",
+    "ctaPrimary": "Start a project",
+    "ctaSecondary": "See more work"
+  }
+}

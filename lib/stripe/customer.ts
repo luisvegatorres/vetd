@@ -34,7 +34,7 @@ export async function ensureStripeCustomer(
       const existing = await stripe.customers.retrieve(client.stripeCustomerId)
       if (!existing.deleted) return existing.id
     } catch (err) {
-      // Customer was deleted in Stripe or the ID is stale — fall through and
+      // Customer was deleted in Stripe or the ID is stale. Fall through and
       // create a fresh one below.
       console.warn(
         `[stripe customer] stored id ${client.stripeCustomerId} not retrievable, recreating`,

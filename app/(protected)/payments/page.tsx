@@ -35,7 +35,7 @@ function statusesForBucket(bucket: PaymentStatusFilter): string[] | null {
   if (bucket === "open") return OPEN_STATUSES
   if (bucket === "failed") return FAILED_STATUSES
   if (bucket === "refunded") return REFUNDED_STATUSES
-  return null // "all" or "other" — handled specially
+  return null // "all" or "other"; handled specially
 }
 
 const VALID_TABS: PaymentTab[] = ["all", "one_time", "subscription"]
@@ -183,7 +183,7 @@ export default async function PaymentsPage({
   // Only root-table columns can live in a single .or() list (PostgREST can't
   // OR across joined-table predicates reliably). We fan out via the
   // pre-resolved ID sets. `projects.client_id` is needed for the one-time
-  // search-by-client-name case — that means we first need project IDs for
+  // search-by-client-name case; that means we first need project IDs for
   // matching clients.
   let projectIdsForMatchingClients: string[] = []
   if (qLike && matchingClientIds.length > 0) {
@@ -356,7 +356,7 @@ export default async function PaymentsPage({
 
   // For tab=all, fetch up to (currentPage * PAGE_SIZE) rows from each table
   // so the merge can produce the requested page. Bounded to a reasonable
-  // cap — deep pagination on tab=all is not supported.
+  // cap; deep pagination on tab=all is not supported.
   const MAX_MERGE_DEPTH = 300 // roughly 20 pages at PAGE_SIZE=15
   const mergeLimit = Math.min(page * PAGE_SIZE, MAX_MERGE_DEPTH)
 

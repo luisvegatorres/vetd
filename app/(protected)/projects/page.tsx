@@ -110,7 +110,7 @@ export default async function ProjectsPage({
   const qLike = q ? `%${q.replace(/[%_]/g, (c) => `\\${c}`)}%` : null
 
   // Search resolves client IDs matching the query so we can OR them into the
-  // projects filter — preserves the existing "search finds by client name"
+  // projects filter; preserves the existing "search finds by client name"
   // behavior without needing a database view.
   let matchingClientIds: string[] = []
   if (qLike) {
@@ -230,7 +230,7 @@ export default async function ProjectsPage({
   if (pageRes.error) throw pageRes.error
   const rawPageRows = pageRes.data ?? []
 
-  // Sibling decorators — scoped to the visible project IDs only. This is the
+  // Sibling decorators, scoped to the visible project IDs only. This is the
   // core scalability fix: we no longer fetch every payment/interaction/
   // subscription row in the database.
   const pageProjectIds = rawPageRows.map((p) => p.id)

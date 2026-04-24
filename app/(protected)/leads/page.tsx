@@ -110,7 +110,7 @@ export default async function LeadsPage({
     : null
 
   // Inline filter chain per tab (same pattern as projects/clients pages).
-  // Base constraint — status in LEAD_STATUSES plus source + search —
+  // Base constraint: status in LEAD_STATUSES plus source + search,
   // applies to every tab; per-tab clauses layer derived-status rules on
   // top using has_interactions / kind / status columns from the view.
   function countQuery(tabFilter: LeadTab) {

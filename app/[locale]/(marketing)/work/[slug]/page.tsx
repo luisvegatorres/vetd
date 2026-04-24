@@ -1,153 +1,60 @@
-import Link from "next/link"
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { ArrowLeft, ArrowRight } from "lucide-react"
+import { hasLocale } from "next-intl"
+import { getTranslations, setRequestLocale } from "next-intl/server"
 
-import { BrandIcon, type BrandName } from "@/components/brand/brand-icons"
+import { BrandIcon } from "@/components/brand/brand-icons"
 import { Section } from "@/components/layout/section"
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal"
+import { JsonLd } from "@/components/seo/json-ld"
 import { buttonVariants } from "@/components/ui/button"
+import { Link } from "@/i18n/navigation"
+import { routing, type Locale } from "@/i18n/routing"
+import {
+  getCaseStudies,
+  getCaseStudySlugs,
+  type Beat,
+  type CaseStudy,
+  type Figure,
+} from "@/lib/case-studies"
+import { buildAlternates, localeUrl } from "@/lib/seo"
+import { site } from "@/lib/site"
+import { breadcrumbSchema, creativeWorkSchema } from "@/lib/structured-data"
 import { cn } from "@/lib/utils"
 
-type Metric = { label: string; value: string }
-type TechItem = { name: BrandName; role: string }
-type Beat = { title: string; body: string }
-type Figure = { caption: string; initials?: string }
-
-type CaseStudy = {
-  slug: string
-  title: string
-  category: "Websites" | "Mobile Apps" | "SaaS Products"
-  tagline: string
-  year: string
-  duration: string
-  role: string
-  liveUrl?: string
-  overview: string
-  leadFigure: Figure
-  problem: Beat[]
-  problemIntro: string
-  pullQuote: string
-  solution: Beat[]
-  solutionIntro: string
-  midFigure: Figure
-  stack: TechItem[]
-  features: string[]
-  metrics: Metric[]
-}
-
-const caseStudies: Record<string, CaseStudy> = {
-  "innovate-app-studios": {
-    slug: "innovate-app-studios",
-    title: "Innovate App Studios CRM",
-    category: "SaaS Products",
-    tagline:
-      "Process notes on building a typed, server-first CRM end-to-end.",
-    year: "2026",
-    duration: "Ongoing",
-    role: "Design, build, ship",
-    overview:
-      "We built the studio on Next.js 16, server-first by default, typed end-to-end from the Postgres schema to the UI. This is a walkthrough of the stack, the decisions that shaped the codebase, and the process we used to get from empty repo to running system — without stacking services we didn't understand.",
-    leadFigure: {
-      caption:
-        "Route groups — marketing site and protected app, one codebase, one deployment.",
-      initials: "RG",
-    },
-    problemIntro:
-      "Four constraints shaped every technical decision. We wrote them down before the repo existed and pulled them back out whenever a choice got noisy.",
-    problem: [
-      {
-        title: "End-to-end type safety, no manual sync",
-        body: "If the database schema changes, TypeScript should complain before the browser does. That ruled out any layer that accepts untyped payloads and any client that hand-writes types for server responses. The schema is the contract.",
-      },
-      {
-        title: "Server-first by default",
-        body: "Most pages shouldn't ship JavaScript for content that doesn't need it. React Server Components had to be the default rendering mode, not an opt-in optimization we'd sprinkle in later. Client components exist where interaction actually lives.",
-      },
-      {
-        title: "One codebase, one deployment",
-        body: "Public marketing site and protected app live side-by-side. Route groups handle the split; a single build pipeline ships both. No microservices, no split repos, no shared packages to keep in lockstep — until something earns the split.",
-      },
-      {
-        title: "Maintainable by one developer",
-        body: "Every abstraction had to pull its weight. No state management library until server actions hit a wall. No ORM when generated types already covered it. No framework we didn't already know well enough to debug at 2am.",
-      },
-    ],
-    pullQuote:
-      "If the schema changes, TypeScript complains before the browser does.",
-    solutionIntro:
-      "Five decisions that shaped the codebase — each one a place where we picked the boring, well-typed option and moved on.",
-    solution: [
-      {
-        title: "Next.js 16 App Router, RSC-first",
-        body: "Server Components render by default; client components are the opt-in. Pages read from the database in their own body via async functions — no data-fetching library, no hydration dance for static content. Mutations go through server actions, which revalidate by tag or path and let affected routes re-render themselves.",
-      },
-      {
-        title: "Three Supabase clients, different doors",
-        body: "A browser client for client components, a server client bound to next/headers cookies for RSC and server actions, a middleware client for request-scoped cookie refresh, and a service-role admin client marked 'server-only' so it can't be imported from a client file. Each has a single purpose; picking the wrong one is a type error, not a runtime bug.",
-      },
-      {
-        title: "Generated types, never hand-written",
-        body: "Supabase's CLI generates TypeScript from the live schema into lib/supabase/types.ts. Every query, every mutation, every component imports from that file — a column rename breaks the build across every consumer at once. No drift, no stale fixtures, no guess-and-check.",
-      },
-      {
-        title: "shadcn + Tailwind v4 as the only UI layer",
-        body: "We vendor shadcn components into the repo and edit them directly. Tailwind v4 tokens live in CSS variables (OKLCH) so the design system is themable without rebuilds. No CSS-in-JS, no component library dependency, no runtime style resolution — one PR changes the primary color across the entire app.",
-      },
-      {
-        title: "Vercel Fluid Compute over serverless",
-        body: "Fluid Compute keeps warm instances across requests, so middleware auth and server-rendered pages don't pay cold-start costs the way classic serverless would. Fresh Supabase clients per request (no module-level singletons) means concurrent request isolation still holds up.",
-      },
-    ],
-    midFigure: {
-      caption:
-        "Type pipeline — Postgres migrations → Supabase CLI → generated TS → imported everywhere.",
-      initials: "TS",
-    },
-    stack: [
-      { name: "Next.js", role: "App Router, server actions, middleware auth" },
-      { name: "React", role: "RSC-first, Suspense, streaming" },
-      { name: "TypeScript", role: "Strict mode, generated Supabase types" },
-      { name: "Tailwind CSS", role: "OKLCH tokens, dark-canonical theming" },
-      { name: "shadcn/ui", role: "Vendored primitives, edited in-repo" },
-      { name: "Supabase", role: "Postgres, Auth, RLS, SSR cookie plumbing" },
-      { name: "Stripe", role: "Hosted Checkout + idempotent webhooks" },
-      { name: "Cal.com", role: "HMAC-signed booking webhooks" },
-      { name: "Vercel", role: "Fluid Compute, edge hosting, image optimization" },
-    ],
-    features: [
-      "Proxy middleware that refreshes Supabase sessions on every request",
-      "Three single-purpose Supabase clients (browser, server, admin) with 'server-only' guards",
-      "Generated Postgres types imported across every query and form",
-      "Server actions for every mutation, revalidated by tag or path",
-      "Shared shadcn + Tailwind design system across marketing and app",
-      "Route groups splitting public marketing and protected CRM, one build",
-      "React 19 streaming with Suspense boundaries on the slow data paths",
-      "Dark-canonical OKLCH tokens in CSS variables, themable without rebuilds",
-    ],
-    metrics: [
-      { label: "Core tables", value: "10" },
-      { label: "Migrations shipped", value: "35+" },
-      { label: "Runtime deps", value: "< 40" },
-      { label: "Monthly tooling", value: "$0" },
-    ],
-  },
-}
-
 export function generateStaticParams() {
-  return Object.keys(caseStudies).map((slug) => ({ slug }))
+  return routing.locales.flatMap((locale) =>
+    getCaseStudySlugs().map((slug) => ({ locale, slug })),
+  )
 }
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>
-}) {
-  const { slug } = await params
-  const study = caseStudies[slug]
+  params: Promise<{ locale: string; slug: string }>
+}): Promise<Metadata> {
+  const { locale, slug } = await params
+  if (!hasLocale(routing.locales, locale)) return {}
+  const studies = getCaseStudies(locale)
+  const study = studies[slug]
   if (!study) return {}
+  const alternates = buildAlternates(locale, `/work/${slug}`)
   return {
-    title: `${study.title} — Innovate App Studios`,
+    title: `${study.title} — ${site.name}`,
     description: study.tagline,
+    alternates,
+    openGraph: {
+      title: study.title,
+      description: study.tagline,
+      url: alternates.canonical,
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: study.title,
+      description: study.tagline,
+    },
   }
 }
 
@@ -248,14 +155,37 @@ function BeatBlock({ index, beat }: { index: number; beat: Beat }) {
 export default async function CaseStudyPage({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ locale: string; slug: string }>
 }) {
-  const { slug } = await params
-  const study = caseStudies[slug]
+  const { locale, slug } = await params
+  if (!hasLocale(routing.locales, locale)) notFound()
+  setRequestLocale(locale)
+
+  const study: CaseStudy | undefined = getCaseStudies(locale as Locale)[slug]
   if (!study) notFound()
+
+  const t = await getTranslations("caseStudy")
+  const tLabels = await getTranslations("caseStudy.labels")
+  const tChapters = await getTranslations("caseStudy.chapters")
+
+  const studyUrl = localeUrl(locale as Locale, `/work/${slug}`)
+  const breadcrumbs = breadcrumbSchema([
+    { name: site.name, url: localeUrl(locale as Locale) },
+    { name: t("back"), url: `${localeUrl(locale as Locale)}#work` },
+    { name: study.title, url: studyUrl },
+  ])
+  const creativeWork = creativeWorkSchema({
+    name: study.title,
+    description: study.tagline,
+    url: studyUrl,
+    category: study.category,
+    locale: locale as Locale,
+  })
 
   return (
     <>
+      <JsonLd data={breadcrumbs} />
+      <JsonLd data={creativeWork} />
       <Section size="sm" className="scroll-mt-20 border-b-0 pb-0">
         <Reveal y={12}>
           <Link
@@ -263,7 +193,7 @@ export default async function CaseStudyPage({
             className="inline-flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase transition-colors hover:text-foreground"
           >
             <ArrowLeft className="size-3.5" />
-            Back to work
+            {t("back")}
           </Link>
         </Reveal>
       </Section>
@@ -272,11 +202,10 @@ export default async function CaseStudyPage({
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)] lg:gap-20">
           <Reveal y={18} className="space-y-3">
             <p className="font-heading text-xs text-muted-foreground uppercase tracking-wide">
-              Case study
+              {t("kicker")}
             </p>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              A process-and-decisions walkthrough of the CRM we run the studio
-              on.
+              {t("lead")}
             </p>
           </Reveal>
           <RevealGroup
@@ -299,10 +228,10 @@ export default async function CaseStudyPage({
           <dl className="grid grid-cols-2 gap-8 border-t border-border pt-8 sm:grid-cols-4">
             {(
               [
-                ["Year", study.year],
-                ["Duration", study.duration],
-                ["Role", study.role],
-                ["Category", study.category],
+                [tLabels("year"), study.year],
+                [tLabels("duration"), study.duration],
+                [tLabels("role"), study.role],
+                [tLabels("category"), study.category],
               ] as const
             ).map(([label, value]) => (
               <div key={label} className="space-y-2">
@@ -324,7 +253,11 @@ export default async function CaseStudyPage({
         </Reveal>
       </Section>
 
-      <Chapter number="001" title="Overview" caption="How we approached it.">
+      <Chapter
+        number="001"
+        title={tChapters("overview.title")}
+        caption={tChapters("overview.caption")}
+      >
         <Reveal y={18}>
           <p className="text-lg leading-relaxed text-foreground sm:text-xl">
             {study.overview}
@@ -334,8 +267,8 @@ export default async function CaseStudyPage({
 
       <Chapter
         number="002"
-        title="Constraints"
-        caption="The four rules we wrote down before the repo existed."
+        title={tChapters("constraints.title")}
+        caption={tChapters("constraints.caption")}
       >
         <Reveal y={18}>
           <p className="text-lg leading-relaxed text-foreground sm:text-xl">
@@ -367,8 +300,8 @@ export default async function CaseStudyPage({
 
       <Chapter
         number="003"
-        title="Decisions"
-        caption="Five places where we picked the boring, well-typed option and moved on."
+        title={tChapters("decisions.title")}
+        caption={tChapters("decisions.caption")}
       >
         <Reveal y={18}>
           <p className="text-lg leading-relaxed text-foreground sm:text-xl">
@@ -396,8 +329,8 @@ export default async function CaseStudyPage({
 
       <Chapter
         number="004"
-        title="The stack"
-        caption="Companies, frameworks, and services behind the build."
+        title={tChapters("stack.title")}
+        caption={tChapters("stack.caption")}
       >
         <RevealGroup
           className="grid gap-0 border-t border-l border-border sm:grid-cols-2 lg:grid-cols-3"
@@ -426,8 +359,8 @@ export default async function CaseStudyPage({
 
       <Chapter
         number="005"
-        title="What we wrote"
-        caption="The engineering artifacts that came out of the build."
+        title={tChapters("wrote.title")}
+        caption={tChapters("wrote.caption")}
       >
         <RevealGroup
           className="divide-y divide-border border-t border-b border-border"
@@ -451,8 +384,8 @@ export default async function CaseStudyPage({
 
       <Chapter
         number="006"
-        title="By the numbers"
-        caption="A quick snapshot of the codebase shape."
+        title={tChapters("numbers.title")}
+        caption={tChapters("numbers.caption")}
       >
         <RevealGroup
           className="grid gap-0 border-t border-l border-border sm:grid-cols-2 lg:grid-cols-4"
@@ -482,13 +415,12 @@ export default async function CaseStudyPage({
         >
           <RevealItem y={18}>
             <h2 className="leading-section font-heading text-4xl text-foreground capitalize sm:text-5xl">
-              Have a project like this?
+              {t("ctaTitle")}
             </h2>
           </RevealItem>
           <RevealItem y={18}>
             <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Book a 20-minute discovery call. You&apos;ll leave with a concrete
-              scope, a timeline, and a price.
+              {t("ctaSubtitle")}
             </p>
           </RevealItem>
           <RevealItem
@@ -499,20 +431,20 @@ export default async function CaseStudyPage({
               href="/contact"
               className={cn(
                 buttonVariants({ variant: "default" }),
-                "inline-flex items-center gap-2"
+                "inline-flex items-center gap-2",
               )}
             >
-              Start a project
+              {t("ctaPrimary")}
               <ArrowRight className="size-4" />
             </Link>
             <Link
               href="/#work"
               className={cn(
                 buttonVariants({ variant: "outline" }),
-                "inline-flex items-center gap-2"
+                "inline-flex items-center gap-2",
               )}
             >
-              See more work
+              {t("ctaSecondary")}
             </Link>
           </RevealItem>
         </RevealGroup>

@@ -21,7 +21,7 @@ import {
 import { createClient } from "@/lib/supabase/server"
 import { cn } from "@/lib/utils"
 
-// `negotiation` is hidden from the analytics grid — its rows roll up into the
+// `negotiation` is hidden from the analytics grid. Its rows roll up into the
 // Proposal bucket (done in the admin_analytics_pipeline_stats view). The DB
 // enum is untouched for legacy rows.
 const STAGES: { key: ProjectStage; label: string }[] = (
@@ -55,7 +55,7 @@ export default async function AdminAnalyticsPage() {
 
   // All aggregations are pushed into Postgres via the admin_analytics_*
   // views (see migrations/0022). The page used to fetch every row from
-  // projects/payments/subscriptions/profiles and reduce in memory — at
+  // projects/payments/subscriptions/profiles and reduce in memory; at
   // realistic scale that was multi-MB per page load.
   const WEEKS = 8
   const now = new Date()
