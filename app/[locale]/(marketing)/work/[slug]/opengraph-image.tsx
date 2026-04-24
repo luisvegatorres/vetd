@@ -5,7 +5,7 @@ import { getCaseStudies } from "@/lib/case-studies"
 import { site } from "@/lib/site"
 
 export const runtime = "edge"
-export const alt = "Case study — Innovate App Studios"
+export const alt = "Case study — Vetd"
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
 

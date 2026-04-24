@@ -26,11 +26,11 @@ type Project = {
 
 const projects: Project[] = [
   {
-    key: "innovate-app-studios",
+    key: "vetd",
     category: "saas",
     metaKind: "metaSaas",
     metaYear: "2026",
-    href: "/work/innovate-app-studios",
+    href: "/work/vetd",
   },
   {
     key: "alpha",

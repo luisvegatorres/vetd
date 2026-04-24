@@ -29,9 +29,9 @@ export type CaseStudy = {
 }
 
 const caseStudiesEn: Record<string, CaseStudy> = {
-  "innovate-app-studios": {
-    slug: "innovate-app-studios",
-    title: "Innovate App Studios CRM",
+  vetd: {
+    slug: "vetd",
+    title: "Vetd CRM",
     category: "SaaS Products",
     tagline:
       "Process notes on building a typed, server-first CRM end-to-end.",
@@ -127,9 +127,9 @@ const caseStudiesEn: Record<string, CaseStudy> = {
 }
 
 const caseStudiesEs: Record<string, CaseStudy> = {
-  "innovate-app-studios": {
-    slug: "innovate-app-studios",
-    title: "CRM de Innovate App Studios",
+  vetd: {
+    slug: "vetd",
+    title: "CRM de Vetd",
     category: "Productos SaaS",
     tagline:
       "Notas del proceso para construir un CRM tipado y server-first de extremo a extremo.",

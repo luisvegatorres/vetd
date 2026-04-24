@@ -15,7 +15,7 @@ export const stripe = new Stripe(secretKey, {
   // change response shapes under us. Bump deliberately and test.
   apiVersion: "2026-03-25.dahlia",
   appInfo: {
-    name: "Innovate App Studios CRM",
+    name: "Vetd CRM",
     url: process.env.NEXT_PUBLIC_APP_URL,
   },
   typescript: true,

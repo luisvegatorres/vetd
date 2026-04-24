@@ -1,6 +1,6 @@
 {
   "site": {
-    "name": "Innovate App Studios",
+    "name": "Vetd",
     "tagline": "Productos digitales que hacen crecer negocios.",
     "description": "Sitios web, apps móviles, productos SaaS e integraciones de IA construidos para rendir y diseñados para convertir.",
     "location": "Global ▪ 100% remoto",
@@ -31,9 +31,9 @@
     "spanish": "Español"
   },
   "home": {
-    "metaTitle": "Innovate App Studios — Productos digitales que hacen crecer negocios.",
+    "metaTitle": "Vetd — Productos digitales que hacen crecer negocios.",
     "metaDescription": "Sitios web, apps móviles, productos SaaS e integraciones de IA construidos para rendir y diseñados para convertir. Alcance fijo, precio fijo, sin facturación por hora.",
-    "ogAlt": "Innovate App Studios — estudio de productos digitales",
+    "ogAlt": "Vetd — estudio de productos digitales",
     "hero": {
       "badge": "Inicio",
       "headlineLine1": "Construimos productos",
@@ -119,7 +119,7 @@
     "about": {
       "eyebrow": "003 — Sobre nosotros",
       "title": "Un estudio operado como un producto, no como una agencia.",
-      "p1": "Innovate App Studios es un equipo pequeño y enfocado que construye sitios web, apps y sistemas para negocios que quieren crecer. Sin relleno. Sin burocracia. Solo trabajo terminado, entregado a tiempo.",
+      "p1": "Vetd es un equipo pequeño y enfocado que construye sitios web, apps y sistemas para negocios que quieren crecer. Sin relleno. Sin burocracia. Solo trabajo terminado, entregado a tiempo.",
       "p2": "Cobramos por alcance, no por hora. Construimos con herramientas que funcionan. Y cuando termina el proyecto, tú eres dueño de cada línea.",
       "values": {
         "ship": {
@@ -162,8 +162,8 @@
       "metaMobile": "App móvil ▪ {year}",
       "metaSaas": "Producto SaaS ▪ {year}",
       "projects": {
-        "innovate-app-studios": {
-          "title": "CRM de Innovate App Studios",
+        "vetd": {
+          "title": "CRM de Vetd",
           "tagline": "Sistema operativo de la agencia: leads, proyectos, facturación, comisiones."
         },
         "alpha": {

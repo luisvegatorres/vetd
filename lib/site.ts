@@ -1,32 +1,31 @@
 export const site = {
-  name: "Innovate App Studios",
+  name: "Vetd",
   tagline: "Digital products that grow businesses.",
   description:
     "Websites, mobile apps, SaaS products, and AI integrations built to perform and designed to convert.",
-  email: "hello@innovateappstudios.com",
+  email: "hello@vetd.agency",
   location: "Global ▪ Remote-first",
   responseTime: "Within 24 hours, usually same day.",
   discoveryCallHref: process.env.NEXT_PUBLIC_CALENDLY_URL || "/contact",
   calLink: process.env.NEXT_PUBLIC_CAL_LINK || "",
-  url: "https://innovateappstudios.com",
-  twitterHandle: "@innovateapps",
+  url: "https://vetd.agency",
+  twitterHandle: "@vetdagency",
   defaultLocale: "en",
   supportedLocales: ["en", "es"],
   sameAs: [
-    "https://www.linkedin.com/company/innovate-app-studios",
-    "https://twitter.com/innovateapps",
+    "https://www.linkedin.com/company/vetd",
+    "https://twitter.com/vetdagency",
   ],
 } as const
 
 export const siteMeta = {
   en: {
-    title: "Innovate App Studios — Digital products that grow businesses.",
+    title: "Vetd — Digital products that grow businesses.",
     description:
       "Websites, mobile apps, SaaS products, and AI integrations built to perform and designed to convert.",
   },
   es: {
-    title:
-      "Innovate App Studios — Productos digitales que hacen crecer negocios.",
+    title: "Vetd — Productos digitales que hacen crecer negocios.",
     description:
       "Sitios web, apps móviles, SaaS e integraciones de IA construidos para rendir y diseñados para convertir.",
   },

@@ -1,6 +1,6 @@
 {
   "site": {
-    "name": "Innovate App Studios",
+    "name": "Vetd",
     "tagline": "Digital products that grow businesses.",
     "description": "Websites, mobile apps, SaaS products, and AI integrations built to perform and designed to convert.",
     "location": "Global ▪ Remote-first",
@@ -31,9 +31,9 @@
     "spanish": "Spanish"
   },
   "home": {
-    "metaTitle": "Innovate App Studios — Digital products that grow businesses.",
+    "metaTitle": "Vetd — Digital products that grow businesses.",
     "metaDescription": "Websites, mobile apps, SaaS products, and AI integrations built to perform and designed to convert. Fixed scope, fixed price, no hourly billing.",
-    "ogAlt": "Innovate App Studios — digital product studio",
+    "ogAlt": "Vetd — digital product studio",
     "hero": {
       "badge": "Home",
       "headlineLine1": "We build digital",
@@ -119,7 +119,7 @@
     "about": {
       "eyebrow": "003 — About us",
       "title": "A studio run like a product, not an agency.",
-      "p1": "Innovate App Studios is a small, focused team building websites, apps, and systems for businesses that want to grow. No bloat. No bureaucracy. Just finished work, shipped on time.",
+      "p1": "Vetd is a small, focused team building websites, apps, and systems for businesses that want to grow. No bloat. No bureaucracy. Just finished work, shipped on time.",
       "p2": "We price by scope, not by the hour. We build on tools that win. And when the project ends, you own every line of it.",
       "values": {
         "ship": {
@@ -162,8 +162,8 @@
       "metaMobile": "Mobile app ▪ {year}",
       "metaSaas": "SaaS product ▪ {year}",
       "projects": {
-        "innovate-app-studios": {
-          "title": "Innovate App Studios CRM",
+        "vetd": {
+          "title": "Vetd CRM",
           "tagline": "Agency operating system: leads, projects, billing, commissions."
         },
         "alpha": {
