@@ -24,6 +24,44 @@ const fmtTime = new Intl.DateTimeFormat("en-US", {
   minute: "2-digit",
 })
 
+const fmtWeekdayMonthDay = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+})
+
+function isSameLocalDay(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  )
+}
+
+function formatWhenParts(
+  iso: string,
+  now = new Date(),
+): { day: string; time: string } {
+  const d = new Date(iso)
+  const time = fmtTime.format(d)
+  if (isSameLocalDay(d, now)) return { day: "Today", time }
+  const tomorrow = new Date(now)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  if (isSameLocalDay(d, tomorrow)) return { day: "Tomorrow", time }
+  return { day: fmtWeekdayMonthDay.format(d), time }
+}
+
+function FormattedWhen({ iso }: { iso: string }) {
+  const { day, time } = formatWhenParts(iso)
+  return (
+    <>
+      <span>{day}</span>
+      <MetaSep />
+      <span>{time}</span>
+    </>
+  )
+}
+
 const fmtMoney = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -328,13 +366,8 @@ function NextUp({
         <p className="mt-2 inline-flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
             <Clock className="size-3" aria-hidden />
-            {fmtTime.format(new Date(booking.startsAt))}
+            <FormattedWhen iso={booking.startsAt} />
           </span>
-          <span
-            aria-hidden
-            className="inline-block size-1 shrink-0 bg-border"
-          />
-          <span>{booking.attendee.name}</span>
         </p>
       </div>
 
@@ -422,10 +455,8 @@ function NextUp({
                     <p className="truncate text-sm font-medium text-foreground">
                       {event.title}
                     </p>
-                    <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                      <span>{fmtTime.format(new Date(event.startsAt))}</span>
-                      <MetaSep />
-                      <span className="truncate">{event.attendee.name}</span>
+                    <p className="mt-1 inline-flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                      <FormattedWhen iso={event.startsAt} />
                     </p>
                   </div>
                   <p className="shrink-0 text-overline font-medium uppercase text-muted-foreground tabular-nums">

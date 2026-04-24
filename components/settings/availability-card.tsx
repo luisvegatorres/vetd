@@ -1,11 +1,18 @@
 "use client"
 
 import * as React from "react"
-import { CalendarX, Plus, Trash2 } from "lucide-react"
+import {
+  ArrowRight,
+  CalendarIcon,
+  CalendarX,
+  Plus,
+  Trash2,
+} from "lucide-react"
+import { type DateRange } from "react-day-picker"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import { DatePicker } from "@/components/ui/date-picker"
+import { Calendar } from "@/components/ui/calendar"
 import {
   Field,
   FieldDescription,
@@ -14,6 +21,11 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -21,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
+import { cn } from "@/lib/utils"
 import { updateMyWorkingHoursAction } from "@/app/(protected)/settings/actions"
 import {
   DAY_LABELS,
@@ -28,6 +41,32 @@ import {
   type AvailabilityBlock,
   type WorkingHours,
 } from "@/lib/working-hours"
+
+// YYYY-MM-DD ↔ Date without UTC slip. See components/ui/date-picker.tsx.
+function parseIsoDate(iso: string): Date | undefined {
+  if (!iso) return undefined
+  const [y, m, d] = iso.split("-").map(Number)
+  if (!y || !m || !d) return undefined
+  return new Date(y, m - 1, d)
+}
+
+function toIsoDate(date: Date | undefined): string {
+  if (!date) return ""
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, "0")
+  const d = String(date.getDate()).padStart(2, "0")
+  return `${y}-${m}-${d}`
+}
+
+function formatShortDate(iso: string): string {
+  const d = parseIsoDate(iso)
+  if (!d) return ""
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
+}
 
 // ISO day ordering: Mon-first feels more natural for a work schedule UI.
 const WEEKDAY_ORDER: number[] = [1, 2, 3, 4, 5, 6, 0]
@@ -51,9 +90,15 @@ const END_HOUR_LABEL = new Map(
   END_HOUR_OPTIONS.map((o) => [o.value, o.label]),
 )
 
-function formatRangeLabel(from: string, to: string): string {
-  if (from === to) return from
-  return `${from} → ${to}`
+function BlockRangeLabel({ from, to }: { from: string; to: string }) {
+  if (from === to) return <>{from}</>
+  return (
+    <span className="inline-flex items-center gap-2">
+      {from}
+      <ArrowRight aria-hidden className="size-3.5 text-muted-foreground" />
+      {to}
+    </span>
+  )
 }
 
 export function AvailabilityCard({
@@ -77,6 +122,43 @@ export function AvailabilityCard({
   const [newFrom, setNewFrom] = React.useState("")
   const [newTo, setNewTo] = React.useState("")
   const [newReason, setNewReason] = React.useState("")
+  const [rangeOpen, setRangeOpen] = React.useState(false)
+
+  // Disable anything strictly before today (local midnight).
+  const todayStart = React.useMemo(() => {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d
+  }, [])
+
+  const rangeValue = React.useMemo<DateRange | undefined>(() => {
+    const from = parseIsoDate(newFrom)
+    if (!from) return undefined
+    // Keep `to` undefined until the user picks both ends — passing `to: from`
+    // would make DayPicker treat the next click as a closing click.
+    return { from, to: parseIsoDate(newTo) }
+  }, [newFrom, newTo])
+
+  function handleRangeSelect(next: DateRange | undefined) {
+    if (!next?.from) {
+      setNewFrom("")
+      setNewTo("")
+      return
+    }
+    const fromIso = toIsoDate(next.from)
+    const toIso = next.to ? toIsoDate(next.to) : ""
+    setNewFrom(fromIso)
+    setNewTo(toIso)
+    // Only close once there's a distinct end date. Single-day selections stay
+    // open so the user can extend the range or dismiss the popover themselves.
+    if (toIso && toIso !== fromIso) setRangeOpen(false)
+  }
+
+  const rangeLabel = newFrom
+    ? newTo && newTo !== newFrom
+      ? `${formatShortDate(newFrom)} – ${formatShortDate(newTo)}`
+      : formatShortDate(newFrom)
+    : "Pick dates"
 
   const [pending, startTransition] = React.useTransition()
 
@@ -112,8 +194,31 @@ export function AvailabilityCard({
     setNewReason("")
   }
 
+  function persist(
+    nextBlocks: AvailabilityBlock[],
+    successMessage = "Availability saved",
+  ) {
+    const start = Number(startHour)
+    const end = Number(endHour)
+    startTransition(async () => {
+      const result = await updateMyWorkingHoursAction({
+        startHour: start,
+        endHour: end,
+        days: Array.from(days),
+        blocks: nextBlocks,
+      })
+      if (result.ok) {
+        toast.success(successMessage)
+      } else {
+        toast.error(result.error)
+      }
+    })
+  }
+
   function removeBlock(index: number) {
-    setBlocks((prev) => prev.filter((_, i) => i !== index))
+    const nextBlocks = blocks.filter((_, i) => i !== index)
+    setBlocks(nextBlocks)
+    persist(nextBlocks, "Block removed")
   }
 
   function handleSave() {
@@ -132,19 +237,30 @@ export function AvailabilityCard({
       return
     }
 
-    startTransition(async () => {
-      const result = await updateMyWorkingHoursAction({
-        startHour: start,
-        endHour: end,
-        days: Array.from(days),
-        blocks,
-      })
-      if (result.ok) {
-        toast.success("Availability saved")
-      } else {
-        toast.error(result.error)
+    // Auto-commit a pending block if the user picked dates but didn't click
+    // "Add block" before saving — avoids silently losing their selection.
+    let finalBlocks = blocks
+    if (newFrom) {
+      const to = newTo || newFrom
+      if (to < newFrom) {
+        toast.error("End date is before the start date")
+        return
       }
-    })
+      finalBlocks = [
+        ...blocks,
+        {
+          from: newFrom,
+          to,
+          ...(newReason.trim() ? { reason: newReason.trim() } : {}),
+        },
+      ]
+      setBlocks(finalBlocks)
+      setNewFrom("")
+      setNewTo("")
+      setNewReason("")
+    }
+
+    persist(finalBlocks)
   }
 
   return (
@@ -262,7 +378,7 @@ export function AvailabilityCard({
                     />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium tabular-nums">
-                        {formatRangeLabel(b.from, b.to)}
+                        <BlockRangeLabel from={b.from} to={b.to} />
                       </p>
                       {b.reason ? (
                         <p className="text-xs text-muted-foreground">
@@ -285,19 +401,36 @@ export function AvailabilityCard({
               </ul>
             ) : null}
 
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-[auto_auto_1fr_auto]">
-              <DatePicker
-                value={newFrom}
-                onValueChange={setNewFrom}
-                placeholder="From"
-                disabled={pending}
-              />
-              <DatePicker
-                value={newTo}
-                onValueChange={setNewTo}
-                placeholder="To (optional)"
-                disabled={pending}
-              />
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-[auto_1fr_auto]">
+              <Popover open={rangeOpen} onOpenChange={setRangeOpen}>
+                <PopoverTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={pending}
+                      className={cn(
+                        "justify-between gap-2 font-normal",
+                        !newFrom && "text-muted-foreground",
+                      )}
+                    >
+                      {rangeLabel}
+                      <CalendarIcon aria-hidden className="opacity-60" />
+                    </Button>
+                  }
+                />
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="range"
+                    selected={rangeValue}
+                    onSelect={handleRangeSelect}
+                    numberOfMonths={2}
+                    defaultMonth={rangeValue?.from ?? todayStart}
+                    disabled={{ before: todayStart }}
+                    autoFocus
+                  />
+                </PopoverContent>
+              </Popover>
               <Input
                 value={newReason}
                 onChange={(e) => setNewReason(e.target.value)}
