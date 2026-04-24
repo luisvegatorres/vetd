@@ -6,6 +6,8 @@ import {
 } from "@/components/projects/project-detail-view"
 import type { ProjectTaskRow } from "@/components/projects/project-board"
 import type { ProjectRow } from "@/components/projects/project-types"
+import { hasGmailSendScope } from "@/lib/google/tokens"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
 const UUID_RE =
@@ -44,7 +46,7 @@ export default async function ProjectDetailPage({
           payment_status, stripe_checkout_session_id,
           paid_at, product_type, deposit_rate, deposit_amount,
           deposit_paid_at, created_at,
-          client:clients!projects_client_id_fkey (id, name, company),
+          client:clients!projects_client_id_fkey (id, name, company, email),
           rep:profiles!projects_sold_by_fkey (id, full_name)
         `
       )
@@ -134,6 +136,7 @@ export default async function ProjectDetailPage({
           id: clientObj.id,
           name: clientObj.name,
           company: clientObj.company,
+          email: clientObj.email,
         }
       : null,
     rep: repObj ? { id: repObj.id, full_name: repObj.full_name } : null,
@@ -220,6 +223,10 @@ export default async function ProjectDetailPage({
     kind: t.kind,
   }))
 
+  const canSendEmail = currentUserId
+    ? await hasGmailSendScope(createAdminClient(), currentUserId)
+    : false
+
   return (
     <ProjectDetailView
       project={project}
@@ -229,6 +236,7 @@ export default async function ProjectDetailPage({
       tasks={tasks}
       currentUserId={currentUserId}
       documentTemplates={documentTemplates}
+      canSendEmail={canSendEmail}
     />
   )
 }

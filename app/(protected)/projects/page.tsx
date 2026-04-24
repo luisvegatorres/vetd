@@ -76,7 +76,7 @@ const PROJECT_COLUMNS = `
   payment_status, stripe_checkout_session_id,
   paid_at, product_type, deposit_rate, deposit_amount,
   deposit_paid_at, created_at,
-  client:clients!projects_client_id_fkey (id, name, company),
+  client:clients!projects_client_id_fkey (id, name, company, email),
   rep:profiles!projects_sold_by_fkey (id, full_name)
 `
 
@@ -369,6 +369,7 @@ export default async function ProjectsPage({
             id: clientObj.id,
             name: clientObj.name,
             company: clientObj.company,
+            email: clientObj.email,
           }
         : null,
       rep: repObj ? { id: repObj.id, full_name: repObj.full_name } : null,
@@ -551,6 +552,7 @@ export default async function ProjectsPage({
               id: detailClientObj.id,
               name: detailClientObj.name,
               company: detailClientObj.company,
+              email: detailClientObj.email,
             }
           : null,
         rep: detailRepObj

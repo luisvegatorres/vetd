@@ -286,8 +286,12 @@ export function ProjectDetailPanel({
             activated.
           </p>
         ) : null}
-        {isDepositPending(project) && project.client ? (
-          <SendDepositLink projectId={project.id} className="w-full" />
+        {isDepositPending(project) && project.client?.email ? (
+          <SendDepositLink
+            projectId={project.id}
+            clientEmail={project.client.email}
+            className="w-full"
+          />
         ) : null}
       </CardFooter>
     </Card>

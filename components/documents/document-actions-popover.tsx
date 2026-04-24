@@ -1,7 +1,7 @@
 "use client"
 
+import * as React from "react"
 import { Download, Mail } from "lucide-react"
-import { useTransition } from "react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -10,7 +10,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { getDownloadUrlAction } from "@/app/(protected)/documents/actions"
+import { ConfirmSendDialog } from "@/components/projects/confirm-send-dialog"
+import {
+  getDownloadUrlAction,
+  sendDocumentAction,
+} from "@/app/(protected)/documents/actions"
 import type { ProjectDocument } from "@/components/projects/project-types"
 
 export const DOC_KIND_LABEL: Record<ProjectDocument["kind"], string> = {
@@ -23,19 +27,22 @@ export const DOC_KIND_LABEL: Record<ProjectDocument["kind"], string> = {
 
 export function DocumentActionsPopover({
   doc,
+  clientEmail,
   trigger,
 }: {
   doc: ProjectDocument
+  /** Required to email; if absent, Send is still shown but surfaces a clear error on click. */
+  clientEmail?: string | null
   trigger: React.ReactElement
 }) {
-  const [pending, startTransition] = useTransition()
+  const [downloading, startDownload] = React.useTransition()
 
   function handleDownload() {
     if (!doc.has_pdf) {
       toast.info("This document has no PDF yet")
       return
     }
-    startTransition(async () => {
+    startDownload(async () => {
       const res = await getDownloadUrlAction(doc.id)
       if (!res.ok) {
         toast.error(res.error)
@@ -44,6 +51,9 @@ export function DocumentActionsPopover({
       window.open(res.url, "_blank")
     })
   }
+
+  const kindLabel = DOC_KIND_LABEL[doc.kind]
+  const alreadySent = doc.status === "sent"
 
   return (
     <Popover>
@@ -54,23 +64,68 @@ export function DocumentActionsPopover({
           size="sm"
           className="justify-start gap-2 capitalize"
           onClick={handleDownload}
-          disabled={pending}
+          disabled={downloading}
         >
           <Download aria-hidden /> Download PDF
         </Button>
-        {/* TODO: wire up Resend to email this document to the client */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="justify-start gap-2 capitalize"
-          onClick={() =>
-            toast.info("Emailing documents is coming soon", {
-              description: "Wire up Resend to enable this.",
-            })
-          }
-        >
-          <Mail aria-hidden /> Send to client
-        </Button>
+        {clientEmail && doc.has_pdf ? (
+          <ConfirmSendDialog
+            trigger={
+              <Button
+                variant="ghost"
+                size="sm"
+                className="justify-start gap-2 capitalize"
+                disabled={alreadySent}
+                title={
+                  alreadySent
+                    ? "Already sent. Regenerate the document to send again."
+                    : undefined
+                }
+              >
+                <Mail aria-hidden />
+                {alreadySent ? "Already sent" : "Send to client"}
+              </Button>
+            }
+            title={`Send ${kindLabel.toLowerCase()} to client?`}
+            description={`Attaches "${doc.title}" as a PDF.`}
+            recipientEmail={clientEmail}
+            confirmLabel={`Send ${kindLabel.toLowerCase()}`}
+            onSend={async (message) => {
+              const result = await sendDocumentAction({
+                documentId: doc.id,
+                message,
+              })
+              if (!result.ok) {
+                return {
+                  ok: false,
+                  error: result.error,
+                  ...(result.code ? { code: result.code } : {}),
+                }
+              }
+              return {
+                ok: true,
+                toast: {
+                  title: `${kindLabel} sent`,
+                  description: `Emailed to ${clientEmail}.`,
+                },
+              }
+            }}
+          />
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="justify-start gap-2 capitalize"
+            disabled
+            title={
+              !doc.has_pdf
+                ? "No PDF generated yet"
+                : "Add a client email to enable sending"
+            }
+          >
+            <Mail aria-hidden /> Send to client
+          </Button>
+        )}
       </PopoverContent>
     </Popover>
   )

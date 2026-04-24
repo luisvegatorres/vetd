@@ -2,10 +2,13 @@
 
 import { revalidatePath } from "next/cache"
 
+import { depositLinkEmail } from "@/lib/email/templates"
+import { sendGmailAsRep } from "@/lib/google/gmail-send"
 import { logActivity, sourceRefFor } from "@/lib/interactions/log-activity"
 import { subscriptionPlans, type BillablePlanId } from "@/lib/site"
 import { ensureStripeCustomer } from "@/lib/stripe/customer"
 import { stripe } from "@/lib/stripe/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
 export type CancelSubscriptionResult =
@@ -263,6 +266,144 @@ export async function createProjectDepositCheckoutSession(input: {
       err instanceof Error ? err.message : "Stripe checkout failed"
     console.error("[stripe deposit] create session failed", err)
     return { ok: false, error: message }
+  }
+}
+
+export type SendDepositLinkResult =
+  | { ok: true; messageId: string; clientEmail: string }
+  | { ok: false; error: string; code?: "scope_missing" | "auth_expired" }
+
+/**
+ * Generate a Stripe deposit checkout session (if not already created) and
+ * email the link to the client from the rep's Gmail. Replies land in the
+ * rep's inbox — that's the whole point of going through the Gmail API
+ * instead of the no-reply@ SMTP relay used for marketing notifications.
+ */
+export async function sendDepositLinkAction(input: {
+  projectId: string
+  message?: string | null
+}): Promise<SendDepositLinkResult> {
+  if (!UUID_RE.test(input.projectId)) {
+    return { ok: false, error: "Invalid project" }
+  }
+
+  const supabase = await createClient()
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth.user) return { ok: false, error: "Not authenticated" }
+
+  const projectRes = await supabase
+    .from("projects")
+    .select(
+      `
+        id, title, deposit_amount,
+        client:clients!projects_client_id_fkey (id, name, email)
+      `,
+    )
+    .eq("id", input.projectId)
+    .maybeSingle()
+  if (projectRes.error || !projectRes.data) {
+    return { ok: false, error: "Project not found" }
+  }
+
+  const project = projectRes.data
+  const client = Array.isArray(project.client)
+    ? project.client[0]
+    : project.client
+  if (!client?.email) {
+    return {
+      ok: false,
+      error: "Client has no email. Add one before sending.",
+    }
+  }
+
+  const checkoutResult = await createProjectDepositCheckoutSession({
+    projectId: input.projectId,
+  })
+  if (!checkoutResult.ok) return { ok: false, error: checkoutResult.error }
+
+  const admin = createAdminClient()
+  const [repProfileRes, repIntegrationRes] = await Promise.all([
+    admin
+      .from("profiles")
+      .select("full_name")
+      .eq("id", auth.user.id)
+      .maybeSingle(),
+    admin
+      .from("rep_integrations")
+      .select("google_email")
+      .eq("rep_id", auth.user.id)
+      .eq("provider", "google")
+      .maybeSingle(),
+  ])
+  const repName =
+    repProfileRes.data?.full_name ?? auth.user.email ?? "Your Vetd rep"
+  const fromEmail =
+    repIntegrationRes.data?.google_email ?? auth.user.email ?? ""
+  if (!fromEmail) {
+    return {
+      ok: false,
+      error: "Connect Google from Settings before sending.",
+      code: "scope_missing",
+    }
+  }
+
+  const depositAmount =
+    project.deposit_amount != null ? Number(project.deposit_amount) : 0
+  const amountFormatted = depositAmount.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  })
+
+  const rendered = await depositLinkEmail({
+    projectTitle: project.title,
+    clientName: client.name,
+    repName,
+    amountFormatted,
+    url: checkoutResult.url,
+    message: input.message,
+  })
+
+  const sendResult = await sendGmailAsRep({
+    repId: auth.user.id,
+    to: client.email,
+    fromEmail,
+    fromName: repName,
+    subject: rendered.subject,
+    html: rendered.html,
+    text: rendered.text,
+  })
+  if (!sendResult.ok) {
+    return {
+      ok: false,
+      error: sendResult.error,
+      ...(sendResult.code ? { code: sendResult.code } : {}),
+    }
+  }
+
+  await logActivity({
+    supabase,
+    clientId: client.id,
+    loggedBy: auth.user.id,
+    type: "email",
+    title: `Emailed deposit link — ${project.title}`,
+    content: `Sent to ${client.email} from ${fromEmail}`,
+    projectId: project.id,
+    sourceRef: sourceRefFor(
+      "gmail-send",
+      "deposit",
+      project.id,
+      sendResult.messageId,
+    ),
+  })
+
+  revalidatePath(`/projects/${project.id}`)
+  revalidatePath(`/clients/${client.id}`)
+
+  return {
+    ok: true,
+    messageId: sendResult.messageId,
+    clientEmail: client.email,
   }
 }
 

@@ -121,6 +121,7 @@ export function ProjectDetailView({
   tasks,
   currentUserId,
   documentTemplates,
+  canSendEmail,
 }: {
   project: ProjectRow
   clients: { id: string; name: string; company: string | null }[]
@@ -129,6 +130,7 @@ export function ProjectDetailView({
   tasks: ProjectTaskRow[]
   currentUserId: string | null
   documentTemplates: { id: string; name: string; kind: string }[]
+  canSendEmail: boolean
 }) {
   const clientDisplay = projectDisplayClient(project)
   const productLabel = project.product_type
@@ -193,7 +195,10 @@ export function ProjectDetailView({
               existingKinds={(project.documents ?? []).map((d) => d.kind)}
             />
           ) : null}
-          <ProjectDetailsSheet project={project} />
+          <ProjectDetailsSheet
+            project={project}
+            canSendEmail={canSendEmail}
+          />
           <EditProjectDialog project={project} clients={clients} reps={reps} />
         </div>
       </header>

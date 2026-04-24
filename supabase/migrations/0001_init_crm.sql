@@ -1,4 +1,4 @@
--- Innovate App Studios CRM schema
+-- Vetd CRM schema
 -- Tables: profiles, clients, projects, payments, interactions, showcase_projects, pitch_slides
 
 -- ============================================================================

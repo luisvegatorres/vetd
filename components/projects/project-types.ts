@@ -27,6 +27,7 @@ export type ProjectClientRef = {
   id: string
   name: string
   company: string | null
+  email: string | null
 }
 
 export type ProjectRep = {

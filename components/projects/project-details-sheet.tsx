@@ -4,16 +4,17 @@ import Link from "next/link"
 import {
   Activity,
   CalendarClock,
+  CalendarPlus,
   CircleAlert,
   CircleCheck,
   CircleMinus,
-  CreditCard,
   FileText,
   Info,
   MoreHorizontal,
   NotebookText,
   PanelRight,
   Repeat,
+  Send,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -49,7 +50,9 @@ import {
 import { CancelSubscriptionButton } from "@/components/subscriptions/cancel-subscription-button"
 import { SendSubscriptionLink } from "@/components/subscriptions/send-subscription-link"
 import { DocumentActionsPopover } from "@/components/documents/document-actions-popover"
+import { ScheduleMeetingButton } from "@/components/clients/schedule-meeting-button"
 import { SendDepositLink } from "./send-deposit-link"
+import { SendDocumentButton } from "./send-document-button"
 import {
   formatDate,
   formatUsdFull,
@@ -60,7 +63,13 @@ import {
   type ProjectSubscription,
 } from "./project-types"
 
-function DocumentItem({ doc }: { doc: ProjectDocument }) {
+function DocumentItem({
+  doc,
+  clientEmail,
+}: {
+  doc: ProjectDocument
+  clientEmail: string | null | undefined
+}) {
   return (
     <Item variant="outline" size="sm">
       <ItemContent>
@@ -84,6 +93,7 @@ function DocumentItem({ doc }: { doc: ProjectDocument }) {
         {doc.has_pdf ? (
           <DocumentActionsPopover
             doc={doc}
+            clientEmail={clientEmail}
             trigger={
               <Button
                 variant="ghost"
@@ -356,7 +366,14 @@ function ProjectInfoDialog({
   )
 }
 
-export function ProjectDetailsSheet({ project }: { project: ProjectRow }) {
+export function ProjectDetailsSheet({
+  project,
+  canSendEmail = true,
+}: {
+  project: ProjectRow
+  /** When false, the "Send to client" block renders a reconnect-Google banner in place of the email buttons. */
+  canSendEmail?: boolean
+}) {
   const productLabel = project.product_type
     ? PRODUCT_TYPE_LABEL[project.product_type]
     : "No product set"
@@ -392,12 +409,88 @@ export function ProjectDetailsSheet({ project }: { project: ProjectRow }) {
             />
           </Section>
 
-          {isDepositPending(project) && project.client ? (
-            <Section>
-              <SectionHeading icon={CreditCard} label="Deposit" />
-              <SendDepositLink projectId={project.id} className="w-full" />
-            </Section>
-          ) : null}
+          {(() => {
+            const client = project.client
+            const clientEmail = client?.email
+            if (!client || !clientEmail) return null
+            const docs = project.documents ?? []
+            const sendableContract = docs.find(
+              (d) =>
+                d.kind === "contract" && d.has_pdf && d.status !== "sent",
+            )
+            const sendableProposal = docs.find(
+              (d) =>
+                d.kind === "proposal" && d.has_pdf && d.status !== "sent",
+            )
+            const showDeposit = isDepositPending(project)
+            return (
+              <Section>
+                <SectionHeading icon={Send} label="Client actions" />
+                {canSendEmail ? (
+                  <div className="flex flex-col gap-2">
+                    {sendableContract ? (
+                      <SendDocumentButton
+                        doc={sendableContract}
+                        clientEmail={clientEmail}
+                        variant="outline"
+                        className="w-full"
+                      />
+                    ) : null}
+                    {sendableProposal ? (
+                      <SendDocumentButton
+                        doc={sendableProposal}
+                        clientEmail={clientEmail}
+                        variant="outline"
+                        className="w-full"
+                      />
+                    ) : null}
+                    {showDeposit ? (
+                      <SendDepositLink
+                        projectId={project.id}
+                        clientEmail={clientEmail}
+                        className="w-full"
+                      />
+                    ) : null}
+                    <ScheduleMeetingButton
+                      client={{
+                        id: client.id,
+                        name: client.name,
+                        email: clientEmail,
+                      }}
+                      projectId={project.id}
+                      defaultTitle={`${project.title} — kickoff`}
+                      trigger={
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full gap-2"
+                        >
+                          <CalendarPlus aria-hidden />
+                          Schedule meeting
+                        </Button>
+                      }
+                    />
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3 border border-amber-500/40 bg-amber-500/5 p-4 text-sm">
+                    <p className="text-muted-foreground">
+                      Connect Google from Settings to email documents, share
+                      payment links, and schedule meetings directly from the
+                      app. Replies land in your inbox and activity is tracked
+                      on the client timeline.
+                    </p>
+                    {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+                    <a
+                      href="/api/google/oauth/start"
+                      className="text-primary hover:underline"
+                    >
+                      Reconnect Google →
+                    </a>
+                  </div>
+                )}
+              </Section>
+            )
+          })()}
 
           {sub ? (
             <Section>
@@ -439,7 +532,11 @@ export function ProjectDetailsSheet({ project }: { project: ProjectRow }) {
                   ) : (
                     <div className="flex flex-col gap-2">
                       {docs.map((doc) => (
-                        <DocumentItem key={doc.id} doc={doc} />
+                        <DocumentItem
+                          key={doc.id}
+                          doc={doc}
+                          clientEmail={project.client?.email}
+                        />
                       ))}
                     </div>
                   )}

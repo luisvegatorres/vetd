@@ -199,6 +199,7 @@ export function PipelineCard({
             <DocumentActionsPopover
               key={doc.id}
               doc={doc}
+              clientEmail={project.client?.email}
               trigger={
                 <Button
                   type="button"
@@ -211,9 +212,10 @@ export function PipelineCard({
               }
             />
           ))}
-          {depositPending ? (
+          {depositPending && project.client?.email ? (
             <SendDepositLink
               projectId={project.id}
+              clientEmail={project.client.email}
               className="h-8 w-full text-xs"
             />
           ) : null}

@@ -10,6 +10,13 @@ import {
   rerenderDocumentWithBody,
   renderDocument,
 } from "@/lib/documents/render"
+import {
+  documentEmail,
+  type DocumentEmailKind,
+} from "@/lib/email/templates"
+import { sendGmailAsRep } from "@/lib/google/gmail-send"
+import { logActivity, sourceRefFor } from "@/lib/interactions/log-activity"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import { Constants } from "@/lib/supabase/types"
 
@@ -202,4 +209,183 @@ export async function updateDocumentStatus(
   if (error) return { ok: false, error: error.message }
   revalidatePath("/documents")
   return { ok: true }
+}
+
+export type SendDocumentResult =
+  | { ok: true; messageId: string }
+  | { ok: false; error: string; code?: "scope_missing" | "auth_expired" }
+
+function sanitizeFilename(value: string): string {
+  const trimmed = value.trim().slice(0, 80) || "Document"
+  return trimmed.replace(/[\\/:*?"<>|]+/g, "-")
+}
+
+const DOCUMENT_EMAIL_KINDS: DocumentEmailKind[] = [
+  "proposal",
+  "contract",
+  "sow",
+  "nda",
+  "invoice_terms",
+]
+
+export async function sendDocumentAction(input: {
+  documentId: string
+  message?: string | null
+}): Promise<SendDocumentResult> {
+  if (!UUID_RE.test(input.documentId)) {
+    return { ok: false, error: "Invalid document id" }
+  }
+
+  const supabase = await createClient()
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth.user) return { ok: false, error: "Not authenticated" }
+
+  const docRes = await supabase
+    .from("documents")
+    .select(
+      `
+        id, title, kind, status, pdf_path, client_id, project_id,
+        client:clients!documents_client_id_fkey (id, name, email),
+        project:projects!documents_project_id_fkey (id, title)
+      `,
+    )
+    .eq("id", input.documentId)
+    .maybeSingle()
+
+  if (docRes.error || !docRes.data) {
+    return { ok: false, error: "Document not found" }
+  }
+  const doc = docRes.data
+
+  if (!doc.pdf_path) {
+    return { ok: false, error: "This document has no PDF yet. Generate it first." }
+  }
+  if (doc.status === "sent") {
+    return {
+      ok: false,
+      error: "This document was already sent. Regenerate it to send again.",
+    }
+  }
+  if (!DOCUMENT_EMAIL_KINDS.includes(doc.kind)) {
+    return { ok: false, error: `Cannot email documents of kind "${doc.kind}"` }
+  }
+
+  const client = Array.isArray(doc.client) ? doc.client[0] : doc.client
+  if (!client?.email) {
+    return {
+      ok: false,
+      error: "Client has no email. Add one before sending.",
+    }
+  }
+
+  const repId = auth.user.id
+
+  // Resolve rep name + their Google email to stamp the From header. The
+  // `google_email` on rep_integrations is what Google will actually send as
+  // (it ignores any other From address). Fall back to profile name.
+  const admin = createAdminClient()
+  const [repProfileRes, repIntegrationRes] = await Promise.all([
+    admin
+      .from("profiles")
+      .select("full_name")
+      .eq("id", repId)
+      .maybeSingle(),
+    admin
+      .from("rep_integrations")
+      .select("google_email")
+      .eq("rep_id", repId)
+      .eq("provider", "google")
+      .maybeSingle(),
+  ])
+
+  const repName =
+    repProfileRes.data?.full_name ?? auth.user.email ?? "Your Vetd rep"
+  const fromEmail =
+    repIntegrationRes.data?.google_email ?? auth.user.email ?? ""
+  if (!fromEmail) {
+    return {
+      ok: false,
+      error: "Connect Google from Settings before sending documents.",
+      code: "scope_missing",
+    }
+  }
+
+  // Download the PDF buffer directly from the private bucket via the admin
+  // client (RLS-bound clients can't read storage.objects for this bucket).
+  const pdfDownload = await admin.storage
+    .from("documents")
+    .download(doc.pdf_path)
+  if (pdfDownload.error || !pdfDownload.data) {
+    return {
+      ok: false,
+      error: pdfDownload.error?.message ?? "Could not load PDF",
+    }
+  }
+  const pdfBuffer = Buffer.from(await pdfDownload.data.arrayBuffer())
+
+  const attachmentFilename = `${sanitizeFilename(doc.title)}.pdf`
+
+  const projectObj = Array.isArray(doc.project) ? doc.project[0] : doc.project
+  const projectTitle = projectObj?.title ?? null
+
+  const rendered = await documentEmail({
+    kind: doc.kind as DocumentEmailKind,
+    documentTitle: doc.title,
+    clientName: client.name,
+    repName,
+    projectTitle,
+    message: input.message,
+  })
+
+  const sendResult = await sendGmailAsRep({
+    repId,
+    to: client.email,
+    fromEmail,
+    fromName: repName,
+    subject: rendered.subject,
+    html: rendered.html,
+    text: rendered.text,
+    attachments: [
+      {
+        filename: attachmentFilename,
+        content: pdfBuffer,
+        mimeType: "application/pdf",
+      },
+    ],
+  })
+
+  if (!sendResult.ok) {
+    return {
+      ok: false,
+      error: sendResult.error,
+      ...(sendResult.code ? { code: sendResult.code } : {}),
+    }
+  }
+
+  const now = new Date().toISOString()
+  const { error: updateError } = await supabase
+    .from("documents")
+    .update({ status: "sent", sent_at: now })
+    .eq("id", doc.id)
+  if (updateError) {
+    console.error("[sendDocumentAction] mark sent failed", updateError)
+  }
+
+  await logActivity({
+    supabase,
+    clientId: doc.client_id,
+    loggedBy: repId,
+    type: "email",
+    title: `Emailed ${doc.kind.replace(/_/g, " ")}: ${doc.title}`,
+    content: `Sent to ${client.email} from ${fromEmail}`,
+    projectId: doc.project_id,
+    sourceRef: sourceRefFor("gmail-send", "document", doc.id, sendResult.messageId),
+  })
+
+  revalidatePath("/documents")
+  revalidatePath(`/documents/${doc.id}`)
+  if (doc.project_id) revalidatePath(`/projects/${doc.project_id}`)
+  revalidatePath(`/clients/${doc.client_id}`)
+
+  return { ok: true, messageId: sendResult.messageId }
 }

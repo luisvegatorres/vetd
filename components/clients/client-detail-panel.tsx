@@ -24,9 +24,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { site } from "@/lib/site"
 import { ClientStatusBadge } from "./client-status-badge"
 import { EditClientDialog, type RepOption } from "./client-form-dialog"
+import { ScheduleMeetingButton } from "./schedule-meeting-button"
 import {
   clientDisplayName,
   deriveClientStatus,
@@ -104,7 +104,6 @@ export function ClientDetailPanel({
 
   const derived = deriveClientStatus(client)
   const display = clientDisplayName(client)
-  const calHref = site.calLink ? `https://cal.com/${site.calLink}` : null
 
   return (
     <Card className="flex min-h-80 flex-col gap-0 py-0">
@@ -282,19 +281,18 @@ export function ClientDetailPanel({
           >
             <Mail aria-hidden /> Email
           </Button>
-          <Button
-            variant="outline"
-            disabled={!calHref}
-            nativeButton={!calHref}
-            className="gap-2"
-            render={
-              calHref ? (
-                <a href={calHref} target="_blank" rel="noopener noreferrer" />
-              ) : undefined
+          <ScheduleMeetingButton
+            client={{
+              id: client.id,
+              name: client.name,
+              email: client.email,
+            }}
+            trigger={
+              <Button variant="outline" className="gap-2">
+                <Calendar aria-hidden /> Meet
+              </Button>
             }
-          >
-            <Calendar aria-hidden /> Meet
-          </Button>
+          />
         </div>
       </CardFooter>
     </Card>

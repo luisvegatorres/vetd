@@ -1,12 +1,51 @@
 import "server-only"
 
 import type { createAdminClient } from "@/lib/supabase/admin"
-import { getGoogleConfig } from "@/lib/google/config"
+import {
+  CALENDAR_EVENTS_SCOPE,
+  getGoogleConfig,
+  GMAIL_SEND_SCOPE,
+} from "@/lib/google/config"
 import { refreshAccessToken } from "@/lib/google/oauth"
 
 type AdminClient = ReturnType<typeof createAdminClient>
 
 const REFRESH_BUFFER_MS = 60_000 // refresh 60s before actual expiry
+
+/**
+ * True when the rep's stored OAuth scopes include gmail.send. Reps who
+ * connected before we added the scope will return false here and need to
+ * reconnect via /api/google/oauth/start before they can email as themselves.
+ */
+async function getRepScopes(
+  supabase: AdminClient,
+  repId: string,
+): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("rep_integrations")
+    .select("scopes")
+    .eq("rep_id", repId)
+    .eq("provider", "google")
+    .maybeSingle()
+  if (error || !data) return []
+  return data.scopes ?? []
+}
+
+export async function hasGmailSendScope(
+  supabase: AdminClient,
+  repId: string,
+): Promise<boolean> {
+  const scopes = await getRepScopes(supabase, repId)
+  return scopes.includes(GMAIL_SEND_SCOPE)
+}
+
+export async function hasCalendarEventsScope(
+  supabase: AdminClient,
+  repId: string,
+): Promise<boolean> {
+  const scopes = await getRepScopes(supabase, repId)
+  return scopes.includes(CALENDAR_EVENTS_SCOPE)
+}
 
 /**
  * Returns a valid access token for the rep, refreshing via the stored

@@ -16,8 +16,8 @@ insert into public.showcase_projects (
   sort_order
 )
 values (
-  'innovate-app-studios',
-  'Innovate App Studios CRM',
+  'vetd-crm',
+  'Vetd CRM',
   'Process notes on building a typed, server-first CRM end-to-end.',
   'SaaS Products',
   'We built the studio on Next.js 16, server-first by default, typed end-to-end from the Postgres schema to the UI. A walkthrough of the stack, the decisions that shaped the codebase, and the process we used to get from empty repo to running system.',

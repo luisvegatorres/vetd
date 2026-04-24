@@ -9,9 +9,13 @@ import {
   Video,
 } from "lucide-react"
 
+import { ScheduleMeetingButton } from "@/components/clients/schedule-meeting-button"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { getUpcomingBookings } from "@/lib/calcom"
+import {
+  listUpcomingEventsForRep,
+  type UpcomingEvent,
+} from "@/lib/google/calendar-upcoming"
 import { createClient } from "@/lib/supabase/server"
 import { cn } from "@/lib/utils"
 
@@ -75,9 +79,15 @@ export async function TodaysFocus() {
   const staleCutoff = new Date(now.getTime() - 7 * 86_400_000).toISOString()
   const stuckCutoff = new Date(now.getTime() - 14 * 86_400_000).toISOString()
 
-  const [bookings, overdueRes, staleLeadsRes, stuckDealsRes] =
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const [upcomingRes, overdueRes, staleLeadsRes, stuckDealsRes] =
     await Promise.all([
-      getUpcomingBookings(3),
+      user
+        ? listUpcomingEventsForRep(user.id, 3)
+        : Promise.resolve({ status: "not_connected" as const }),
       supabase
         .from("projects")
         .select(`id, title, value, deadline, clients ( name )`)
@@ -101,14 +111,17 @@ export async function TodaysFocus() {
         .limit(3),
     ])
 
-  const nextBooking = bookings[0] ?? null
+  const upcomingEvents = upcomingRes.status === "ok" ? upcomingRes.events : []
+  const showConnectGoogle = upcomingRes.status === "not_connected"
+  const nextBooking = upcomingEvents[0] ?? null
+  const followingEvents = upcomingEvents.slice(1)
 
-  const nextLastInteraction = nextBooking?.clientId
+  const nextLastInteraction = nextBooking?.client?.id
     ? (
         await supabase
           .from("interactions")
           .select("title, type, occurred_at")
-          .eq("client_id", nextBooking.clientId)
+          .eq("client_id", nextBooking.client.id)
           .lt("occurred_at", nowIso)
           .order("occurred_at", { ascending: false })
           .limit(1)
@@ -172,6 +185,7 @@ export async function TodaysFocus() {
       <div className="flex flex-col divide-y divide-border/60">
         <NextUp
           booking={nextBooking}
+          followingEvents={followingEvents}
           lastInteraction={
             nextLastInteraction
               ? {
@@ -181,7 +195,7 @@ export async function TodaysFocus() {
                 }
               : null
           }
-          upcomingCount={bookings.length}
+          showConnectGoogle={showConnectGoogle}
         />
 
         <div className="flex flex-col gap-4 p-6">
@@ -254,22 +268,18 @@ export async function TodaysFocus() {
 
 function NextUp({
   booking,
+  followingEvents,
   lastInteraction,
-  upcomingCount,
+  showConnectGoogle = false,
 }: {
-  booking: {
-    id: string
-    title: string
-    startsAt: string
-    joinUrl: string | null
-    attendee: { name: string }
-  } | null
+  booking: UpcomingEvent | null
+  followingEvents: UpcomingEvent[]
   lastInteraction: {
     title: string
     type: string
     daysAgo: number
   } | null
-  upcomingCount: number
+  showConnectGoogle?: boolean
 }) {
   if (!booking) {
     return (
@@ -279,8 +289,22 @@ function NextUp({
           Next up
         </p>
         <p className="text-sm text-muted-foreground">
-          No upcoming meetings on the calendar.
+          {showConnectGoogle
+            ? "Connect Google Calendar to see your upcoming meetings here."
+            : "No upcoming meetings on the calendar."}
         </p>
+        {showConnectGoogle ? (
+          <div>
+            <Button
+              size="sm"
+              nativeButton={false}
+              render={<Link href="/settings" />}
+            >
+              <CalendarClock />
+              Connect Google Calendar
+            </Button>
+          </div>
+        ) : null}
       </div>
     )
   }
@@ -339,18 +363,80 @@ function NextUp({
           <Video />
           Join meeting
         </Button>
-        {upcomingCount > 1 ? (
+        {booking.client ? (
+          <ScheduleMeetingButton
+            client={booking.client}
+            variant="outline"
+            existingMeeting={{
+              eventId: booking.id,
+              title: booking.title,
+              startAt: booking.startsAt,
+              durationMinutes: booking.durationMinutes,
+              description: booking.description,
+              hasMeetLink: booking.hasMeetLink,
+            }}
+          />
+        ) : booking.htmlLink ? (
           <Button
             size="sm"
             variant="outline"
             nativeButton={false}
-            render={<Link href="/clients" />}
+            render={
+              <a
+                href={booking.htmlLink}
+                target="_blank"
+                rel="noreferrer"
+              />
+            }
           >
             <ExternalLink />
-            {upcomingCount - 1} more upcoming
+            Open in Calendar
           </Button>
         ) : null}
       </div>
+
+      {followingEvents.length > 0 ? (
+        <ul className="flex flex-col divide-y divide-border/60 border-t border-border/60 -mx-6 mt-2">
+          {followingEvents.map((event) => {
+            const href = event.joinUrl || event.htmlLink
+            const Wrap = href ? "a" : "div"
+            return (
+              <li key={event.id}>
+                <Wrap
+                  {...(href
+                    ? {
+                        href,
+                        target: "_blank",
+                        rel: "noreferrer",
+                      }
+                    : {})}
+                  className={cn(
+                    "flex items-start gap-3 px-6 py-3",
+                    href && "hover:bg-muted/40",
+                  )}
+                >
+                  <span className="mt-0.5 inline-flex size-6 shrink-0 items-center justify-center border border-border/60 text-muted-foreground [&_svg]:size-3">
+                    <CalendarClock />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-foreground">
+                      {event.title}
+                    </p>
+                    <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                      <span>{fmtTime.format(new Date(event.startsAt))}</span>
+                      <MetaSep />
+                      <span className="truncate">{event.attendee.name}</span>
+                    </p>
+                  </div>
+                  <p className="shrink-0 text-overline font-medium uppercase text-muted-foreground tabular-nums">
+                    {timeUntil(event.startsAt)}
+                  </p>
+                </Wrap>
+              </li>
+            )
+          })}
+        </ul>
+      ) : null}
     </div>
   )
 }

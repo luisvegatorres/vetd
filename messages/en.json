@@ -415,6 +415,25 @@
       "errorTitle": "Couldn't send inquiry",
       "successTitle": "Inquiry received.",
       "successDescription": "We respond within 24 hours."
+    },
+    "notifications": {
+      "leadSubject": "New lead from {name}",
+      "leadIntro": "New inquiry from the Vetd contact form.",
+      "leadFields": {
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "company": "Business",
+        "projectType": "Project type",
+        "budget": "Budget",
+        "details": "Details",
+        "notProvided": "—"
+      },
+      "autoReplySubject": "We got your inquiry — Vetd",
+      "autoReplyGreeting": "Hi {name},",
+      "autoReplyBody": "Thanks for reaching out to Vetd. We've received your inquiry and will respond within 24 hours — usually the same day.",
+      "autoReplyBookCta": "Prefer to talk sooner? Book a 20-minute discovery call at {url}.",
+      "autoReplySignoff": "— The Vetd team"
     }
   },
   "financing": {

@@ -1,6 +1,8 @@
+import { AvailabilityCard } from "@/components/settings/availability-card"
 import { GoogleIntegrationCard } from "@/components/settings/google-integration-card"
 import { isGoogleConfigured } from "@/lib/google/config"
 import { createClient } from "@/lib/supabase/server"
+import { parseWorkingHours } from "@/lib/working-hours"
 
 export default async function SettingsPage({
   searchParams,
@@ -37,6 +39,16 @@ export default async function SettingsPage({
     }
   }
 
+  let initialWorkingHours = parseWorkingHours(undefined)
+  if (auth.user) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("working_hours")
+      .eq("id", auth.user.id)
+      .maybeSingle()
+    initialWorkingHours = parseWorkingHours(data?.working_hours)
+  }
+
   const errorReason =
     params.google === "error" ? (params.reason ?? "unknown") : undefined
 
@@ -47,6 +59,7 @@ export default async function SettingsPage({
         connection={connection}
         errorReason={errorReason}
       />
+      <AvailabilityCard initialWorkingHours={initialWorkingHours} />
     </div>
   )
 }

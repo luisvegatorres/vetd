@@ -1,24 +1,28 @@
 "use client"
 
-import { CreditCard } from "lucide-react"
+import { FileText } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { sendDepositLinkAction } from "@/lib/stripe/actions"
+import { DOC_KIND_LABEL } from "@/components/documents/document-actions-popover"
+import { sendDocumentAction } from "@/app/(protected)/documents/actions"
+import type { ProjectDocument } from "./project-types"
 
 import { ConfirmSendDialog } from "./confirm-send-dialog"
 
-export function SendDepositLink({
-  projectId,
+export function SendDocumentButton({
+  doc,
   clientEmail,
-  variant = "default",
+  variant = "outline",
   className,
 }: {
-  projectId: string
+  doc: ProjectDocument
   clientEmail: string
   variant?: React.ComponentProps<typeof Button>["variant"]
   className?: string
 }) {
+  const kindLabel = DOC_KIND_LABEL[doc.kind]
+
   return (
     <ConfirmSendDialog
       trigger={
@@ -27,17 +31,17 @@ export function SendDepositLink({
           variant={variant}
           className={cn("gap-2", className)}
         >
-          <CreditCard aria-hidden />
-          Send Deposit Link
+          <FileText aria-hidden />
+          Send {kindLabel}
         </Button>
       }
-      title="Send deposit link?"
-      description="We'll generate a Stripe checkout link and email it to the client."
+      title={`Send ${kindLabel.toLowerCase()} to client?`}
+      description={`Attaches "${doc.title}" as a PDF.`}
       recipientEmail={clientEmail}
-      confirmLabel="Send deposit link"
+      confirmLabel={`Send ${kindLabel.toLowerCase()}`}
       onSend={async (message) => {
-        const result = await sendDepositLinkAction({
-          projectId,
+        const result = await sendDocumentAction({
+          documentId: doc.id,
           message,
         })
         if (!result.ok) {
@@ -50,8 +54,8 @@ export function SendDepositLink({
         return {
           ok: true,
           toast: {
-            title: "Deposit link sent",
-            description: `Emailed to ${result.clientEmail}.`,
+            title: `${kindLabel} sent`,
+            description: `Emailed to ${clientEmail}.`,
           },
         }
       }}

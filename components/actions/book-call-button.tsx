@@ -4,6 +4,7 @@ import * as React from "react"
 import { useTheme } from "next-themes"
 
 import { Button } from "@/components/ui/button"
+import { Link } from "@/i18n/navigation"
 import { site } from "@/lib/site"
 
 export type BookCallPrefill = {
@@ -57,7 +58,13 @@ export function BookCallButton({
     return JSON.stringify(base)
   }, [prefill])
 
-  if (!site.calLink) return null
+  if (!site.calLink) {
+    return (
+      <Button {...props} nativeButton={false} render={<Link href="/contact" />}>
+        {children}
+      </Button>
+    )
+  }
 
   return (
     <Button

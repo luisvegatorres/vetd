@@ -427,6 +427,25 @@
       "errorTitle": "No se pudo enviar la consulta",
       "successTitle": "Consulta recibida.",
       "successDescription": "Respondemos en menos de 24 horas."
+    },
+    "notifications": {
+      "leadSubject": "Nuevo lead de {name}",
+      "leadIntro": "Nueva consulta desde el formulario de contacto de Vetd.",
+      "leadFields": {
+        "name": "Nombre",
+        "email": "Correo",
+        "phone": "Teléfono",
+        "company": "Negocio",
+        "projectType": "Tipo de proyecto",
+        "budget": "Presupuesto",
+        "details": "Detalles",
+        "notProvided": "—"
+      },
+      "autoReplySubject": "Recibimos tu consulta — Vetd",
+      "autoReplyGreeting": "Hola {name},",
+      "autoReplyBody": "Gracias por contactar a Vetd. Recibimos tu consulta y responderemos en menos de 24 horas — generalmente el mismo día.",
+      "autoReplyBookCta": "¿Prefieres hablar antes? Agenda una llamada de descubrimiento de 20 minutos en {url}.",
+      "autoReplySignoff": "— El equipo de Vetd"
     }
   },
   "financing": {

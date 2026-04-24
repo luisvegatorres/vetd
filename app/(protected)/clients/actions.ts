@@ -2,7 +2,12 @@
 
 import { revalidatePath } from "next/cache"
 
+import { getRepCalendarBusy } from "@/lib/google/calendar-busy"
+import { cancelMeetingAsRep } from "@/lib/google/calendar-cancel"
+import { createMeetingAsRep } from "@/lib/google/calendar-create"
+import { updateMeetingAsRep } from "@/lib/google/calendar-update"
 import { logActivity, sourceRefFor } from "@/lib/interactions/log-activity"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import { INDUSTRY_OPTIONS } from "@/lib/industries"
 import { Constants, type Database } from "@/lib/supabase/types"
@@ -246,4 +251,364 @@ export async function updateClient(
 
   revalidatePath("/clients")
   return { ok: true }
+}
+
+export type CreateMeetingResult =
+  | {
+      ok: true
+      eventId: string
+      htmlLink: string
+      hangoutLink: string | null
+      startAt: string
+    }
+  | { ok: false; error: string; code?: "scope_missing" | "auth_expired" }
+
+export async function createClientMeetingAction(input: {
+  clientId: string
+  projectId?: string | null
+  title: string
+  /** ISO-8601 UTC start. The client sends this from the browser (toISOString()). */
+  startAt: string
+  durationMinutes: number
+  timeZone: string
+  description?: string | null
+  extraInvitees?: string[]
+  includeMeetLink?: boolean
+}): Promise<CreateMeetingResult> {
+  if (!UUID_RE.test(input.clientId)) {
+    return { ok: false, error: "Invalid client id" }
+  }
+  if (input.projectId && !UUID_RE.test(input.projectId)) {
+    return { ok: false, error: "Invalid project id" }
+  }
+  const title = input.title.trim()
+  if (!title) return { ok: false, error: "Title is required" }
+  if (
+    !Number.isFinite(input.durationMinutes) ||
+    input.durationMinutes < 5 ||
+    input.durationMinutes > 480
+  ) {
+    return { ok: false, error: "Duration must be between 5 and 480 minutes" }
+  }
+  const start = new Date(input.startAt)
+  if (Number.isNaN(start.getTime())) {
+    return { ok: false, error: "Invalid start time" }
+  }
+  if (start.getTime() < Date.now() - 5 * 60_000) {
+    return { ok: false, error: "Start time is in the past" }
+  }
+
+  const supabase = await createClient()
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth.user) return { ok: false, error: "Not authenticated" }
+
+  const clientRes = await supabase
+    .from("clients")
+    .select("id, name, email")
+    .eq("id", input.clientId)
+    .maybeSingle()
+  if (clientRes.error || !clientRes.data) {
+    return { ok: false, error: "Client not found" }
+  }
+  const client = clientRes.data
+  if (!client.email) {
+    return {
+      ok: false,
+      error: "Client has no email. Add one before scheduling.",
+    }
+  }
+
+  const extraEmails = (input.extraInvitees ?? [])
+    .map((e) => e.trim())
+    .filter((e) => e.length > 0)
+  for (const email of extraEmails) {
+    if (!EMAIL_RE.test(email)) {
+      return { ok: false, error: `Invalid invitee email: ${email}` }
+    }
+  }
+
+  const attendees = [
+    { email: client.email, displayName: client.name },
+    ...extraEmails.map((email) => ({ email })),
+  ]
+
+  const result = await createMeetingAsRep({
+    repId: auth.user.id,
+    title,
+    description: input.description?.trim() || null,
+    startAt: start.toISOString(),
+    durationMinutes: input.durationMinutes,
+    timeZone: input.timeZone,
+    attendees,
+    includeMeetLink: input.includeMeetLink ?? true,
+  })
+
+  if (!result.ok) {
+    return {
+      ok: false,
+      error: result.error,
+      ...(result.code ? { code: result.code } : {}),
+    }
+  }
+
+  // Log the scheduled meeting so it shows up on the client timeline
+  // immediately (separate source_ref from the readonly gcal sync, so both
+  // can coexist without conflict).
+  const admin = createAdminClient()
+  await admin.from("interactions").upsert(
+    {
+      client_id: client.id,
+      logged_by: auth.user.id,
+      type: "meeting",
+      title,
+      content: input.description?.trim() || null,
+      project_id: input.projectId ?? null,
+      source: "gcal",
+      source_ref: result.eventId,
+      occurred_at: result.startAt,
+    },
+    { onConflict: "source,source_ref", ignoreDuplicates: false },
+  )
+
+  revalidatePath(`/clients/${client.id}`)
+  revalidatePath("/clients")
+  if (input.projectId) revalidatePath(`/projects/${input.projectId}`)
+
+  return {
+    ok: true,
+    eventId: result.eventId,
+    htmlLink: result.htmlLink,
+    hangoutLink: result.hangoutLink,
+    startAt: result.startAt,
+  }
+}
+
+export type UpdateMeetingResult =
+  | {
+      ok: true
+      eventId: string
+      htmlLink: string
+      hangoutLink: string | null
+      startAt: string
+    }
+  | { ok: false; error: string; code?: "scope_missing" | "auth_expired" }
+
+/**
+ * Updates an existing Google Calendar event created by the app and syncs
+ * the matching `interactions` row. Keyed on eventId so both the timeline
+ * Edit menu and dashboard NEXT UP actions reach the same server path.
+ */
+export async function updateClientMeetingAction(input: {
+  eventId: string
+  clientId: string
+  projectId?: string | null
+  title: string
+  /** ISO-8601 UTC start. */
+  startAt: string
+  durationMinutes: number
+  timeZone: string
+  description?: string | null
+  extraInvitees?: string[]
+  includeMeetLink?: boolean
+}): Promise<UpdateMeetingResult> {
+  if (!input.eventId.trim()) return { ok: false, error: "Missing event id" }
+  if (!UUID_RE.test(input.clientId)) {
+    return { ok: false, error: "Invalid client id" }
+  }
+  if (input.projectId && !UUID_RE.test(input.projectId)) {
+    return { ok: false, error: "Invalid project id" }
+  }
+  const title = input.title.trim()
+  if (!title) return { ok: false, error: "Title is required" }
+  if (
+    !Number.isFinite(input.durationMinutes) ||
+    input.durationMinutes < 5 ||
+    input.durationMinutes > 480
+  ) {
+    return { ok: false, error: "Duration must be between 5 and 480 minutes" }
+  }
+  const start = new Date(input.startAt)
+  if (Number.isNaN(start.getTime())) {
+    return { ok: false, error: "Invalid start time" }
+  }
+
+  const supabase = await createClient()
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth.user) return { ok: false, error: "Not authenticated" }
+
+  const clientRes = await supabase
+    .from("clients")
+    .select("id, name, email")
+    .eq("id", input.clientId)
+    .maybeSingle()
+  if (clientRes.error || !clientRes.data) {
+    return { ok: false, error: "Client not found" }
+  }
+  const client = clientRes.data
+  if (!client.email) {
+    return {
+      ok: false,
+      error: "Client has no email. Add one before updating.",
+    }
+  }
+
+  const extraEmails = (input.extraInvitees ?? [])
+    .map((e) => e.trim())
+    .filter((e) => e.length > 0)
+  for (const email of extraEmails) {
+    if (!EMAIL_RE.test(email)) {
+      return { ok: false, error: `Invalid invitee email: ${email}` }
+    }
+  }
+  const attendees = [
+    { email: client.email, displayName: client.name },
+    ...extraEmails.map((email) => ({ email })),
+  ]
+
+  const result = await updateMeetingAsRep({
+    repId: auth.user.id,
+    eventId: input.eventId,
+    title,
+    description: input.description?.trim() || null,
+    startAt: start.toISOString(),
+    durationMinutes: input.durationMinutes,
+    timeZone: input.timeZone,
+    attendees,
+    includeMeetLink: input.includeMeetLink === true,
+  })
+
+  if (!result.ok) {
+    return {
+      ok: false,
+      error: result.error,
+      ...(result.code ? { code: result.code } : {}),
+    }
+  }
+
+  const admin = createAdminClient()
+  await admin.from("interactions").upsert(
+    {
+      client_id: client.id,
+      logged_by: auth.user.id,
+      type: "meeting",
+      title,
+      content: input.description?.trim() || null,
+      project_id: input.projectId ?? null,
+      source: "gcal",
+      source_ref: result.eventId,
+      occurred_at: result.startAt,
+    },
+    { onConflict: "source,source_ref", ignoreDuplicates: false },
+  )
+
+  revalidatePath(`/clients/${client.id}`)
+  revalidatePath("/clients")
+  revalidatePath("/dashboard")
+  if (input.projectId) revalidatePath(`/projects/${input.projectId}`)
+
+  return {
+    ok: true,
+    eventId: result.eventId,
+    htmlLink: result.htmlLink,
+    hangoutLink: result.hangoutLink,
+    startAt: result.startAt,
+  }
+}
+
+export type CancelMeetingResult =
+  | { ok: true }
+  | { ok: false; error: string; code?: "scope_missing" | "auth_expired" }
+
+/**
+ * Cancels a Google Calendar event and marks the matching interactions
+ * row as cancelled (by prefixing the title). Keyed on eventId.
+ *
+ * Keeping the row (rather than deleting) preserves the activity record;
+ * `getUpcomingBookings()` already skips `[Cancelled]` titles so the card
+ * won't surface the stale meeting.
+ */
+export async function cancelClientMeetingAction(input: {
+  eventId: string
+}): Promise<CancelMeetingResult> {
+  if (!input.eventId.trim()) return { ok: false, error: "Missing event id" }
+
+  const supabase = await createClient()
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth.user) return { ok: false, error: "Not authenticated" }
+
+  const result = await cancelMeetingAsRep({
+    repId: auth.user.id,
+    eventId: input.eventId,
+  })
+  if (!result.ok) {
+    return {
+      ok: false,
+      error: result.error,
+      ...(result.code ? { code: result.code } : {}),
+    }
+  }
+
+  const admin = createAdminClient()
+  const { data: existing } = await admin
+    .from("interactions")
+    .select("id, client_id, project_id, title")
+    .eq("source", "gcal")
+    .eq("source_ref", input.eventId)
+    .maybeSingle()
+
+  if (existing) {
+    const cancelledTitle = existing.title.startsWith("[Cancelled]")
+      ? existing.title
+      : `[Cancelled] ${existing.title}`
+    await admin
+      .from("interactions")
+      .update({ title: cancelledTitle })
+      .eq("id", existing.id)
+
+    revalidatePath(`/clients/${existing.client_id}`)
+    if (existing.project_id) {
+      revalidatePath(`/projects/${existing.project_id}`)
+    }
+  }
+
+  revalidatePath("/clients")
+  revalidatePath("/dashboard")
+  return { ok: true }
+}
+
+export type CalendarBusyResult =
+  | { ok: true; busy: { start: string; end: string }[] }
+  | { ok: false; error: string }
+
+/**
+ * Returns busy intervals on the rep's primary Google Calendar between two
+ * ISO instants. Used by the Schedule Meeting picker to gray out time slots
+ * that would overlap existing events.
+ */
+export async function getRepCalendarBusyAction(input: {
+  timeMin: string
+  timeMax: string
+  timeZone?: string
+}): Promise<CalendarBusyResult> {
+  const supabase = await createClient()
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth.user) return { ok: false, error: "Not authenticated" }
+
+  const min = new Date(input.timeMin)
+  const max = new Date(input.timeMax)
+  if (Number.isNaN(min.getTime()) || Number.isNaN(max.getTime())) {
+    return { ok: false, error: "Invalid time range" }
+  }
+
+  try {
+    return await getRepCalendarBusy({
+      repId: auth.user.id,
+      timeMin: min.toISOString(),
+      timeMax: max.toISOString(),
+      timeZone: input.timeZone,
+    })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    return { ok: false, error: message }
+  }
 }

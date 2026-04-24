@@ -59,6 +59,13 @@ Expected in `.env.local`:
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (`pk_test_...` / `pk_live_...`) — public; only needed if/when we use Stripe Elements. Hosted Checkout (current flow) does not require it.
 - `STRIPE_WEBHOOK_SECRET` (`whsec_...`) — signing secret for `app/api/webhooks/stripe/route.ts`. Get from Stripe Dashboard → Developers → Webhooks for production, or from `stripe listen --forward-to localhost:3000/api/webhooks/stripe` for local dev.
 - `STRIPE_PRICE_ID_PRESENCE`, `STRIPE_PRICE_ID_GROWTH` — Stripe Price IDs for the two recurring plans. Test mode and live mode have separate IDs; swap these env vars when deploying. Sourced by `lib/site.ts` `subscriptionPlans` and used by the checkout flow + webhook to map Stripe events back to the right CRM plan.
+- `GMAIL_SMTP_HOST` — SMTP host for Google Workspace relay (`smtp-relay.gmail.com`). Used by `lib/email/client.ts` (server-only).
+- `GMAIL_SMTP_PORT` — SMTP port (`587`). Optional; defaults to `587`.
+- `GMAIL_SMTP_USER` — Google Workspace user that authenticates the SMTP relay (e.g. `no-reply@vetd.agency`). Must have an app password (2FA-enforced account).
+- `GMAIL_SMTP_PASSWORD` — Google app password for `GMAIL_SMTP_USER`. **Server-only**, never expose to the client. Generate from Google Account → Security → 2-Step Verification → App passwords.
+- `LEADS_NOTIFICATION_EMAIL` — inbox that receives contact-form notifications (defaults to `leads@vetd.agency`). Set to your preferred Workspace alias or group.
+
+**Not in `.env.local`:** Supabase Auth custom SMTP (configured in Supabase dashboard → Auth → Emails → SMTP Settings; point it at the same Gmail SMTP relay). Google OAuth Client ID + Secret for "Sign in with Google" live in Supabase dashboard → Auth → Providers → Google — use a dedicated OAuth client from Google Cloud Console, separate from the one used by `app/api/google/oauth/*` (which handles per-user Calendar/Gmail sync, not login).
 
 ### Database
 
