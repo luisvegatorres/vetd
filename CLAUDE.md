@@ -64,6 +64,7 @@ Expected in `.env.local`:
 - `GMAIL_SMTP_USER` — Google Workspace user that authenticates the SMTP relay (e.g. `no-reply@vetd.agency`). Must have an app password (2FA-enforced account).
 - `GMAIL_SMTP_PASSWORD` — Google app password for `GMAIL_SMTP_USER`. **Server-only**, never expose to the client. Generate from Google Account → Security → 2-Step Verification → App passwords.
 - `LEADS_NOTIFICATION_EMAIL` — inbox that receives contact-form notifications (defaults to `leads@vetd.agency`). Set to your preferred Workspace alias or group.
+- `GEMINI_API_KEY` — server-only Google Gemini API key (from Google AI Studio). Used by `lib/gemini/client.ts` to power AI generation helpers. Never expose to the client; access is gated to admin/editor roles via `requireGeminiAccess()` in `lib/gemini/auth.ts`. Default model is `gemini-3.1-flash-lite-preview`.
 
 **Not in `.env.local`:** Supabase Auth custom SMTP (configured in Supabase dashboard → Auth → Emails → SMTP Settings; point it at the same Gmail SMTP relay). Google OAuth Client ID + Secret for "Sign in with Google" live in Supabase dashboard → Auth → Providers → Google — use a dedicated OAuth client from Google Cloud Console, separate from the one used by `app/api/google/oauth/*` (which handles per-user Calendar/Gmail sync, not login).
 
