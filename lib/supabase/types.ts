@@ -374,6 +374,73 @@ export type Database = {
           },
         ]
       }
+      outreach_templates: {
+        Row: {
+          body: string
+          business_type: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_archived: boolean
+          label: string
+          reference_label: string | null
+          reference_url: string | null
+          sort_order: number
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          business_type: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_archived?: boolean
+          label: string
+          reference_label?: string | null
+          reference_url?: string | null
+          sort_order?: number
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          business_type?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_archived?: boolean
+          label?: string
+          reference_label?: string | null
+          reference_url?: string | null
+          sort_order?: number
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outreach_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_analytics_team_performance"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "outreach_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_rep_activity"
+            referencedColumns: ["rep_id"]
+          },
+          {
+            foreignKeyName: "outreach_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -440,6 +507,7 @@ export type Database = {
           full_name: string | null
           id: string
           role: Database["public"]["Enums"]["user_role"]
+          title: Database["public"]["Enums"]["profile_title"] | null
           working_hours: Json
         }
         Insert: {
@@ -448,6 +516,7 @@ export type Database = {
           full_name?: string | null
           id: string
           role?: Database["public"]["Enums"]["user_role"]
+          title?: Database["public"]["Enums"]["profile_title"] | null
           working_hours?: Json
         }
         Update: {
@@ -456,6 +525,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           role?: Database["public"]["Enums"]["user_role"]
+          title?: Database["public"]["Enums"]["profile_title"] | null
           working_hours?: Json
         }
         Relationships: []
@@ -1234,6 +1304,16 @@ export type Database = {
         | "follow_up"
         | "visit"
       payment_status: "unpaid" | "link_sent" | "paid" | "refunded" | "failed"
+      profile_title:
+        | "Founder"
+        | "Co-Founder"
+        | "CEO"
+        | "President"
+        | "Partner"
+        | "Sales Lead"
+        | "Account Executive"
+        | "Business Development"
+        | "Marketing Lead"
       project_product_type:
         | "business_website"
         | "mobile_app"
@@ -1398,6 +1478,17 @@ export const Constants = {
         "visit",
       ],
       payment_status: ["unpaid", "link_sent", "paid", "refunded", "failed"],
+      profile_title: [
+        "Founder",
+        "Co-Founder",
+        "CEO",
+        "President",
+        "Partner",
+        "Sales Lead",
+        "Account Executive",
+        "Business Development",
+        "Marketing Lead",
+      ],
       project_product_type: [
         "business_website",
         "mobile_app",

@@ -88,7 +88,7 @@ function parseLocalDate(iso: string | undefined): Date | undefined {
 function buildTimeSlots(startHour: number, endHour: number): string[] {
   const slots: string[] = []
   for (let hour = startHour; hour < endHour; hour++) {
-    for (let minute = 0; minute < 60; minute += 15) {
+    for (let minute = 0; minute < 60; minute += 30) {
       slots.push(`${pad(hour)}:${pad(minute)}`)
     }
   }
@@ -103,7 +103,7 @@ function nextAvailableSlot(
   // dialog never opens on a disabled day.
   const d = new Date()
   d.setHours(d.getHours() + 1)
-  const rounded = Math.ceil(d.getMinutes() / 15) * 15
+  const rounded = Math.ceil(d.getMinutes() / 30) * 30
   d.setMinutes(rounded, 0, 0)
 
   if (d.getHours() < wh.startHour) {
@@ -732,12 +732,11 @@ export function ScheduleMeetingButton({
                 <span>Pick a date and time.</span>
               ) : selectedSlotStatus.reason === "busy" ? (
                 <span className="text-destructive">
-                  {formatTime12(startTime)} overlaps an existing calendar
-                  event — pick another slot.
+                  {formatTime12(startTime)} is busy. Pick another slot.
                 </span>
               ) : selectedSlotStatus.reason === "past" ? (
                 <span className="text-destructive">
-                  {formatTime12(startTime)} has already passed — pick a
+                  {formatTime12(startTime)} has already passed. Pick a
                   later slot.
                 </span>
               ) : selectedSlotStatus.reason === "after_hours" ? (

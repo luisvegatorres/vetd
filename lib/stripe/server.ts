@@ -13,7 +13,7 @@ if (!secretKey) {
 export const stripe = new Stripe(secretKey, {
   // Pin to a specific API version so Stripe upgrades on their side don't
   // change response shapes under us. Bump deliberately and test.
-  apiVersion: "2026-03-25.dahlia",
+  apiVersion: "2026-04-22.dahlia",
   appInfo: {
     name: "Vetd CRM",
     url: process.env.NEXT_PUBLIC_APP_URL,

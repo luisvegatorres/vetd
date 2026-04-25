@@ -1,4 +1,4 @@
-import { AtSign, Mail, MapPin, Phone } from "lucide-react"
+import { AtSign, MapPin, Phone } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -13,6 +13,10 @@ import { ConvertLeadDialog } from "./convert-lead-dialog"
 import { LeadActionsPopover } from "./lead-actions-popover"
 import { LeadNotesDialog } from "./lead-notes-dialog"
 import { LeadStatusBadge } from "./lead-status-badge"
+import {
+  OutreachEmailDialog,
+  type OutreachTemplate,
+} from "./outreach-email-dialog"
 import { PromoteProspectButton } from "./promote-prospect-button"
 import {
   SOURCE_LABEL,
@@ -49,16 +53,26 @@ function Field({
 
 type RepOption = { id: string; full_name: string | null }
 
+export type CurrentRep = {
+  name: string | null
+  email: string | null
+  title: string | null
+}
+
 export function LeadDetailPanel({
   lead,
   reps,
   currentUserId,
   currentUserIsRep,
+  outreachTemplates,
+  currentRep,
 }: {
   lead: LeadRow | null
   reps: RepOption[]
   currentUserId: string | null
   currentUserIsRep: boolean
+  outreachTemplates: OutreachTemplate[]
+  currentRep: CurrentRep
 }) {
   if (!lead) {
     return (
@@ -205,15 +219,11 @@ export function LeadDetailPanel({
           />
         )}
         <div className="grid grid-cols-2 gap-2">
-          <Button
-            variant="outline"
-            disabled={!lead.email}
-            nativeButton={!lead.email}
-            className="gap-2 capitalize"
-            render={lead.email ? <a href={`mailto:${lead.email}`} /> : undefined}
-          >
-            <Mail aria-hidden /> Email
-          </Button>
+          <OutreachEmailDialog
+            lead={lead}
+            templates={outreachTemplates}
+            rep={currentRep}
+          />
           <Button
             variant="outline"
             disabled={!lead.phone}

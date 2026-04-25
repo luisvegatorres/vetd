@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 
+import { isProfileTitle } from "@/lib/profile/titles"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import {
@@ -68,4 +69,34 @@ export async function updateMyWorkingHoursAction(
 
   revalidatePath("/settings")
   return { ok: true, workingHours: parsed }
+}
+
+export type TitleResult =
+  | { ok: true; title: string }
+  | { ok: false; error: string }
+
+export async function updateMyTitleAction(
+  title: string,
+): Promise<TitleResult> {
+  const supabase = await createClient()
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth.user) return { ok: false, error: "Not authenticated" }
+
+  // Empty string clears the title (stored as NULL so the {{rep.title}} token
+  // resolves to "" rather than a literal empty value). Anything else has to
+  // be one of the curated options in lib/profile/titles.ts.
+  const cleaned = title.trim()
+  if (cleaned.length > 0 && !isProfileTitle(cleaned)) {
+    return { ok: false, error: "Pick a title from the list" }
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ title: cleaned.length > 0 ? cleaned : null })
+    .eq("id", auth.user.id)
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath("/settings")
+  revalidatePath("/leads")
+  return { ok: true, title: cleaned }
 }

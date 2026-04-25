@@ -35,7 +35,7 @@ const LEAD_STATUSES = ["lead", "qualified", "archived", "lost"] as const
 
 const VIEW_COLUMNS = `
   id, lead_number, name, company, email, phone, address, social_url,
-  score, intent, budget, notes, source, status, kind, created_at,
+  industry, score, intent, budget, notes, source, status, kind, created_at,
   assigned_to, has_interactions
 `
 
@@ -86,23 +86,45 @@ export default async function LeadsPage({
   const { data: me } = user
     ? await supabase
         .from("profiles")
-        .select("role")
+        .select("role, full_name, title")
         .eq("id", user.id)
         .maybeSingle()
     : { data: null }
   const currentUserIsRep =
     me?.role === "sales_rep" || me?.role === "admin" || me?.role === "editor"
 
-  const { data: repRows } = await supabase
-    .from("profiles")
-    .select("id, full_name, role, employment_status")
-    .in("role", ["admin", "editor", "sales_rep"])
-    .eq("employment_status", "active")
-    .order("full_name", { ascending: true })
-  const reps = (repRows ?? []).map((r) => ({
+  const { data: googleIntegration } = user
+    ? await supabase
+        .from("rep_integrations")
+        .select("google_email")
+        .eq("rep_id", user.id)
+        .eq("provider", "google")
+        .maybeSingle()
+    : { data: null }
+  const currentRep = {
+    name: me?.full_name ?? null,
+    email: googleIntegration?.google_email ?? user?.email ?? null,
+    title: me?.title ?? null,
+  }
+
+  const [repRowsRes, outreachRes] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, full_name, role, employment_status")
+      .in("role", ["admin", "editor", "sales_rep"])
+      .eq("employment_status", "active")
+      .order("full_name", { ascending: true }),
+    supabase
+      .from("outreach_templates")
+      .select("*")
+      .eq("is_archived", false)
+      .order("sort_order", { ascending: true }),
+  ])
+  const reps = (repRowsRes.data ?? []).map((r) => ({
     id: r.id,
     full_name: r.full_name,
   }))
+  const outreachTemplates = outreachRes.data ?? []
 
   const qLike = q ? `%${q.replace(/[%_]/g, (c) => `\\${c}`)}%` : null
   const searchOrClause = qLike
@@ -228,6 +250,7 @@ export default async function LeadsPage({
       phone: r.phone,
       address: r.address,
       social_url: r.social_url,
+      industry: r.industry,
       score: r.score,
       intent: r.intent,
       budget: r.budget,
@@ -284,6 +307,7 @@ export default async function LeadsPage({
         phone: detail.phone,
         address: detail.address,
         social_url: detail.social_url,
+        industry: detail.industry,
         score: detail.score,
         intent: detail.intent,
         budget: detail.budget,
@@ -342,6 +366,8 @@ export default async function LeadsPage({
           reps={reps}
           currentUserId={user?.id ?? null}
           currentUserIsRep={currentUserIsRep}
+          outreachTemplates={outreachTemplates}
+          currentRep={currentRep}
         />
       </div>
     </div>

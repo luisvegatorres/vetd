@@ -26,7 +26,7 @@ export type ContactLeadAutoReplyArgs = {
   locale: string
 }
 
-function escapeHtml(value: string) {
+export function escapeHtml(value: string) {
   return value
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -192,7 +192,7 @@ const PERSONAL_DARK_MODE_STYLES = `
 const PAY_BUTTON_STYLE =
   "display:inline-block;background:#0a0a0a;color:#ffffff !important;text-decoration:none;padding:12px 22px;font-size:15px;font-weight:500;"
 
-function wrapPersonalEmail(bodyInner: string): string {
+export function wrapPersonalEmail(bodyInner: string): string {
   return (
     `<!doctype html>` +
     `<html lang="en">` +
@@ -204,7 +204,7 @@ function wrapPersonalEmail(bodyInner: string): string {
     `<style>${PERSONAL_DARK_MODE_STYLES}</style>` +
     `</head>` +
     `<body style="margin:0;padding:0;">` +
-    `<div class="vetd-personal" style="${PERSONAL_EMAIL_STYLE}max-width:560px;padding:8px 4px;">` +
+    `<div class="vetd-personal" style="${PERSONAL_EMAIL_STYLE}max-width:560px;margin:0 auto;padding:16px 20px;">` +
     bodyInner +
     `</div>` +
     `</body>` +
@@ -212,7 +212,7 @@ function wrapPersonalEmail(bodyInner: string): string {
   )
 }
 
-function paragraphs(parts: string[]): string {
+export function paragraphs(parts: string[]): string {
   return parts
     .map(
       (p) =>

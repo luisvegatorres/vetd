@@ -142,6 +142,72 @@ function StatusBadge({ status }: { status: IntegrationStatus }) {
   )
 }
 
+type TileProps = {
+  title: string
+  status: IntegrationStatus
+  icon: ReactNode
+  detail: string
+  href?: string | null
+  hint?: string | null
+}
+
+export function IntegrationTile({
+  title,
+  status,
+  icon,
+  detail,
+  href,
+  hint,
+}: TileProps) {
+  return (
+    <section className="flex h-full flex-col gap-3 border border-border/60 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="text-muted-foreground [&>svg]:size-4">{icon}</span>
+          <h3 className="font-heading text-sm font-medium">{title}</h3>
+        </div>
+        <StatusDot status={status} />
+      </div>
+
+      <div className="min-w-0 text-xs">
+        <p className="truncate font-medium">{detail}</p>
+        {hint ? (
+          <p className="mt-1 truncate text-muted-foreground">{hint}</p>
+        ) : null}
+      </div>
+
+      {href ? (
+        <a
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-auto text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+        >
+          Open dashboard →
+        </a>
+      ) : null}
+    </section>
+  )
+}
+
+function StatusDot({ status }: { status: IntegrationStatus }) {
+  const tone =
+    status === "connected"
+      ? "bg-emerald-500"
+      : status === "error"
+        ? "bg-destructive"
+        : status === "not-configured"
+          ? "bg-muted-foreground/40"
+          : "bg-muted-foreground/60"
+  return (
+    <span
+      title={STATUS_COPY[status]}
+      aria-label={STATUS_COPY[status]}
+      className={cn("mt-1 size-2 shrink-0 rounded-full", tone)}
+    />
+  )
+}
+
 function CapabilityPill({
   enabled,
   icon,

@@ -27,6 +27,7 @@ export type LeadRow = {
   phone: string | null
   address: string | null
   social_url: string | null
+  industry: string | null
   score: number | null
   intent: string | null
   budget: string | null
