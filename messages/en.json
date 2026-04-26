@@ -1,7 +1,7 @@
 {
   "site": {
     "name": "Vetd",
-    "tagline": "Digital products that grow businesses.",
+    "tagline": "Websites, apps, and SaaS tools for small businesses.",
     "description": "Websites, mobile apps, SaaS products, and AI integrations built to perform and designed to convert.",
     "location": "Global ▪ Remote-first",
     "responseTime": "Within 24 hours, usually same day."
@@ -30,15 +30,15 @@
     "spanish": "Spanish"
   },
   "home": {
-    "metaTitle": "Vetd — Digital products that grow businesses.",
+    "metaTitle": "Vetd — Websites, apps, and SaaS tools for small businesses.",
     "metaDescription": "Websites, mobile apps, SaaS products, and AI integrations built to perform and designed to convert. Fixed scope, fixed price, no hourly billing.",
     "ogAlt": "Vetd — digital product studio",
     "hero": {
       "badge": "Home",
-      "headlineLine1": "We build digital",
-      "headlineLine2": "products that grow",
-      "headlineLine3": "businesses.",
-      "subhead": "Websites. Mobile apps. SaaS products. AI integrations. Built to perform, designed to convert.",
+      "headlineLine1": "We build websites,",
+      "headlineLine2": "apps, and SaaS for",
+      "headlineLine3": "small businesses.",
+      "subhead": "Tools that help you sell, book, and operate online. Built to perform, designed to convert.",
       "ctaBookCall": "Get in touch",
       "panelEyebrow": "/ 001 - Digital product studio",
       "panelFooter": "Websites ▪ Apps ▪ SaaS ▪ AI",
@@ -126,8 +126,8 @@
           "copy": "Fixed scopes, fixed prices, finished work. No open-ended retainers, no billable-hour games."
         },
         "speed": {
-          "title": "Speed is a feature",
-          "copy": "A marketing site in 7 days. An MVP in weeks. Momentum compounds. Slow projects rarely recover."
+          "title": "Built to make money, not just look good",
+          "copy": "Pretty is the floor. We design for the numbers that move the business: customers booked, products sold, services rendered."
         },
         "tools": {
           "title": "We pick tools that win",

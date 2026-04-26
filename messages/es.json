@@ -1,7 +1,7 @@
 {
   "site": {
     "name": "Vetd",
-    "tagline": "Productos digitales que hacen crecer negocios.",
+    "tagline": "Sitios web, apps y herramientas SaaS para pequeños negocios.",
     "description": "Sitios web, apps móviles, productos SaaS e integraciones de IA construidos para rendir y diseñados para convertir.",
     "location": "Global ▪ 100% remoto",
     "responseTime": "En menos de 24 horas, usualmente el mismo día."
@@ -30,15 +30,15 @@
     "spanish": "Español"
   },
   "home": {
-    "metaTitle": "Vetd — Productos digitales que hacen crecer negocios.",
+    "metaTitle": "Vetd — Sitios web, apps y herramientas SaaS para pequeños negocios.",
     "metaDescription": "Sitios web, apps móviles, productos SaaS e integraciones de IA construidos para rendir y diseñados para convertir. Alcance fijo, precio fijo, sin facturación por hora.",
     "ogAlt": "Vetd — estudio de productos digitales",
     "hero": {
       "badge": "Inicio",
-      "headlineLine1": "Construimos productos",
-      "headlineLine2": "digitales que hacen crecer",
-      "headlineLine3": "tu negocio.",
-      "subhead": "Sitios web. Apps móviles. Productos SaaS. Integraciones de IA. Construidos para rendir, diseñados para convertir.",
+      "headlineLine1": "Construimos sitios,",
+      "headlineLine2": "apps y SaaS para",
+      "headlineLine3": "pequeños negocios.",
+      "subhead": "Herramientas para vender, agendar y operar en línea. Construidas para rendir, diseñadas para convertir.",
       "ctaBookCall": "Contáctanos",
       "panelEyebrow": "/ 001 - Estudio de productos digitales",
       "panelFooter": "Sitios ▪ Apps ▪ SaaS ▪ IA",
@@ -126,8 +126,8 @@
           "copy": "Alcances fijos, precios fijos, trabajo terminado. Sin retainers abiertos, sin juegos de horas facturadas."
         },
         "speed": {
-          "title": "La velocidad es una característica",
-          "copy": "Un sitio en 7 días. Un MVP en semanas. El impulso se acumula. Los proyectos lentos rara vez se recuperan."
+          "title": "Hecho para generar ingresos, no solo para verse bien",
+          "copy": "Lo bonito es el piso. Diseñamos para los números que mueven el negocio: clientes agendados, productos vendidos, servicios prestados."
         },
         "tools": {
           "title": "Elegimos herramientas que funcionan",

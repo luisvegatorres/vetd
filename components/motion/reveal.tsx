@@ -5,7 +5,7 @@ import { motion, useReducedMotion } from "motion/react"
 
 import { cn } from "@/lib/utils"
 
-const REVEAL_EASE = [0.22, 1, 0.36, 1] as const
+export const REVEAL_EASE = [0.22, 1, 0.36, 1] as const
 
 type MotionDivProps = React.ComponentPropsWithoutRef<typeof motion.div>
 

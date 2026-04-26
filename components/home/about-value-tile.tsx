@@ -41,7 +41,7 @@ export function AboutValueTile({
       className={cn(
         "relative flex h-full flex-col gap-5 bg-background px-6 py-10 sm:px-10 sm:py-12 lg:px-20 lg:py-14",
         "border-b border-r border-border/60",
-        "transition-colors duration-300 ease-out hover:bg-muted/50",
+        "transition-[colors,transform] duration-300 ease-out hover:-translate-y-0.5 hover:bg-muted/50 motion-reduce:hover:translate-y-0",
         className,
       )}
     >

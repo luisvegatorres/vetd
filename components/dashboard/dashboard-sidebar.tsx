@@ -32,6 +32,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { LogoutButton } from "@/components/auth/logout-button"
+import { Logo, Logotype } from "@/components/brand/logo"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { site } from "@/lib/site"
@@ -128,14 +129,17 @@ export function DashboardSidebar({
       <SidebarHeader className="gap-3">
         <Link
           href="/dashboard"
-          className="font-heading text-sm font-medium text-foreground uppercase"
+          aria-label={site.name}
+          className="inline-flex items-center text-foreground"
         >
-          <span className="group-data-[collapsible=icon]:hidden">
-            {site.name}
-          </span>
-          <span className="hidden group-data-[collapsible=icon]:inline">
-            IA
-          </span>
+          <Logotype
+            height={18}
+            className="group-data-[collapsible=icon]:hidden"
+          />
+          <Logo
+            size={20}
+            className="hidden group-data-[collapsible=icon]:inline-block"
+          />
         </Link>
         <Button
           variant="outline"

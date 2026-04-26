@@ -4,6 +4,7 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 
+import { Logotype } from "@/components/brand/logo"
 import { LocaleSwitcher } from "@/components/layout/locale-switcher"
 import { buttonVariants } from "@/components/ui/button"
 import { Link, usePathname } from "@/i18n/navigation"
@@ -59,9 +60,10 @@ export function SiteHeader() {
       <div className="flex h-16 w-full items-center justify-between px-6 sm:px-10 lg:px-20">
         <Link
           href="/"
-          className="font-heading text-base font-medium text-foreground uppercase"
+          aria-label={site.name}
+          className="inline-flex items-center text-foreground"
         >
-          {site.name}
+          <Logotype height={20} />
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex">
@@ -77,7 +79,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <LocaleSwitcher className="hidden lg:inline-flex" />
+          <LocaleSwitcher />
 
           <button
             type="button"
@@ -169,9 +171,8 @@ export function SiteHeader() {
                   delay: shouldReduceMotion ? 0 : 0.04 * NAV_KEYS.length,
                   ease: PANEL_EASE,
                 }}
-                className="space-y-4 pt-6"
+                className="pt-6"
               >
-                <LocaleSwitcher className="w-full justify-center" />
                 <Link
                   href="/contact"
                   onClick={() => setOpen(false)}

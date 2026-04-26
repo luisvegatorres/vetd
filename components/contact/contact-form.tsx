@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ArrowRight, Phone } from "lucide-react"
+import { ArrowRight, Loader2, Phone } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
@@ -14,6 +14,7 @@ import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
+import { cn } from "@/lib/utils"
 import {
   InputGroup,
   InputGroupAddon,
@@ -53,6 +54,7 @@ export function ContactForm() {
   const [projectType, setProjectType] = React.useState<string>("")
   const [budgetRange, setBudgetRange] = React.useState<string>("")
   const [submitting, setSubmitting] = React.useState(false)
+  const [shakeKey, setShakeKey] = React.useState(0)
   const [name, setName] = React.useState("")
   const [email, setEmail] = React.useState("")
   const [phone, setPhone] = React.useState("")
@@ -79,6 +81,7 @@ export function ContactForm() {
 
     if (!result.ok) {
       toast.error(tToast("errorTitle"), { description: result.error })
+      setShakeKey((k) => k + 1)
       setSubmitting(false)
       return
     }
@@ -149,6 +152,7 @@ export function ContactForm() {
           x={28}
           y={20}
         >
+          <div key={shakeKey} className={cn(shakeKey > 0 && "animate-shake")}>
           <form
             onSubmit={onSubmit}
             className="flex h-full flex-col gap-8 p-8 sm:p-10"
@@ -173,7 +177,7 @@ export function ContactForm() {
                   name="name"
                   required
                   placeholder={tForm("namePlaceholder")}
-                  groupClassName="rounded-none"
+                  groupClassName="rounded-none transition-[box-shadow] duration-200 ease-out focus-within:ring-1 focus-within:ring-foreground/40 motion-reduce:transition-none"
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                 />
@@ -188,7 +192,7 @@ export function ContactForm() {
                   name="email"
                   required
                   placeholder={tForm("emailPlaceholder")}
-                  groupClassName="rounded-none"
+                  groupClassName="rounded-none transition-[box-shadow] duration-200 ease-out focus-within:ring-1 focus-within:ring-foreground/40 motion-reduce:transition-none"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                 />
@@ -198,7 +202,7 @@ export function ContactForm() {
                 <FieldLabel htmlFor="phone" className="text-xs uppercase">
                   {tForm("phone")}
                 </FieldLabel>
-                <InputGroup className="rounded-none">
+                <InputGroup className="rounded-none transition-[box-shadow] duration-200 ease-out focus-within:ring-1 focus-within:ring-foreground/40 motion-reduce:transition-none">
                   <InputGroupAddon>
                     <Phone aria-hidden />
                   </InputGroupAddon>
@@ -232,7 +236,7 @@ export function ContactForm() {
                   id="business"
                   name="business"
                   placeholder={tForm("businessPlaceholder")}
-                  groupClassName="rounded-none"
+                  groupClassName="rounded-none transition-[box-shadow] duration-200 ease-out focus-within:ring-1 focus-within:ring-foreground/40 motion-reduce:transition-none"
                 />
               </Field>
 
@@ -244,7 +248,7 @@ export function ContactForm() {
                   value={projectType}
                   onValueChange={handleProjectTypeChange}
                 >
-                  <SelectTrigger className="w-full rounded-none">
+                  <SelectTrigger className="w-full rounded-none transition-[box-shadow] duration-200 ease-out focus-within:ring-1 focus-within:ring-foreground/40 data-[popup-open]:ring-1 data-[popup-open]:ring-foreground/40 motion-reduce:transition-none">
                     <SelectValue placeholder={tForm("projectTypePlaceholder")} />
                   </SelectTrigger>
                   <SelectContent className="rounded-none">
@@ -268,7 +272,7 @@ export function ContactForm() {
                   value={budgetRange}
                   onValueChange={handleBudgetRangeChange}
                 >
-                  <SelectTrigger className="w-full rounded-none">
+                  <SelectTrigger className="w-full rounded-none transition-[box-shadow] duration-200 ease-out focus-within:ring-1 focus-within:ring-foreground/40 data-[popup-open]:ring-1 data-[popup-open]:ring-foreground/40 motion-reduce:transition-none">
                     <SelectValue placeholder={tForm("budgetPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent className="rounded-none">
@@ -297,7 +301,7 @@ export function ContactForm() {
                   rows={5}
                   required
                   placeholder={tForm("detailsPlaceholder")}
-                  className="rounded-none"
+                  className="rounded-none transition-[box-shadow] duration-200 ease-out focus:ring-1 focus:ring-foreground/40 motion-reduce:transition-none"
                   value={projectDetails}
                   onChange={(event) => setProjectDetails(event.target.value)}
                 />
@@ -307,15 +311,21 @@ export function ContactForm() {
                 type="submit"
                 size="lg"
                 disabled={submitting}
-                className="group w-full"
+                className="group w-full transition-transform duration-200 hover:scale-[1.02] motion-reduce:hover:scale-100"
               >
                 {submitting ? tForm("submitting") : tForm("submit")}
-                {!submitting && (
+                {submitting ? (
+                  <Loader2
+                    className="size-4 animate-spin motion-reduce:animate-none"
+                    aria-hidden
+                  />
+                ) : (
                   <ArrowRight className="size-4 transition-transform duration-300 group-hover/button:translate-x-1" />
                 )}
               </Button>
             </FieldGroup>
           </form>
+          </div>
         </Reveal>
       </div>
     </Section>

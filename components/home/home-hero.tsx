@@ -58,7 +58,10 @@ export function HomeHero() {
             >
               <Link
                 href="/contact"
-                className={cn(buttonVariants({ size: "lg" }), "group")}
+                className={cn(
+                  buttonVariants({ size: "lg" }),
+                  "group transition-transform duration-200 hover:scale-[1.02] motion-reduce:hover:scale-100",
+                )}
               >
                 {t("ctaBookCall")}
                 <ArrowRight
@@ -105,11 +108,11 @@ export function HomeHero() {
                 {OFFER_PRODUCT_KEYS.map((key, index) => (
                   <RevealItem
                     key={key}
-                    className="grid grid-cols-[3rem_1fr] gap-4 border-b border-border py-4 last:border-b-0 sm:grid-cols-[3.5rem_1fr_auto] sm:items-center"
+                    className="group relative grid cursor-default grid-cols-[3rem_1fr] gap-4 border-b border-border py-4 transition-[transform,background-color,padding] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] last:border-b-0 hover:bg-muted/30 hover:pl-2 motion-reduce:transition-none motion-reduce:hover:pl-0 sm:grid-cols-[3.5rem_1fr_auto] sm:items-center"
                     x={20 + index * 2}
                     y={0}
                   >
-                    <p className="font-heading text-sm text-muted-foreground">
+                    <p className="font-heading text-sm text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
                       0{index + 1}
                     </p>
                     <div className="min-w-0 space-y-1">
@@ -120,7 +123,7 @@ export function HomeHero() {
                         {tProducts(`${key}.copy`)}
                       </p>
                     </div>
-                    <p className="text-overline hidden border border-border px-2 py-1 text-muted-foreground uppercase sm:block">
+                    <p className="text-overline hidden border border-border px-2 py-1 text-muted-foreground uppercase transition-colors duration-300 group-hover:border-foreground group-hover:text-foreground sm:block">
                       {tProducts(`${key}.tag`)}
                     </p>
                   </RevealItem>

@@ -119,7 +119,10 @@ export default async function FinancingPage({
           <RevealItem y={28}>
             <Link
               href="/contact"
-              className={cn(buttonVariants({ size: "lg" }), "group")}
+              className={cn(
+                buttonVariants({ size: "lg" }),
+                "group transition-transform duration-200 hover:scale-[1.02] motion-reduce:hover:scale-100",
+              )}
             >
               {t("ctaTalk")}
               <ArrowRight className="size-4 transition-transform duration-300 group-hover/button:translate-x-1" />
@@ -368,7 +371,10 @@ export default async function FinancingPage({
             <div className="flex justify-center">
               <Link
                 href="/contact"
-                className={cn(buttonVariants({ size: "lg" }), "group")}
+                className={cn(
+                  buttonVariants({ size: "lg" }),
+                  "group transition-transform duration-200 hover:scale-[1.02] motion-reduce:hover:scale-100",
+                )}
               >
                 {t("ctaButton")}
                 <ArrowRight className="size-4 transition-transform duration-300 group-hover/button:translate-x-1" />

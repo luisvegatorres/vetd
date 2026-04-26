@@ -1,6 +1,6 @@
 export const site = {
   name: "Vetd",
-  tagline: "Digital products that grow businesses.",
+  tagline: "Websites, apps, and SaaS tools for small businesses.",
   description:
     "Websites, mobile apps, SaaS products, and AI integrations built to perform and designed to convert.",
   email: "hello@vetd.agency",
@@ -18,12 +18,12 @@ export const site = {
 
 export const siteMeta = {
   en: {
-    title: "Vetd — Digital products that grow businesses.",
+    title: "Vetd — Websites, apps, and SaaS tools for small businesses.",
     description:
       "Websites, mobile apps, SaaS products, and AI integrations built to perform and designed to convert.",
   },
   es: {
-    title: "Vetd — Productos digitales que hacen crecer negocios.",
+    title: "Vetd — Sitios web, apps y herramientas SaaS para pequeños negocios.",
     description:
       "Sitios web, apps móviles, SaaS e integraciones de IA construidos para rendir y diseñados para convertir.",
   },

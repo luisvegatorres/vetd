@@ -2,6 +2,7 @@ import { Mail, Timer } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 import { ThemeSwitch } from "@/components/actions/theme-switch"
+import { Logotype } from "@/components/brand/logo"
 import { RevealGroup, RevealItem } from "@/components/motion/reveal"
 import { Separator } from "@/components/ui/separator"
 import { Link } from "@/i18n/navigation"
@@ -33,9 +34,11 @@ export async function SiteFooter() {
         >
           <RevealItem y={18}>
             <div className="space-y-3">
-              <p className="font-heading text-base font-medium text-foreground uppercase">
-                {site.name}
-              </p>
+              <Logotype
+                height={24}
+                aria-label={site.name}
+                className="text-foreground"
+              />
               <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
                 {tSite("description")}
               </p>
