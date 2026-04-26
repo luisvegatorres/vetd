@@ -6,8 +6,6 @@ import type { Database } from "@/lib/supabase/types"
 type SupabaseServerClient = Awaited<ReturnType<typeof createServerClient>>
 type InteractionType = Database["public"]["Enums"]["interaction_type"]
 
-// Tagged `source` so CRM-derived rows are distinguishable from Cal.com bookings
-// (`source = "cal"`) and any manual log actions we add later.
 export const CRM_SOURCE = "crm"
 
 type LogArgs = {

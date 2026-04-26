@@ -44,6 +44,7 @@ export const OUTREACH_TOKEN_GROUPS: OutreachTokenGroup[] = [
       { name: "company.name", description: "Your agency name" },
       { name: "company.tagline", description: "Your agency tagline" },
       { name: "company.email", description: "Your agency email" },
+      { name: "company.website", description: "Your agency website URL" },
     ],
   },
   {
@@ -104,6 +105,7 @@ export function buildOutreachContext({
       name: site.name,
       tagline: site.tagline,
       email: site.email,
+      website: site.url.replace(/^https?:\/\//, ""),
     },
     outreach: {
       link_text: linkText,

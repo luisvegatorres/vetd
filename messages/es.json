@@ -22,7 +22,6 @@
   "footer": {
     "navigate": "Navegar",
     "contact": "Contacto",
-    "bookCall": "Agendar llamada",
     "rights": "© {year} {name}. Construido para negocios en todo el mundo."
   },
   "localeSwitcher": {
@@ -40,7 +39,7 @@
       "headlineLine2": "digitales que hacen crecer",
       "headlineLine3": "tu negocio.",
       "subhead": "Sitios web. Apps móviles. Productos SaaS. Integraciones de IA. Construidos para rendir, diseñados para convertir.",
-      "ctaBookCall": "Agendar llamada de descubrimiento",
+      "ctaBookCall": "Contáctanos",
       "panelEyebrow": "/ 001 - Estudio de productos digitales",
       "panelFooter": "Sitios ▪ Apps ▪ SaaS ▪ IA",
       "offer": {
@@ -191,6 +190,29 @@
           "tagline": "Dashboard administrativo con analítica y reportes a la medida."
         }
       }
+    },
+    "financing": {
+      "eyebrow": "004 — Financiamiento",
+      "title": "Paga a tu ritmo. Sin intereses.",
+      "intro": "Dividimos el costo de tu proyecto en un depósito pequeño y una mensualidad fija. Sin bancos, sin chequeo de crédito, sin cargos adicionales. Disponible en proyectos desde ${min}.",
+      "stats": {
+        "interest": {
+          "label": "Interés",
+          "value": "0%",
+          "copy": "Lo que ves es lo que pagas. Nada extra."
+        },
+        "deposit": {
+          "label": "Depósito",
+          "value": "{deposit}%",
+          "copy": "Arrancamos en cuanto se confirma. El resto se divide al mes."
+        },
+        "term": {
+          "label": "Plazo",
+          "value": "{months} meses",
+          "copy": "Distribuye el saldo a lo largo de un año. Adelanta cuando quieras."
+        }
+      },
+      "cta": "Ver cómo funciona el financiamiento"
     },
     "faq": {
       "eyebrow": "005 — Preguntas",
@@ -373,12 +395,11 @@
   },
   "contact": {
     "metaTitle": "Contacto",
-    "metaDescription": "Agenda una llamada de descubrimiento gratis de 20 minutos o envía una consulta. Respondemos en menos de 24 horas y cerramos alcance, precio y tiempo antes de empezar.",
+    "metaDescription": "Envíanos los detalles de tu proyecto. Respondemos en menos de 24 horas y cerramos alcance, precio y tiempo antes de empezar.",
     "badge": "Contacto",
     "headlineLine1": "Construyamos",
     "headlineLine2": "algo juntos.",
-    "subhead": "Agenda una llamada de descubrimiento gratis de 20 minutos, o envía una consulta. Respondemos en menos de 24 horas.",
-    "bookButton": "Agendar llamada de descubrimiento",
+    "subhead": "Envíanos los detalles de tu proyecto. Respondemos en menos de 24 horas, normalmente el mismo día.",
     "highlights": {
       "freeValue": "Gratis",
       "freeLabel": "Llamada 20 min ▪ Sin pitch, sin presión",
@@ -444,7 +465,7 @@
       "autoReplySubject": "Recibimos tu consulta — Vetd",
       "autoReplyGreeting": "Hola {name},",
       "autoReplyBody": "Gracias por contactar a Vetd. Recibimos tu consulta y responderemos en menos de 24 horas — generalmente el mismo día.",
-      "autoReplyBookCta": "¿Prefieres hablar antes? Agenda una llamada de descubrimiento de 20 minutos en {url}.",
+      "autoReplyBookCta": "¿Necesitas hablar antes? Responde a este correo y coordinamos una llamada rápida.",
       "autoReplySignoff": "— El equipo de Vetd"
     }
   },
@@ -571,8 +592,8 @@
       }
     },
     "ctaTitle": "Calculemos los números juntos.",
-    "ctaSubtitle": "Llamada de descubrimiento de 20 minutos. Te diremos cuánto cuesta el proyecto y te mostraremos ambas rutas de pago. Sin presión.",
-    "ctaButton": "Agendar llamada de descubrimiento"
+    "ctaSubtitle": "Cuéntanos sobre tu proyecto. Te diremos cuánto cuesta y te mostraremos ambas rutas de pago. Sin presión.",
+    "ctaButton": "Contáctanos"
   },
   "caseStudy": {
     "back": "Volver a proyectos",
@@ -611,7 +632,7 @@
       }
     },
     "ctaTitle": "¿Tienes un proyecto así?",
-    "ctaSubtitle": "Agenda una llamada de descubrimiento de 20 minutos. Saldrás con un alcance concreto, un tiempo y un precio.",
+    "ctaSubtitle": "Cuéntanos sobre tu proyecto. Te responderemos con un alcance concreto, un tiempo y un precio.",
     "ctaPrimary": "Iniciar proyecto",
     "ctaSecondary": "Ver más trabajo"
   }

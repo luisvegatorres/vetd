@@ -6,11 +6,6 @@ export const site = {
   email: "hello@vetd.agency",
   location: "Global ▪ Remote-first",
   responseTime: "Within 24 hours, usually same day.",
-  // Cal.com / Calendly are hidden for now. To re-enable, restore the env-backed
-  // values: `process.env.NEXT_PUBLIC_CALENDLY_URL || "/contact"` and
-  // `process.env.NEXT_PUBLIC_CAL_LINK || ""`.
-  discoveryCallHref: "/contact",
-  calLink: "",
   url: "https://vetd.agency",
   twitterHandle: "@vetdagency",
   defaultLocale: "en",
@@ -38,7 +33,6 @@ export const nav = [
   { href: "/#home", label: "Home" },
   { href: "/#products", label: "Products" },
   { href: "/#process", label: "Process" },
-  { href: "/#work", label: "Work" },
   { href: "/#about", label: "About" },
   { href: "/financing", label: "Financing" },
   { href: "/contact", label: "Contact" },

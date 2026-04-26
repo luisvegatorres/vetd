@@ -10,33 +10,6 @@ type BrandDef = {
   render: () => React.ReactNode
 }
 
-function CalDotComMark() {
-  const maskId = React.useId()
-  return (
-    <>
-      <defs>
-        <mask id={maskId}>
-          <rect width="24" height="24" fill="white" />
-          <text
-            x="12"
-            y="12"
-            fontFamily="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif"
-            fontWeight={800}
-            fontSize={10.5}
-            letterSpacing={-0.4}
-            textAnchor="middle"
-            dominantBaseline="central"
-            fill="black"
-          >
-            Cal
-          </text>
-        </mask>
-      </defs>
-      <rect width="24" height="24" rx="4.5" mask={`url(#${maskId})`} />
-    </>
-  )
-}
-
 const brands = {
   "Next.js": {
     title: "Next.js",
@@ -87,10 +60,6 @@ const brands = {
     render: () => (
       <path d="M13.479 9.883c-1.626-.604-2.512-1.067-2.512-1.803 0-.622.511-.977 1.423-.977 1.667 0 3.379.642 4.558 1.22l.666-4.111c-.935-.446-2.847-1.177-5.49-1.177-1.87 0-3.425.489-4.536 1.401-1.155.954-1.757 2.334-1.757 4.003 0 3.024 1.847 4.314 4.858 5.403 1.936.689 2.59 1.177 2.59 1.932 0 .732-.629 1.155-1.762 1.155-1.403 0-3.716-.689-5.231-1.578l-.667 4.157c1.299.732 3.697 1.491 6.186 1.491 1.981 0 3.625-.467 4.736-1.355 1.249-.977 1.891-2.422 1.891-4.291 0-3.091-1.895-4.375-4.955-5.47Z" />
     ),
-  },
-  "Cal.com": {
-    title: "Cal.com",
-    render: () => <CalDotComMark />,
   },
   Vercel: {
     title: "Vercel",

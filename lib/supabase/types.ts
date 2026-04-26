@@ -502,6 +502,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           employment_status: Database["public"]["Enums"]["employment_status"]
           full_name: string | null
@@ -511,6 +512,7 @@ export type Database = {
           working_hours: Json
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           employment_status?: Database["public"]["Enums"]["employment_status"]
           full_name?: string | null
@@ -520,6 +522,7 @@ export type Database = {
           working_hours?: Json
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           employment_status?: Database["public"]["Enums"]["employment_status"]
           full_name?: string | null

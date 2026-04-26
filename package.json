@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
-    "@calcom/embed-react": "^1.5.3",
     "@codemirror/autocomplete": "^6.20.1",
     "@codemirror/lang-json": "^6.0.2",
     "@codemirror/language": "^6.12.3",

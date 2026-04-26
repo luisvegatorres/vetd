@@ -48,7 +48,7 @@ export function wrapPersonalEmail(bodyInner: string): string {
     `<style>${PERSONAL_DARK_MODE_STYLES}</style>` +
     `</head>` +
     `<body style="margin:0;padding:0;">` +
-    `<div class="vetd-personal" style="${PERSONAL_EMAIL_STYLE}max-width:560px;margin:0 auto;padding:16px 20px;">` +
+    `<div class="vetd-personal" style="${PERSONAL_EMAIL_STYLE}max-width:560px;padding:16px 20px;">` +
     bodyInner +
     `</div>` +
     `</body>` +

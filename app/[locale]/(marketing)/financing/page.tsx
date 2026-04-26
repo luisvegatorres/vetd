@@ -2,7 +2,6 @@ import type { Metadata } from "next"
 import { ArrowRight, Calculator } from "lucide-react"
 import { getTranslations, setRequestLocale } from "next-intl/server"
 
-import { BookCallButton } from "@/components/actions/book-call-button"
 import { FinancingCalculatorDialog } from "@/components/actions/financing-calculator-dialog"
 import { Section } from "@/components/layout/section"
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal"
@@ -14,10 +13,13 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
+import { buttonVariants } from "@/components/ui/button"
+import { Link } from "@/i18n/navigation"
 import { routing, type Locale } from "@/i18n/routing"
 import { buildAlternates } from "@/lib/seo"
 import { financing } from "@/lib/site"
 import { faqPageSchema } from "@/lib/structured-data"
+import { cn } from "@/lib/utils"
 
 const TRUST_KEYS = ["zeroInterest", "noCredit", "noSurprises"] as const
 const STEP_KEYS = ["scope", "deposit", "choose", "deliver"] as const
@@ -115,10 +117,13 @@ export default async function FinancingPage({
           </RevealItem>
 
           <RevealItem y={28}>
-            <BookCallButton size="lg" className="group">
+            <Link
+              href="/contact"
+              className={cn(buttonVariants({ size: "lg" }), "group")}
+            >
               {t("ctaTalk")}
               <ArrowRight className="size-4 transition-transform duration-300 group-hover/button:translate-x-1" />
-            </BookCallButton>
+            </Link>
           </RevealItem>
         </RevealGroup>
       </Section>
@@ -361,10 +366,13 @@ export default async function FinancingPage({
           </RevealItem>
           <RevealItem y={26}>
             <div className="flex justify-center">
-              <BookCallButton size="lg" className="group">
+              <Link
+                href="/contact"
+                className={cn(buttonVariants({ size: "lg" }), "group")}
+              >
                 {t("ctaButton")}
                 <ArrowRight className="size-4 transition-transform duration-300 group-hover/button:translate-x-1" />
-              </BookCallButton>
+              </Link>
             </div>
           </RevealItem>
         </RevealGroup>

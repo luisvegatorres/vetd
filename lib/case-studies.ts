@@ -104,7 +104,6 @@ const caseStudiesEn: Record<string, CaseStudy> = {
       { name: "shadcn/ui", role: "Vendored primitives, edited in-repo" },
       { name: "Supabase", role: "Postgres, Auth, RLS, SSR cookie plumbing" },
       { name: "Stripe", role: "Hosted Checkout + idempotent webhooks" },
-      { name: "Cal.com", role: "HMAC-signed booking webhooks" },
       { name: "Vercel", role: "Fluid Compute, edge hosting, image optimization" },
     ],
     features: [
@@ -202,7 +201,6 @@ const caseStudiesEs: Record<string, CaseStudy> = {
       { name: "shadcn/ui", role: "Primitivos incluidos, editados en el repo" },
       { name: "Supabase", role: "Postgres, Auth, RLS, plumbing de cookies SSR" },
       { name: "Stripe", role: "Hosted Checkout + webhooks idempotentes" },
-      { name: "Cal.com", role: "Webhooks de reservas firmados con HMAC" },
       { name: "Vercel", role: "Fluid Compute, hosting en el edge, optimización de imágenes" },
     ],
     features: [

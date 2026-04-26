@@ -6,7 +6,6 @@ import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { submitContactForm } from "@/app/[locale]/(marketing)/contact/actions"
-import { BookCallButton } from "@/components/actions/book-call-button"
 import { BusinessInput } from "@/components/forms/business-input"
 import { EmailInput } from "@/components/forms/email-input"
 import { NameInput } from "@/components/forms/name-input"
@@ -123,25 +122,6 @@ export function ContactForm() {
             <p className="max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
               {t("subhead")}
             </p>
-          </RevealItem>
-
-          <RevealItem y={28}>
-            <BookCallButton
-              size="lg"
-              className="group"
-              prefill={{
-                name: name || undefined,
-                email: email || undefined,
-                responses: {
-                  project_type: projectType || undefined,
-                  budget_range: budgetRange || undefined,
-                  project_details: projectDetails || undefined,
-                },
-              }}
-            >
-              {t("bookButton")}
-              <ArrowRight className="size-4 transition-transform duration-300 group-hover/button:translate-x-1" />
-            </BookCallButton>
           </RevealItem>
 
           <RevealItem y={20} className="mt-auto pt-4">

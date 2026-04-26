@@ -30,22 +30,6 @@ export function getStripeStatus(): StripeStatus {
   }
 }
 
-export type CalcomStatus = {
-  webhookConfigured: boolean
-  bookingLinkConfigured: boolean
-  bookingLink: string | null
-}
-
-export function getCalcomStatus(): CalcomStatus {
-  const link =
-    process.env.NEXT_PUBLIC_CAL_LINK || process.env.NEXT_PUBLIC_CALENDLY_URL
-  return {
-    webhookConfigured: Boolean(process.env.CAL_WEBHOOK_SECRET),
-    bookingLinkConfigured: Boolean(link),
-    bookingLink: link ?? null,
-  }
-}
-
 export type SmtpStatus = {
   configured: boolean
   host: string | null

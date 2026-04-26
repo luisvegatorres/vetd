@@ -35,7 +35,7 @@ export default async function ProtectedLayout({
   const [{ data: profile }, newLeadsRes] = await Promise.all([
     supabase
       .from("profiles")
-      .select("role, full_name")
+      .select("role, full_name, avatar_url")
       .eq("id", userId)
       .single(),
     supabase.rpc("new_leads_count"),
@@ -59,6 +59,8 @@ export default async function ProtectedLayout({
         newLeadsCount={newLeadsCount}
         greeting={getGreeting()}
         firstName={firstName}
+        fullName={profile?.full_name ?? null}
+        avatarUrl={profile?.avatar_url ?? null}
       />
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-3 border-b border-border/60 bg-background/85 px-4 backdrop-blur-md">

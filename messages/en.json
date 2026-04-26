@@ -22,7 +22,6 @@
   "footer": {
     "navigate": "Navigate",
     "contact": "Contact",
-    "bookCall": "Book a call",
     "rights": "© {year} {name}. Built for businesses worldwide."
   },
   "localeSwitcher": {
@@ -40,7 +39,7 @@
       "headlineLine2": "products that grow",
       "headlineLine3": "businesses.",
       "subhead": "Websites. Mobile apps. SaaS products. AI integrations. Built to perform, designed to convert.",
-      "ctaBookCall": "Book a discovery call",
+      "ctaBookCall": "Get in touch",
       "panelEyebrow": "/ 001 - Digital product studio",
       "panelFooter": "Websites ▪ Apps ▪ SaaS ▪ AI",
       "offer": {
@@ -191,6 +190,29 @@
           "tagline": "Admin dashboard with custom analytics and reporting."
         }
       }
+    },
+    "financing": {
+      "eyebrow": "004 — Financing",
+      "title": "Pay over time. Zero interest.",
+      "intro": "We split the cost of your project into a small deposit and a fixed monthly payment. No banks, no credit checks, no fees added on top. Available on builds starting at ${min}.",
+      "stats": {
+        "interest": {
+          "label": "Interest",
+          "value": "0%",
+          "copy": "What you see is what you pay. Nothing added on top."
+        },
+        "deposit": {
+          "label": "Deposit",
+          "value": "{deposit}%",
+          "copy": "We start the moment it lands. The rest is split monthly."
+        },
+        "term": {
+          "label": "Term",
+          "value": "{months} months",
+          "copy": "Spread the balance across a year. Pay early any time."
+        }
+      },
+      "cta": "See how financing works"
     },
     "faq": {
       "eyebrow": "005 — FAQ",
@@ -361,12 +383,11 @@
   },
   "contact": {
     "metaTitle": "Contact",
-    "metaDescription": "Book a free 20-minute discovery call or send an inquiry. We respond within 24 hours and lock scope, price, and timeline before any work starts.",
+    "metaDescription": "Send a project brief. We respond within 24 hours and lock scope, price, and timeline before any work starts.",
     "badge": "Contact",
     "headlineLine1": "Let's build",
     "headlineLine2": "something.",
-    "subhead": "Book a free 20-minute discovery call, or send an inquiry. We respond within 24 hours.",
-    "bookButton": "Book a discovery call",
+    "subhead": "Send a project brief. We respond within 24 hours, usually same day.",
     "highlights": {
       "freeValue": "Free",
       "freeLabel": "20-min call ▪ No pitch, no pressure",
@@ -432,7 +453,7 @@
       "autoReplySubject": "We got your inquiry — Vetd",
       "autoReplyGreeting": "Hi {name},",
       "autoReplyBody": "Thanks for reaching out to Vetd. We've received your inquiry and will respond within 24 hours — usually the same day.",
-      "autoReplyBookCta": "Prefer to talk sooner? Book a 20-minute discovery call at {url}.",
+      "autoReplyBookCta": "Need to talk sooner? Reply to this email and we'll set up a quick call.",
       "autoReplySignoff": "— The Vetd team"
     }
   },
@@ -559,8 +580,8 @@
       }
     },
     "ctaTitle": "Run the numbers together.",
-    "ctaSubtitle": "20-minute discovery call. We'll tell you what the project costs and show you both payment paths. No pressure.",
-    "ctaButton": "Book a discovery call"
+    "ctaSubtitle": "Tell us about your project. We'll come back with what it costs and show you both payment paths. No pressure.",
+    "ctaButton": "Get in touch"
   },
   "caseStudy": {
     "back": "Back to work",
@@ -599,7 +620,7 @@
       }
     },
     "ctaTitle": "Have a project like this?",
-    "ctaSubtitle": "Book a 20-minute discovery call. You'll leave with a concrete scope, a timeline, and a price.",
+    "ctaSubtitle": "Send us a project brief. You'll get back a concrete scope, a timeline, and a price.",
     "ctaPrimary": "Start a project",
     "ctaSecondary": "See more work"
   }

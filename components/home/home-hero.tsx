@@ -3,11 +3,13 @@
 import { ArrowRight } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-import { BookCallButton } from "@/components/actions/book-call-button"
 import { Section } from "@/components/layout/section"
 import { HeroShader } from "@/components/motion/hero-shader"
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal"
 import { Badge } from "@/components/ui/badge"
+import { buttonVariants } from "@/components/ui/button"
+import { Link } from "@/i18n/navigation"
+import { cn } from "@/lib/utils"
 
 const OFFER_PRODUCT_KEYS = ["website", "app", "saas", "ai"] as const
 const OFFER_TERM_KEYS = ["scope", "payments", "handoff"] as const
@@ -54,13 +56,16 @@ export function HomeHero() {
               className="flex flex-col gap-3 sm:flex-row sm:items-center"
               y={28}
             >
-              <BookCallButton size="lg" className="group">
+              <Link
+                href="/contact"
+                className={cn(buttonVariants({ size: "lg" }), "group")}
+              >
                 {t("ctaBookCall")}
                 <ArrowRight
                   data-icon="inline-end"
                   className="transition-transform duration-300 group-hover/button:translate-x-1"
                 />
-              </BookCallButton>
+              </Link>
             </RevealItem>
           </RevealGroup>
 

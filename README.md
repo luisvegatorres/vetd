@@ -36,8 +36,6 @@ Required for local dev:
 | `STRIPE_WEBHOOK_SECRET` | From `stripe listen` or Stripe dashboard |
 | `STRIPE_PRICE_ID_PRESENCE` | Price ID for the Presence plan |
 | `STRIPE_PRICE_ID_GROWTH` | Price ID for the Growth plan |
-| `CAL_WEBHOOK_SECRET` | HMAC secret for the Cal.com webhook |
-| `NEXT_PUBLIC_CALENDLY_URL` / `NEXT_PUBLIC_CAL_LINK` | Marketing CTA targets |
 
 See `CLAUDE.md` for the full list including live-mode swaps.
 

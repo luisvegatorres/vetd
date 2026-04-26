@@ -32,6 +32,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { LogoutButton } from "@/components/auth/logout-button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { site } from "@/lib/site"
 import { cn } from "@/lib/utils"
@@ -104,17 +105,23 @@ export function DashboardSidebar({
   newLeadsCount,
   greeting,
   firstName,
+  fullName,
+  avatarUrl,
 }: {
   isAdmin: boolean
   newLeadsCount: number
   greeting: string
   firstName: string
+  fullName: string | null
+  avatarUrl: string | null
 }) {
   const pathname = usePathname()
   const workspaceNav = buildWorkspaceNav(newLeadsCount)
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`)
+
+  const initials = getInitials(fullName ?? firstName)
 
   return (
     <Sidebar collapsible="icon">
@@ -134,8 +141,14 @@ export function DashboardSidebar({
           variant="outline"
           nativeButton={false}
           render={<Link href="/settings" />}
-          className="group-data-[collapsible=icon]:hidden justify-start"
+          className="group-data-[collapsible=icon]:hidden justify-start gap-2"
         >
+          <Avatar size="sm">
+            {avatarUrl ? (
+              <AvatarImage src={avatarUrl} alt={fullName ?? firstName} />
+            ) : null}
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
           {greeting}, {firstName}
         </Button>
       </SidebarHeader>
@@ -196,4 +209,11 @@ export function DashboardSidebar({
       <SidebarRail />
     </Sidebar>
   )
+}
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return "?"
+  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase()
+  return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase()
 }

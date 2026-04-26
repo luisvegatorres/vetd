@@ -1,4 +1,4 @@
-import { Calendar, Mail, Timer } from "lucide-react"
+import { Mail, Timer } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 import { ThemeSwitch } from "@/components/actions/theme-switch"
@@ -11,7 +11,6 @@ const NAV_KEYS = [
   { href: "/#home", key: "home" },
   { href: "/#products", key: "products" },
   { href: "/#process", key: "process" },
-  { href: "/#work", key: "work" },
   { href: "/#about", key: "about" },
   { href: "/financing", key: "financing" },
   { href: "/contact", key: "contact" },
@@ -22,7 +21,6 @@ export async function SiteFooter() {
   const tFooter = await getTranslations("footer")
   const tNav = await getTranslations("nav")
   const tSite = await getTranslations("site")
-  const discoveryIsExternal = site.discoveryCallHref.startsWith("http")
 
   return (
     <footer className="w-full border-t border-border/60 bg-background">
@@ -71,30 +69,9 @@ export async function SiteFooter() {
               </p>
               <ul className="space-y-3 text-sm">
                 <li>
-                  {discoveryIsExternal ? (
-                    <a
-                      href={site.discoveryCallHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-foreground hover:text-primary"
-                    >
-                      <Calendar className="size-4" />
-                      {tFooter("bookCall")}
-                    </a>
-                  ) : (
-                    <Link
-                      href={site.discoveryCallHref}
-                      className="inline-flex items-center gap-2 text-foreground hover:text-primary"
-                    >
-                      <Calendar className="size-4" />
-                      {tFooter("bookCall")}
-                    </Link>
-                  )}
-                </li>
-                <li>
                   <a
                     href={`mailto:${site.email}`}
-                    className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground"
+                    className="inline-flex items-center gap-2 text-foreground hover:text-primary"
                   >
                     <Mail className="size-4" />
                     {site.email}
