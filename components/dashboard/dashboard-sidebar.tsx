@@ -86,7 +86,7 @@ function NavItemLink({
       <SidebarMenuButton
         isActive={active}
         tooltip={item.label}
-        render={<Link href={item.href} />}
+        render={<Link href={item.href} prefetch />}
         className={cn(itemClasses, !active && inactiveClasses)}
       >
         <item.icon />

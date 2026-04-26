@@ -12,10 +12,8 @@ import {
   restoreOutreachTemplate,
   updateOutreachTemplate,
 } from "@/app/(protected)/documents/outreach/actions"
-import {
-  OutreachBodyEditor,
-  type OutreachBodyEditorHandle,
-} from "@/components/documents/outreach-body-editor"
+import type { OutreachBodyEditorHandle } from "@/components/documents/outreach-body-editor"
+import { LazyOutreachBodyEditor as OutreachBodyEditor } from "@/components/documents/lazy"
 import { OutreachInsertMenu } from "@/components/documents/outreach-insert-menu"
 import { OutreachTemplatePreview } from "@/components/documents/outreach-template-preview"
 import { Button } from "@/components/ui/button"

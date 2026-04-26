@@ -8,12 +8,12 @@ import { toast } from "sonner"
 
 import { saveTemplate } from "@/app/(protected)/documents/actions"
 import { BreadcrumbCurrentPortal } from "@/components/layout/breadcrumb-current-portal"
-import {
-  BodyCodeEditor,
-  type BodyEditorHandle,
-} from "@/components/documents/body-code-editor"
+import type { BodyEditorHandle } from "@/components/documents/body-code-editor"
 import { InsertMenu } from "@/components/documents/insert-menu"
-import { TemplatePreview } from "@/components/documents/template-preview"
+import {
+  LazyBodyCodeEditor as BodyCodeEditor,
+  LazyTemplatePreview as TemplatePreview,
+} from "@/components/documents/lazy"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"

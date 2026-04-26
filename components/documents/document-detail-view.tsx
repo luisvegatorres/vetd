@@ -27,13 +27,13 @@ import {
   updateDocumentBodyAction,
   updateDocumentStatus,
 } from "@/app/(protected)/documents/actions"
-import {
-  BodyCodeEditor,
-  type BodyEditorHandle,
-} from "@/components/documents/body-code-editor"
+import type { BodyEditorHandle } from "@/components/documents/body-code-editor"
 import { InsertMenu } from "@/components/documents/insert-menu"
-import { StoredPdfPreview } from "@/components/documents/stored-pdf-preview"
-import { TemplatePreview } from "@/components/documents/template-preview"
+import {
+  LazyBodyCodeEditor as BodyCodeEditor,
+  LazyStoredPdfPreview as StoredPdfPreview,
+  LazyTemplatePreview as TemplatePreview,
+} from "@/components/documents/lazy"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"

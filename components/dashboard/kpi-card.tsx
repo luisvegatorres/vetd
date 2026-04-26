@@ -6,6 +6,7 @@ import {
   CardHeader,
 } from "@/components/ui/card"
 import { Sparkline } from "@/components/dashboard/sparkline"
+import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 
 export function KpiCard({
@@ -56,6 +57,23 @@ export function KpiCard({
         <p className="text-overline font-medium uppercase text-muted-foreground">
           {footer}
         </p>
+      </CardFooter>
+    </Card>
+  )
+}
+
+export function KpiCardSkeleton() {
+  return (
+    <Card className="gap-6">
+      <CardHeader>
+        <Skeleton className="h-3 w-24 rounded-none" />
+      </CardHeader>
+      <CardContent className="flex items-end justify-between gap-6">
+        <Skeleton className="h-9 w-28 rounded-none" />
+        <Skeleton className="h-10 w-[55%] rounded-none" />
+      </CardContent>
+      <CardFooter>
+        <Skeleton className="h-3 w-32 rounded-none" />
       </CardFooter>
     </Card>
   )

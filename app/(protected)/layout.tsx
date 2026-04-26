@@ -22,17 +22,21 @@ export default async function ProtectedLayout({
   children: React.ReactNode
 }) {
   const supabase = await createClient()
-  const { data: auth } = await supabase.auth.getUser()
+  const { data: claimsData } = await supabase.auth.getClaims()
+  const claims = claimsData?.claims
 
-  if (!auth?.user) {
+  if (!claims?.sub) {
     redirect("/auth/login")
   }
+
+  const userId = claims.sub
+  const userEmail = typeof claims.email === "string" ? claims.email : undefined
 
   const [{ data: profile }, newLeadsRes] = await Promise.all([
     supabase
       .from("profiles")
       .select("role, full_name")
-      .eq("id", auth.user.id)
+      .eq("id", userId)
       .single(),
     supabase.rpc("new_leads_count"),
   ])
@@ -41,7 +45,7 @@ export default async function ProtectedLayout({
 
   const firstName =
     profile?.full_name?.trim().split(/\s+/)[0] ??
-    auth.user.email?.split("@")[0] ??
+    userEmail?.split("@")[0] ??
     "there"
 
   const cookieStore = await cookies()
