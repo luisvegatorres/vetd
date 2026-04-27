@@ -20,6 +20,7 @@ type PostBodyProps = {
  * are admin/editor only).
  */
 export function PostBody({ markdown, className }: PostBodyProps) {
+  const cleaned = markdown.replace(/^\s*-{3,}\s*\n+/, "")
   return (
     <div className={cn("prose prose-blog max-w-none", className)}>
       <ReactMarkdown
@@ -30,7 +31,7 @@ export function PostBody({ markdown, className }: PostBodyProps) {
           [rehypeAutolinkHeadings, { behavior: "wrap" }],
         ]}
       >
-        {markdown}
+        {cleaned}
       </ReactMarkdown>
     </div>
   )

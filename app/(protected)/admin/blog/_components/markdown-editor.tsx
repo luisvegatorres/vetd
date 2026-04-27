@@ -131,6 +131,20 @@ export const MarkdownEditor = forwardRef<
           isDark ? darkTheme : lightTheme,
           markdown(),
           EditorView.lineWrapping,
+          EditorView.theme({
+            "&": {
+              height: "100%",
+            },
+            ".cm-scroller": {
+              padding: "16px",
+            },
+            ".cm-content": {
+              padding: 0,
+            },
+            ".cm-line": {
+              padding: 0,
+            },
+          }),
         ]}
         basicSetup={{
           lineNumbers: false,

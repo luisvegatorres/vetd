@@ -1,5 +1,7 @@
 import "server-only"
 
+import { ThinkingLevel } from "@google/genai"
+
 import { generateText, type GenerateTextResult } from "@/lib/gemini/generate"
 
 export type TranslateField = "title" | "excerpt" | "body"
@@ -28,8 +30,13 @@ export async function translateFieldEnToEs(
   if (!trimmed) return { ok: false, error: "Nothing to translate" }
 
   return generateText({
-    prompt: `Translate the following English text to natural, fluent Spanish (Latin American). ${FIELD_HINTS[field]}\n\n---\n${trimmed}`,
-    systemInstruction: `You are a professional English to Spanish translator for a digital agency. Output only the translation, no commentary. ${NO_EM_DASH_RULE}`,
+    prompt: `Translate the following English text to natural, fluent Spanish (Latin American). ${FIELD_HINTS[field]}\n\nSOURCE:\n${trimmed}`,
+    systemInstruction: `You are a professional English to Spanish translator for a digital agency. Output only the translation, no commentary. Never prefix the translation with a horizontal rule (---) or any separator. ${NO_EM_DASH_RULE}`,
     temperature: 0.2,
+    // Translation is near-deterministic on flash-lite. LOW gives a small
+    // amount of reasoning headroom over MINIMAL (helps preserve markdown
+    // structure on long bodies) while staying cheap and fast. Temperature
+    // 0.2 keeps the output stable.
+    thinkingLevel: ThinkingLevel.LOW,
   })
 }

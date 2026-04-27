@@ -63,7 +63,7 @@ function revalidateBlogPaths(slug?: string | null) {
   // Public indices (both locales) + admin list.
   revalidatePath("/blog")
   revalidatePath("/[locale]/blog", "page")
-  revalidatePath("/dashboard/blog")
+  revalidatePath("/admin/blog")
   if (slug) {
     // Both en (no prefix) and es (prefixed) post detail pages.
     revalidatePath(`/blog/${slug}`)
@@ -74,7 +74,7 @@ function revalidateBlogPaths(slug?: string | null) {
   revalidatePath("/sitemap.xml")
 }
 
-async function assertStaff(): Promise<
+async function assertAdmin(): Promise<
   | { ok: true; supabase: Awaited<ReturnType<typeof createClient>>; userId: string }
   | { ok: false; error: string }
 > {
@@ -87,8 +87,8 @@ async function assertStaff(): Promise<
     .select("role")
     .eq("id", auth.user.id)
     .maybeSingle()
-  if (!profile || (profile.role !== "admin" && profile.role !== "editor")) {
-    return { ok: false, error: "Only admins or editors can manage posts" }
+  if (profile?.role !== "admin") {
+    return { ok: false, error: "Only admins can manage posts" }
   }
   return { ok: true, supabase, userId: auth.user.id }
 }
@@ -96,7 +96,7 @@ async function assertStaff(): Promise<
 export async function createPost(
   formData: FormData,
 ): Promise<CreatePostResult> {
-  const auth = await assertStaff()
+  const auth = await assertAdmin()
   if (!auth.ok) return { ok: false, error: auth.error }
   const { supabase } = auth
 
@@ -162,7 +162,7 @@ export async function updatePost(
   postId: string,
   formData: FormData,
 ): Promise<UpdatePostResult> {
-  const auth = await assertStaff()
+  const auth = await assertAdmin()
   if (!auth.ok) return { ok: false, error: auth.error }
   const { supabase } = auth
 
@@ -230,7 +230,7 @@ export async function updatePost(
 export async function deletePost(
   postId: string,
 ): Promise<UpdatePostResult> {
-  const auth = await assertStaff()
+  const auth = await assertAdmin()
   if (!auth.ok) return { ok: false, error: auth.error }
   const { supabase } = auth
 
@@ -264,7 +264,7 @@ export async function generateDraftNow(args?: {
   verticalId?: string
   techId?: string
 }): Promise<GenerateDraftNowResult> {
-  const auth = await assertStaff()
+  const auth = await assertAdmin()
   if (!auth.ok) return { ok: false, error: auth.error }
 
   const result = await runDailyGeneration({
@@ -274,7 +274,7 @@ export async function generateDraftNow(args?: {
   })
   if (!result.ok) return { ok: false, error: result.error }
 
-  revalidatePath("/dashboard/blog")
+  revalidatePath("/admin/blog")
   return {
     ok: true,
     postId: result.postId,
@@ -286,7 +286,7 @@ export async function generateDraftNow(args?: {
 export async function togglePublish(
   postId: string,
 ): Promise<UpdatePostResult> {
-  const auth = await assertStaff()
+  const auth = await assertAdmin()
   if (!auth.ok) return { ok: false, error: auth.error }
   const { supabase } = auth
 

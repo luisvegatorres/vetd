@@ -141,7 +141,7 @@ export default async function BlogPostPage({
         </Reveal>
       </Section>
 
-      <Section size="md" className="border-b-0">
+      <Section size="md" className="border-b-0 pb-8 sm:pb-24">
         <RevealGroup
           className="grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16"
           delayChildren={0.08}
@@ -213,8 +213,8 @@ export default async function BlogPostPage({
         </RevealGroup>
       </Section>
 
-      <Section size="md" className="border-b-0">
-        <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+      <Section size="md" className="border-b-0 pt-8 sm:pt-24">
+        <div className="grid gap-8 lg:grid-cols-12 lg:gap-16">
           <div className="lg:col-span-8">
             <Reveal y={18}>
               <PostBody markdown={post.body_md} />

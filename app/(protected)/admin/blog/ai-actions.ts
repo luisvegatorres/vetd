@@ -24,6 +24,17 @@ function localeName(locale: TargetLocale): string {
   return locale === "es" ? "Spanish" : "English"
 }
 
+async function requireBlogAdminAccess(): Promise<
+  { ok: true } | { ok: false; error: string }
+> {
+  const access = await requireGeminiAccess()
+  if (!access.ok) return access
+  if (access.role !== "admin") {
+    return { ok: false, error: "Only admins can use blog AI generation" }
+  }
+  return { ok: true }
+}
+
 /**
  * Generates a markdown outline (H2/H3 with one-line bullets under each) from
  * a topic. Output is meant to be pasted into the body editor as a starting
@@ -33,7 +44,7 @@ export async function aiGenerateOutline(
   topic: string,
   locale: TargetLocale,
 ): Promise<AiResult> {
-  const access = await requireGeminiAccess()
+  const access = await requireBlogAdminAccess()
   if (!access.ok) return access
 
   const trimmed = topic.trim()
@@ -54,7 +65,7 @@ export async function aiSuggestExcerpt(
   body: string,
   locale: TargetLocale,
 ): Promise<AiResult> {
-  const access = await requireGeminiAccess()
+  const access = await requireBlogAdminAccess()
   if (!access.ok) return access
 
   const trimmed = body.trim()
@@ -76,7 +87,7 @@ export async function aiTranslate(
   field: "title" | "excerpt" | "body",
   sourceText: string,
 ): Promise<AiResult> {
-  const access = await requireGeminiAccess()
+  const access = await requireBlogAdminAccess()
   if (!access.ok) return access
   return translateFieldEnToEs(field, sourceText)
 }
@@ -87,7 +98,7 @@ export async function aiTranslate(
  * fence, JSON inline, or a comma-separated list.
  */
 export async function aiSuggestTags(body: string): Promise<AiTagsResult> {
-  const access = await requireGeminiAccess()
+  const access = await requireBlogAdminAccess()
   if (!access.ok) return access
 
   const trimmed = body.trim()

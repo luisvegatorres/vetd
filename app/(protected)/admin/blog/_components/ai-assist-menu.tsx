@@ -9,7 +9,7 @@ import {
   aiSuggestExcerpt,
   aiSuggestTags,
   aiTranslate,
-} from "@/app/(protected)/dashboard/blog/ai-actions"
+} from "@/app/(protected)/admin/blog/ai-actions"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,

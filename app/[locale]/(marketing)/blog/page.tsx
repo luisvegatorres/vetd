@@ -73,7 +73,7 @@ export default async function BlogIndexPage({
     <>
       <JsonLd data={breadcrumbs} />
 
-      <Section size="md" className="border-b-0">
+      <Section size="md" className="border-b-0 pb-8 sm:pb-12">
         <RevealGroup
           className="max-w-3xl space-y-6"
           delayChildren={0.08}
@@ -85,7 +85,7 @@ export default async function BlogIndexPage({
             </p>
           </RevealItem>
           <RevealItem y={18}>
-            <h1 className="leading-hero font-heading text-5xl text-foreground capitalize sm:text-6xl md:text-7xl">
+            <h1 className="leading-hero font-heading text-4xl text-foreground capitalize sm:text-5xl md:text-6xl lg:text-7xl">
               {t("headline")}
             </h1>
           </RevealItem>
@@ -97,7 +97,7 @@ export default async function BlogIndexPage({
         </RevealGroup>
       </Section>
 
-      <Section size="md" className="border-b-0">
+      <Section size="md" className="border-b-0 pt-0 sm:pt-0">
         <BlogIndexGrid posts={posts} tags={tags} locale={locale} />
       </Section>
 

@@ -61,7 +61,6 @@ function buildWorkspaceNav(newLeadsCount: number): NavItem[] {
     { href: "/payments", label: "Payments", icon: CreditCard },
     { href: "/commissions", label: "Commissions", icon: TrendingUp },
     { href: "/documents", label: "Documents", icon: FileText },
-    { href: "/dashboard/blog", label: "Blog", icon: BookOpen },
   ]
 }
 
@@ -72,6 +71,7 @@ const accountNav: NavItem[] = [
 const adminNav: NavItem[] = [
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/admin/rep-activity", label: "Rep Activity", icon: Activity },
+  { href: "/admin/blog", label: "Blog", icon: BookOpen },
   { href: "/admin/users", label: "Users", icon: UserCog },
 ]
 
@@ -122,7 +122,7 @@ export function DashboardSidebar({
   const workspaceNav = buildWorkspaceNav(newLeadsCount)
 
   // /dashboard is a leaf — without an exact match guard it would also light
-  // up while we're on /dashboard/blog (and any future /dashboard/* route).
+  // up while we're on any future /dashboard/* route.
   const isActive = (href: string) => {
     if (pathname === href) return true
     if (href === "/dashboard") return false
@@ -133,7 +133,7 @@ export function DashboardSidebar({
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="gap-3">
+      <SidebarHeader className="gap-3 p-4 group-data-[collapsible=icon]:p-2">
         <Link
           href="/dashboard"
           aria-label={site.name}
@@ -202,7 +202,7 @@ export function DashboardSidebar({
         ) : null}
       </SidebarContent>
 
-      <SidebarFooter>
+      <SidebarFooter className="p-4 group-data-[collapsible=icon]:p-2">
         <SidebarMenu>
           {accountNav.map((item) => (
             <NavItemLink

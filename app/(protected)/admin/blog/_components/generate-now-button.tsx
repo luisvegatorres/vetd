@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Sparkles } from "lucide-react"
 import { toast } from "sonner"
 
-import { generateDraftNow } from "@/app/(protected)/dashboard/blog/actions"
+import { generateDraftNow } from "@/app/(protected)/admin/blog/actions"
 import { TECH_FOCUS, VERTICALS } from "@/lib/blog/topic-pillars"
 import { Button } from "@/components/ui/button"
 import {
@@ -41,7 +41,7 @@ export function GenerateNowButton() {
         return
       }
       toast.success(`Draft created: ${res.title}`)
-      router.push(`/dashboard/blog/${res.postId}`)
+      router.push(`/admin/blog/${res.postId}`)
     } finally {
       setPending(false)
     }

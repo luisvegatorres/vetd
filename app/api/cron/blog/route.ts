@@ -39,7 +39,7 @@ export async function GET(request: Request) {
 
   // The admin list and (when auto-publish is on) the public index need a
   // fresh render so the new draft appears immediately.
-  revalidatePath("/dashboard/blog")
+  revalidatePath("/admin/blog")
   if (result.mode === "scheduled") {
     revalidatePath("/blog")
     revalidatePath("/[locale]/blog", "page")
