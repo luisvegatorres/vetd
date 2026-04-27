@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import {
   Activity,
   BarChart3,
+  BookOpen,
   Briefcase,
   CreditCard,
   FileText,
@@ -60,6 +61,7 @@ function buildWorkspaceNav(newLeadsCount: number): NavItem[] {
     { href: "/payments", label: "Payments", icon: CreditCard },
     { href: "/commissions", label: "Commissions", icon: TrendingUp },
     { href: "/documents", label: "Documents", icon: FileText },
+    { href: "/dashboard/blog", label: "Blog", icon: BookOpen },
   ]
 }
 
@@ -119,8 +121,13 @@ export function DashboardSidebar({
   const pathname = usePathname()
   const workspaceNav = buildWorkspaceNav(newLeadsCount)
 
-  const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(`${href}/`)
+  // /dashboard is a leaf — without an exact match guard it would also light
+  // up while we're on /dashboard/blog (and any future /dashboard/* route).
+  const isActive = (href: string) => {
+    if (pathname === href) return true
+    if (href === "/dashboard") return false
+    return pathname.startsWith(`${href}/`)
+  }
 
   const initials = getInitials(fullName ?? firstName)
 

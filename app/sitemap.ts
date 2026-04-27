@@ -7,7 +7,7 @@ import { site } from "@/lib/site"
 
 type SitemapEntry = MetadataRoute.Sitemap[number]
 
-const STATIC_PATHS = ["", "/contact", "/financing"] as const
+const STATIC_PATHS = ["", "/contact", "/financing", "/blog"] as const
 
 function staticEntry(path: string): SitemapEntry {
   const languages: Record<string, string> = {}
@@ -20,6 +20,38 @@ function staticEntry(path: string): SitemapEntry {
     changeFrequency: "monthly",
     priority: path === "" ? 1 : 0.8,
     alternates: { languages },
+  }
+}
+
+async function blogPostEntries(): Promise<SitemapEntry[]> {
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from("blog_posts")
+      .select("slug, updated_at, title_es, body_md_es, published_at")
+      .eq("status", "published")
+      .lte("published_at", new Date().toISOString())
+      .order("published_at", { ascending: false })
+
+    if (error || !data) return []
+
+    return data.map((row) => {
+      const path = `/blog/${row.slug}`
+      const hasEs = Boolean(row.title_es && row.body_md_es)
+      const languages: Record<string, string> = {
+        en: localeUrl("en", path),
+      }
+      if (hasEs) languages.es = localeUrl("es", path)
+      return {
+        url: localeUrl(site.defaultLocale as Locale, path),
+        lastModified: row.updated_at ? new Date(row.updated_at) : new Date(),
+        changeFrequency: "monthly",
+        priority: 0.6,
+        alternates: { languages },
+      } satisfies SitemapEntry
+    })
+  } catch {
+    return []
   }
 }
 
@@ -55,6 +87,9 @@ async function caseStudyEntries(): Promise<SitemapEntry[]> {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const statics = STATIC_PATHS.map((p) => staticEntry(p))
-  const work = await caseStudyEntries()
-  return [...statics, ...work]
+  const [work, posts] = await Promise.all([
+    caseStudyEntries(),
+    blogPostEntries(),
+  ])
+  return [...statics, ...work, ...posts]
 }

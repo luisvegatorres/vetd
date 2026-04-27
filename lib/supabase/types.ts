@@ -880,6 +880,60 @@ export type Database = {
           },
         ]
       }
+      blog_posts: {
+        Row: {
+          body_md_en: string
+          body_md_es: string | null
+          cover_image_url: string | null
+          created_at: string
+          excerpt_en: string | null
+          excerpt_es: string | null
+          id: string
+          meta: Json
+          published_at: string | null
+          slug: string
+          status: string
+          tags: string[]
+          title_en: string
+          title_es: string | null
+          updated_at: string
+        }
+        Insert: {
+          body_md_en?: string
+          body_md_es?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          excerpt_en?: string | null
+          excerpt_es?: string | null
+          id?: string
+          meta?: Json
+          published_at?: string | null
+          slug: string
+          status?: string
+          tags?: string[]
+          title_en: string
+          title_es?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body_md_en?: string
+          body_md_es?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          excerpt_en?: string | null
+          excerpt_es?: string | null
+          id?: string
+          meta?: Json
+          published_at?: string | null
+          slug?: string
+          status?: string
+          tags?: string[]
+          title_en?: string
+          title_es?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       showcase_projects: {
         Row: {
           category: string | null

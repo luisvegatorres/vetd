@@ -18,6 +18,7 @@ const NAV_KEYS = [
   { href: "/#products", key: "products" },
   { href: "/#process", key: "process" },
   { href: "/#about", key: "about" },
+  { href: "/blog", key: "blog" },
   { href: "/financing", key: "financing" },
   { href: "/contact", key: "contact" },
 ] as const

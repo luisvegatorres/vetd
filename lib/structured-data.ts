@@ -89,6 +89,46 @@ export function creativeWorkSchema(input: CreativeWorkInput) {
   return data
 }
 
+type ArticleInput = {
+  url: string
+  headline: string
+  description: string
+  image?: string | null
+  datePublished?: string
+  dateModified?: string
+  inLanguage: Locale
+  authorName?: string
+  keywords?: readonly string[]
+}
+
+/**
+ * BlogPosting JSON-LD for blog post detail pages. Both author and publisher
+ * resolve to the agency's Organization (single-author site). Pass an explicit
+ * `image` (the dynamic OG endpoint URL) so Google has a 1200x630 hero.
+ */
+export function articleSchema(input: ArticleInput) {
+  const data: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: input.headline,
+    description: input.description,
+    url: input.url,
+    inLanguage: input.inLanguage,
+    mainEntityOfPage: { "@type": "WebPage", "@id": input.url },
+    author: input.authorName
+      ? { "@type": "Person", name: input.authorName, url: site.url }
+      : { "@id": ORG_ID },
+    publisher: { "@id": ORG_ID },
+  }
+  if (input.image) data.image = input.image
+  if (input.datePublished) data.datePublished = input.datePublished
+  if (input.dateModified) data.dateModified = input.dateModified
+  if (input.keywords && input.keywords.length > 0) {
+    data.keywords = [...input.keywords]
+  }
+  return data
+}
+
 export function faqPageSchema(
   items: Array<{ question: string; answer: string }>,
 ) {
