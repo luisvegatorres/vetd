@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl"
 import { Section } from "@/components/layout/section"
 import { HeroShader } from "@/components/motion/hero-shader"
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal"
+import { TypewriterCycle } from "@/components/motion/typewriter-cycle"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
 import { Link } from "@/i18n/navigation"
@@ -43,9 +44,11 @@ export function HomeHero() {
 
             <RevealItem className="space-y-4" y={24}>
               <h1 className="hero-display-scale font-heading text-5xl leading-hero font-normal text-foreground capitalize sm:text-6xl md:text-7xl">
-                <span className="block">{t("headlineLine1")}</span>
-                <span className="block">{t("headlineLine2")}</span>
-                <span className="block">{t("headlineLine3")}</span>
+                <span className="block">
+                  {t("headlineStart")}{" "}
+                  <TypewriterCycle words={t.raw("headlineCycle")} />
+                </span>
+                <span className="block">{t("headlineEnd")}</span>
               </h1>
               <p className="max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
                 {t("subhead")}

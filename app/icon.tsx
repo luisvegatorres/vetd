@@ -17,13 +17,13 @@ export default function Icon() {
         }}
       >
         <svg
-          viewBox="0 55 141 145"
+          viewBox="0 0 200 200"
           width="18"
           height="18"
           fill="#ffffff"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <path d="M105.12 55.6316H140.257V137.402L73.468 199.382H47.6235L0 135.84V55.6316H35.1369V129.85L63.014 167.09L105.12 127.767V55.6316Z" />
+          <path d="M0 200L0 133.333L66.667 133.333L66.667 66.667L133.333 66.667L133.333 0L200 0L200 200L0 200Z" />
         </svg>
       </div>
     ),

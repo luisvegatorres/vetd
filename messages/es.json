@@ -35,9 +35,9 @@
     "ogAlt": "Vetd — estudio de productos digitales",
     "hero": {
       "badge": "Inicio",
-      "headlineLine1": "Construimos sitios,",
-      "headlineLine2": "apps y SaaS para",
-      "headlineLine3": "pequeños negocios.",
+      "headlineStart": "Construimos",
+      "headlineCycle": ["sitios,", "apps,", "SaaS,"],
+      "headlineEnd": "para pequeños negocios.",
       "subhead": "Herramientas para vender, agendar y operar en línea. Construidas para rendir, diseñadas para convertir.",
       "ctaBookCall": "Contáctanos",
       "panelEyebrow": "/ 001 - Estudio de productos digitales",

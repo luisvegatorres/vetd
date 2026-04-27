@@ -1,6 +1,6 @@
 "use client"
 
-import { AtSign, MapPin, Pencil, Phone, Plus, Sparkles } from "lucide-react"
+import { MapPin, Pencil, Phone, Plus, Sparkles } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useId, useState, useTransition } from "react"
 import { toast } from "sonner"
@@ -44,6 +44,7 @@ import {
   type LeadKind,
   type LeadRow,
 } from "@/components/leads/lead-types"
+import { INDUSTRY_OPTIONS } from "@/lib/industries"
 
 const SOURCE_OPTIONS = Object.entries(SOURCE_LABEL) as [
   keyof typeof SOURCE_LABEL,
@@ -57,6 +58,18 @@ const BUDGET_OPTIONS = [
   "$10k–$20k",
   "$20k+",
 ] as const
+
+function instagramHandle(raw: string | null | undefined) {
+  if (!raw) return ""
+  const trimmed = raw.trim()
+  const urlMatch = trimmed.match(
+    /^@?(?:https?:\/\/)?(?:www\.)?instagram\.com\/([A-Za-z0-9._]+)/i,
+  )
+  if (urlMatch) return urlMatch[1].slice(0, 30)
+  const handleMatch = trimmed.match(/^@?([A-Za-z0-9._]+)$/)
+  if (handleMatch) return handleMatch[1].slice(0, 30)
+  return ""
+}
 
 function formatPhone(digits: string) {
   const d = digits.slice(0, 10)
@@ -93,6 +106,7 @@ function LeadFormDialog(props: Props) {
   const open = isControlled ? (props.open as boolean) : internalOpen
   const [error, setError] = useState<string | null>(null)
   const [phone, setPhone] = useState(() => phoneDigits(lead?.phone))
+  const [igHandle, setIgHandle] = useState(() => instagramHandle(lead?.social_url))
   const [kind, setKind] = useState<LeadKind>(initialKind)
   const isProspect = kind === "prospect"
   const [pending, startTransition] = useTransition()
@@ -103,6 +117,7 @@ function LeadFormDialog(props: Props) {
     if (next) {
       setError(null)
       setPhone(phoneDigits(lead?.phone))
+      setIgHandle(instagramHandle(lead?.social_url))
       setKind(initialKind)
     }
     if (isControlled) props.onOpenChange?.(next)
@@ -176,7 +191,10 @@ function LeadFormDialog(props: Props) {
                       : "Lead created",
                 )
                 handleOpenChange(false)
-                if (!isEdit) setPhone("")
+                if (!isEdit) {
+                  setPhone("")
+                  setIgHandle("")
+                }
                 router.refresh()
               } else {
                 setError(result.error)
@@ -191,8 +209,10 @@ function LeadFormDialog(props: Props) {
               <NameInput
                 id={`${formId}-name`}
                 name="name"
-                required
-                defaultValue={lead?.name ?? ""}
+                placeholder="Leave blank if unknown"
+                defaultValue={
+                  lead?.name && lead.name !== "N/A" ? lead.name : ""
+                }
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -291,6 +311,27 @@ function LeadFormDialog(props: Props) {
                 </div>
               </>
             )}
+            <div className="flex flex-col gap-2 sm:col-span-2">
+              <Label htmlFor={`${formId}-industry`}>Industry</Label>
+              <Select
+                name="industry"
+                defaultValue={lead?.industry ?? undefined}
+              >
+                <SelectTrigger id={`${formId}-industry`} className="w-full">
+                  <SelectValue placeholder="Select an industry" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Industry</SelectLabel>
+                    {INDUSTRY_OPTIONS.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {value}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor={`${formId}-address`}>Address</Label>
@@ -308,18 +349,22 @@ function LeadFormDialog(props: Props) {
             </InputGroup>
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor={`${formId}-social`}>Social</Label>
+            <Label htmlFor={`${formId}-social`}>Instagram</Label>
             <InputGroup>
               <InputGroupAddon>
-                <AtSign aria-hidden />
+                <span className="text-muted-foreground">instagram.com/</span>
               </InputGroupAddon>
               <InputGroupInput
                 id={`${formId}-social`}
                 name="social_url"
-                type="url"
-                inputMode="url"
-                placeholder="instagram.com/handle"
-                defaultValue={lead?.social_url ?? ""}
+                inputMode="text"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                placeholder="handle"
+                maxLength={30}
+                value={igHandle}
+                onChange={(e) => setIgHandle(instagramHandle(e.target.value))}
               />
             </InputGroup>
           </div>

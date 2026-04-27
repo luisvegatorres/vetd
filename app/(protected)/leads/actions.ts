@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 
+import { INDUSTRY_OPTIONS } from "@/lib/industries"
 import { logActivity, sourceRefFor } from "@/lib/interactions/log-activity"
 import { seedProjectTasks } from "@/lib/projects/seed-tasks"
 import { createClient } from "@/lib/supabase/server"
@@ -41,6 +42,17 @@ function titleCase(v: string) {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+function instagramUrlFromInput(raw: string | null): string | null {
+  if (!raw) return null
+  const trimmed = raw.trim()
+  const urlMatch = trimmed.match(
+    /^@?(?:https?:\/\/)?(?:www\.)?instagram\.com\/([A-Za-z0-9._]+)/i,
+  )
+  const handleMatch = trimmed.match(/^@?([A-Za-z0-9._]+)$/)
+  const handle = (urlMatch?.[1] ?? handleMatch?.[1] ?? "").slice(0, 30)
+  return handle ? `https://www.instagram.com/${handle}` : null
+}
+
 export async function createLead(
   formData: FormData
 ): Promise<CreateLeadResult> {
@@ -48,8 +60,8 @@ export async function createLead(
   const { data: auth } = await supabase.auth.getUser()
   if (!auth.user) return { ok: false, error: "Not authenticated" }
 
-  const name = titleCase(String(formData.get("name") ?? "").trim())
-  if (!name) return { ok: false, error: "Name is required" }
+  const rawName = String(formData.get("name") ?? "").trim()
+  const name = rawName ? titleCase(rawName) : "N/A"
 
   const kindRaw = String(formData.get("kind") ?? "")
   const kind: ClientKind = kindRaw === "prospect" ? "prospect" : "lead"
@@ -73,6 +85,12 @@ export async function createLead(
     return { ok: false, error: "Enter a valid email address" }
   }
 
+  const rawIndustry = str("industry")
+  const industry =
+    rawIndustry && (INDUSTRY_OPTIONS as readonly string[]).includes(rawIndustry)
+      ? rawIndustry
+      : null
+
   // Sales reps auto-claim leads they enter themselves. Admin/editor-created
   // leads drop into the unassigned pool so any active rep can claim them.
   const { data: creatorProfile } = await supabase
@@ -90,7 +108,8 @@ export async function createLead(
       email,
       phone: str("phone"),
       address: str("address"),
-      social_url: str("social_url"),
+      industry,
+      social_url: instagramUrlFromInput(str("social_url")),
       budget: str("budget"),
       intent: str("intent"),
       notes: str("notes"),
@@ -130,8 +149,8 @@ export async function updateLead(
   const { data: auth } = await supabase.auth.getUser()
   if (!auth.user) return { ok: false, error: "Not authenticated" }
 
-  const name = titleCase(String(formData.get("name") ?? "").trim())
-  if (!name) return { ok: false, error: "Name is required" }
+  const rawName = String(formData.get("name") ?? "").trim()
+  const name = rawName ? titleCase(rawName) : "N/A"
 
   const sourceRaw = String(formData.get("source") ?? "")
   const sources = Constants.public.Enums.client_source as readonly string[]
@@ -150,6 +169,12 @@ export async function updateLead(
     return { ok: false, error: "Enter a valid email address" }
   }
 
+  const rawIndustry = str("industry")
+  const industry =
+    rawIndustry && (INDUSTRY_OPTIONS as readonly string[]).includes(rawIndustry)
+      ? rawIndustry
+      : null
+
   const { error } = await supabase
     .from("clients")
     .update({
@@ -158,7 +183,8 @@ export async function updateLead(
       email,
       phone: str("phone"),
       address: str("address"),
-      social_url: str("social_url"),
+      industry,
+      social_url: instagramUrlFromInput(str("social_url")),
       budget: str("budget"),
       intent: str("intent"),
       notes: str("notes"),

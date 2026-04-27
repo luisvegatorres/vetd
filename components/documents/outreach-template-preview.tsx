@@ -2,6 +2,8 @@
 
 import { useMemo } from "react"
 
+import { useTheme } from "next-themes"
+
 import {
   renderOutreachBodyHtml,
   wrapPersonalEmail,
@@ -37,6 +39,13 @@ export function OutreachTemplatePreview({
 }: Props) {
   const linkText = referenceLabel.trim() || DEFAULT_LINK_TEXT
 
+  const { resolvedTheme } = useTheme()
+  // resolvedTheme is undefined on SSR and the first client render. Treating
+  // anything-but-"light" as dark matches the app's defaultTheme="dark" so the
+  // iframe srcDoc paints dark first and only flips on hydration if the user
+  // actually has light enabled.
+  const isDark = resolvedTheme !== "light"
+
   const { resolvedSubject, html } = useMemo(() => {
     const ctx = buildOutreachContext({
       leadName: SAMPLE_LEAD.name,
@@ -56,12 +65,25 @@ export function OutreachTemplatePreview({
     // The shipped email uses padding:16px 20px and a 560px max-width so it
     // breathes inside Gmail / Mail.app. In the narrow preview iframe those
     // gutters look outsized, so we override with a tighter pad here only.
+    // We also pin the iframe's color scheme to the app theme. The email's
+    // built-in prefers-color-scheme rule follows the OS, not the app, so
+    // without this the body can render light-on-light or dark-on-dark.
+    // Background tracks --background from app/globals.css so the preview
+    // sits flush with the surrounding page (oklch(0.145 0 0) in dark,
+    // oklch(1 0 0) in light). Iframes can't read parent CSS vars, so we
+    // inline the literals.
+    const overrideCss = isDark
+      ? ".vetd-personal{max-width:100%!important;padding:8px 0!important;background:oklch(0.145 0 0)!important;color:#e5e5e5!important;}" +
+        ".vetd-personal a{color:#8ab4f8!important;}" +
+        "html,body{background:oklch(0.145 0 0)!important;}"
+      : ".vetd-personal{max-width:100%!important;padding:8px 0!important;background:oklch(1 0 0)!important;color:#1f1f1f!important;}" +
+        "html,body{background:oklch(1 0 0)!important;}"
     const previewHtml = fullHtml.replace(
       "</head>",
-      "<style>.vetd-personal{max-width:100%!important;padding:8px 0!important;}</style></head>"
+      `<style>${overrideCss}</style></head>`
     )
     return { resolvedSubject: finalSubject, html: previewHtml }
-  }, [subject, body, referenceUrl, linkText])
+  }, [subject, body, referenceUrl, linkText, isDark])
 
   return (
     <div className="flex h-full flex-col gap-4 border border-border/60 p-6">
@@ -99,7 +121,7 @@ export function OutreachTemplatePreview({
         <p className="text-xs tracking-wide text-muted-foreground uppercase">
           Body
         </p>
-        <div className="min-h-0 flex-1 bg-white">
+        <div className="min-h-0 flex-1 bg-background">
           <iframe
             title="Outreach email preview"
             srcDoc={html}

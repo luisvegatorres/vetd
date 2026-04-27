@@ -35,9 +35,9 @@
     "ogAlt": "Vetd — digital product studio",
     "hero": {
       "badge": "Home",
-      "headlineLine1": "We build websites,",
-      "headlineLine2": "apps, and SaaS for",
-      "headlineLine3": "small businesses.",
+      "headlineStart": "We build",
+      "headlineCycle": ["websites,", "apps,", "SaaS,"],
+      "headlineEnd": "for small businesses.",
       "subhead": "Tools that help you sell, book, and operate online. Built to perform, designed to convert.",
       "ctaBookCall": "Get in touch",
       "panelEyebrow": "/ 001 - Digital product studio",

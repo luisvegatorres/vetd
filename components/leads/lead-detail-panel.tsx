@@ -161,17 +161,18 @@ export function LeadDetailPanel({
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lead.address)}`}
                 target="_blank"
                 rel="noopener noreferrer"
+                title={lead.address}
                 className="inline-flex items-center gap-2 text-sm hover:underline underline-offset-4"
               >
                 <MapPin aria-hidden className="size-4 text-muted-foreground" />
-                <span className="truncate">{lead.address}</span>
+                <span>View on map</span>
               </a>
             ) : (
               <p className="text-sm text-muted-foreground">—</p>
             )}
           </div>
           <div className="min-w-0 space-y-2 col-span-2">
-            <FieldLabel>Social</FieldLabel>
+            <FieldLabel>Instagram</FieldLabel>
             {lead.social_url ? (
               <a
                 href={
@@ -184,7 +185,14 @@ export function LeadDetailPanel({
                 className="inline-flex items-center gap-2 text-sm hover:underline underline-offset-4"
               >
                 <AtSign aria-hidden className="size-4 text-muted-foreground" />
-                <span className="truncate">{lead.social_url}</span>
+                <span className="truncate">
+                  {lead.social_url
+                    .replace(
+                      /^@?(?:https?:\/\/)?(?:www\.)?instagram\.com\//i,
+                      "",
+                    )
+                    .replace(/\/$/, "") || lead.social_url}
+                </span>
               </a>
             ) : (
               <p className="text-sm text-muted-foreground">—</p>

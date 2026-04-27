@@ -4,7 +4,7 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 
-import { Logotype } from "@/components/brand/logo"
+import { Logo, Logotype } from "@/components/brand/logo"
 import { LocaleSwitcher } from "@/components/layout/locale-switcher"
 import { buttonVariants } from "@/components/ui/button"
 import { Link, usePathname } from "@/i18n/navigation"
@@ -63,7 +63,8 @@ export function SiteHeader() {
           aria-label={site.name}
           className="inline-flex items-center text-foreground"
         >
-          <Logotype height={20} />
+          <Logo size={24} className="lg:hidden" />
+          <Logotype height={20} className="hidden lg:block" />
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex">
