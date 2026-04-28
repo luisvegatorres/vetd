@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_integrations: {
+        Row: {
+          access_token: string
+          account_id: string
+          connected_at: string
+          connected_by: string | null
+          id: string
+          last_refreshed_at: string | null
+          provider: string
+          scopes: string[]
+          token_expires_at: string
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          access_token: string
+          account_id: string
+          connected_at?: string
+          connected_by?: string | null
+          id?: string
+          last_refreshed_at?: string | null
+          provider: string
+          scopes?: string[]
+          token_expires_at: string
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          access_token?: string
+          account_id?: string
+          connected_at?: string
+          connected_by?: string | null
+          id?: string
+          last_refreshed_at?: string | null
+          provider?: string
+          scopes?: string[]
+          token_expires_at?: string
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_integrations_connected_by_fkey"
+            columns: ["connected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           address: string | null

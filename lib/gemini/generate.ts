@@ -6,7 +6,7 @@ import {
   type GenerateContentConfig,
 } from "@google/genai"
 
-import { DEFAULT_GEMINI_MODEL, gemini } from "./client"
+import { DEFAULT_GEMINI_MODEL, getGemini } from "./client"
 
 export type GenerateTextArgs = {
   prompt?: string
@@ -54,6 +54,7 @@ export async function generateText(
   args: GenerateTextArgs,
 ): Promise<GenerateTextResult> {
   try {
+    const gemini = getGemini()
     const response = await gemini.models.generateContent(buildParams(args))
     const text = response.text ?? ""
     return { ok: true, text }
@@ -66,6 +67,7 @@ export async function generateText(
 export async function* generateTextStream(
   args: GenerateTextArgs,
 ): AsyncIterable<string> {
+  const gemini = getGemini()
   const stream = await gemini.models.generateContentStream(buildParams(args))
   for await (const chunk of stream) {
     if (chunk.text) yield chunk.text
@@ -104,6 +106,7 @@ export async function generateGroundedText(
   }
 
   try {
+    const gemini = getGemini()
     const response = await gemini.models.generateContent(buildParams(merged))
     const text = response.text ?? ""
 

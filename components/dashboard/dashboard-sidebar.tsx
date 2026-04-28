@@ -12,6 +12,7 @@ import {
   Inbox,
   Layers,
   LayoutGrid,
+  Plug,
   Settings,
   TrendingUp,
   Users,
@@ -72,6 +73,7 @@ const adminNav: NavItem[] = [
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/admin/rep-activity", label: "Rep Activity", icon: Activity },
   { href: "/admin/blog", label: "Blog", icon: BookOpen },
+  { href: "/admin/integrations", label: "Integrations", icon: Plug },
   { href: "/admin/users", label: "Users", icon: UserCog },
 ]
 
