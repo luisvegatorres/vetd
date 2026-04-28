@@ -51,6 +51,7 @@ Supabase clients are not interchangeable — pick the right one:
 ### Environment variables
 
 Expected in `.env.local`:
+
 - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — public browser/SSR client
 - `SUPABASE_SERVICE_ROLE_KEY` — admin client only
 - `STRIPE_SECRET_KEY` (`sk_test_...` / `sk_live_...`) — server-only Stripe Node SDK client; used by `lib/stripe/server.ts`, the checkout server action, and the webhook route. **Do not expose to the client.**
@@ -65,7 +66,9 @@ Expected in `.env.local`:
 - `GEMINI_API_KEY` — server-only Google Gemini API key (from Google AI Studio). Used by `lib/gemini/client.ts` to power AI generation helpers. Never expose to the client; access is gated to admin/editor roles via `requireGeminiAccess()` in `lib/gemini/auth.ts`. Default model is `gemini-3.1-flash-lite-preview`.
 - `INSTAGRAM_APP_ID` — server-only. The **Instagram App ID** surfaced under Meta dashboard → Instagram → API setup with Instagram Login. Note: this is NOT the top-level Meta App ID; using the wrong one causes `Invalid platform app` from `instagram.com/oauth/authorize`. Used by `lib/instagram/config.ts` to build the OAuth flow at `/api/instagram/oauth/start`.
 - `INSTAGRAM_APP_SECRET` — server-only Instagram App Secret matching `INSTAGRAM_APP_ID`. Used in the code-for-token and token-refresh exchanges in `lib/instagram/oauth.ts`. Never expose to the client.
-- `CRON_SECRET` — shared secret for Vercel Cron auth. `/api/cron/sync-google`, `/api/cron/blog`, and `/api/cron/refresh-instagram` verify `Authorization: Bearer ${CRON_SECRET}`. Vercel Cron sends this header automatically when the env var is set on the project. Generate any high-entropy string.
+- `X_CLIENT_ID` — server-only OAuth 2.0 Client ID from the X Developer Console. Used by `lib/x/config.ts` to build the OAuth flow at `/api/x/oauth/start`.
+- `X_CLIENT_SECRET` — server-only OAuth 2.0 Client Secret from the X Developer Console. Used for the code-for-token and refresh-token exchanges in `lib/x/oauth.ts`. Never expose to the client.
+- `CRON_SECRET` — shared secret for Vercel Cron auth. `/api/cron/sync-google`, `/api/cron/blog`, `/api/cron/refresh-instagram`, and `/api/cron/refresh-x` verify `Authorization: Bearer ${CRON_SECRET}`. Vercel Cron sends this header automatically when the env var is set on the project. Generate any high-entropy string.
 - `BLOG_AUTO_PUBLISH` — `"true"` or unset. When `"true"`, the weekday blog cron (`/api/cron/blog`, Mon-Fri 14:00 UTC) inserts generated posts as `status='scheduled'` with `published_at = now() + 24h` (so untouched drafts go live the next morning). Default (unset) inserts as `status='draft'` requiring manual publish. The admin "Generate with AI" button always inserts as a draft regardless of this flag.
 
 **Not in `.env.local`:** Supabase Auth custom SMTP (configured in Supabase dashboard → Auth → Emails → SMTP Settings; point it at the same Gmail SMTP relay). Google OAuth Client ID + Secret for "Sign in with Google" live in Supabase dashboard → Auth → Providers → Google — use a dedicated OAuth client from Google Cloud Console, separate from the one used by `app/api/google/oauth/*` (which handles per-user Calendar/Gmail sync, not login).
@@ -75,6 +78,7 @@ Expected in `.env.local`:
 Schema lives in `supabase/migrations/` — number-prefixed, applied in order. Start with `0001_init_crm.sql` for the base, then read later migrations for additive changes. Generated types live in `lib/supabase/types.ts` — regenerate with Supabase's typegen after schema changes; do not hand-edit.
 
 Schema summary (all `public`):
+
 - **profiles** — extends `auth.users`, holds `role` (`admin`/`editor`/`sales_rep`/`viewer`), `default_commission_rate` (default 10 as of 0012), and `employment_status` (`active`/`terminated`, added in 0012). Residual commissions stop the moment a rep flips to `terminated`.
 - **clients** — lead/client records with `status`, `source`, `assigned_to` → profiles, plus enrichment fields (`lead_score`, etc. — see migrations 0004/0006).
 - **projects** — one-time deal/project records with `stage`, `payment_status`, `commission_*`, `stripe_*`, linked to `clients` and `sold_by` → profiles. Migration 0007 adds `product_type` (enum: `business_website`/`mobile_app`/`web_app`/`ai_integration`), `deposit_rate` (default 30), generated `deposit_amount`, and `deposit_paid_at`. A `projects_deposit_gate` trigger blocks the move to `stage='active'` until the deposit is paid for any priced project.
@@ -85,7 +89,7 @@ Schema summary (all `public`):
 - **payments** — Stripe payment history per project (one-time payments only; subscription invoices live in `subscription_invoices`).
 - **interactions** — timeline entries (call/email/meeting/etc.) on a client, optionally tied to a project.
 - **showcase_projects** — portfolio content for the marketing site (and any future public `/work` page). (`pitch_slides` was dropped in 0026 when Pitch Mode was removed.)
-- **app_integrations** — org-wide third-party OAuth connections (added in 0045). One row per `provider` (e.g., `instagram`); stores long-lived `access_token` + `token_expires_at` + `scopes`. Tokens are written by service-role only (OAuth callback, refresh cron, admin disconnect action) and read by the admin integrations UI via column-restricted SELECTs. Distinct from `rep_integrations` (per-rep, e.g. Google Workspace). Refreshed weekly by `/api/cron/refresh-instagram` when within 7 days of expiry.
+- **app_integrations** — org-wide third-party OAuth connections (added in 0045). One row per `provider` (e.g., `instagram`, `x`); stores `access_token`, optional `refresh_token`, `token_expires_at`, and `scopes`. Tokens are written by service-role only (OAuth callback, refresh cron, admin disconnect action) and read by the admin integrations UI via column-restricted SELECTs. Distinct from `rep_integrations` (per-rep, e.g. Google Workspace). Instagram refreshes weekly when within 7 days of expiry; X refreshes hourly because OAuth 2.0 access tokens are short-lived.
 
 RLS is enabled; expect policies keyed on role via the `public.auth_role()` SQL function.
 

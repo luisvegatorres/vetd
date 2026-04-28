@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import {
   CheckCircle2,
   ExternalLink,
@@ -13,9 +14,9 @@ import { useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import {
-  disconnectInstagramIntegration,
-  testInstagramConnection,
-  type InstagramTestResult,
+  disconnectXIntegration,
+  testXConnection,
+  type XTestResult,
 } from "@/app/(protected)/admin/integrations/actions"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -42,41 +43,43 @@ const fmtDate = new Intl.DateTimeFormat("en-US", {
   minute: "2-digit",
 })
 
-const BASIC_SCOPE = "instagram_business_basic"
-const PUBLISH_SCOPE = "instagram_business_content_publish"
+const USERS_SCOPE = "users.read"
+const TWEET_SCOPE = "tweet.write"
+const MEDIA_SCOPE = "media.write"
+const OFFLINE_SCOPE = "offline.access"
 
-export function InstagramIntegrationCard({
+export function XIntegrationCard({
   configured,
   connection,
   errorReason,
 }: Props) {
   const [pending, startTransition] = useTransition()
+  const [testing, startTesting] = useTransition()
+  const [testResult, setTestResult] = useState<XTestResult | null>(null)
 
   if (!configured) {
     return (
       <section className="border border-border/60 p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h2 className="font-heading text-lg font-medium">Instagram</h2>
+            <h2 className="font-heading text-lg font-medium">X</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Connect vetd&apos;s Business or Creator account to read profile
-              and media data, and publish posts programmatically.
+              Connect vetd&apos;s X account to publish text posts with optional
+              images.
             </p>
           </div>
           <Badge
             variant="outline"
-            className="bg-muted text-muted-foreground border-transparent uppercase"
+            className="border-transparent bg-muted text-muted-foreground uppercase"
           >
             Not configured
           </Badge>
         </div>
         <p className="mt-4 text-xs text-muted-foreground">
-          Set <code className="rounded bg-muted px-1">INSTAGRAM_APP_ID</code>{" "}
-          and{" "}
-          <code className="rounded bg-muted px-1">INSTAGRAM_APP_SECRET</code> in
-          the deployment environment to enable this integration. The IDs come
-          from Meta dashboard, Instagram, API setup with Instagram Login (not
-          the top-level Meta App ID).
+          Set <code className="rounded bg-muted px-1">X_CLIENT_ID</code> and{" "}
+          <code className="rounded bg-muted px-1">X_CLIENT_SECRET</code> in the
+          deployment environment to enable this integration. The callback URL is{" "}
+          <code className="rounded bg-muted px-1">/api/x/oauth/callback</code>.
         </p>
       </section>
     )
@@ -84,54 +87,47 @@ export function InstagramIntegrationCard({
 
   function handleDisconnect() {
     startTransition(async () => {
-      const result = await disconnectInstagramIntegration()
+      const result = await disconnectXIntegration()
       if (result.ok) {
-        toast.success("Disconnected Instagram")
+        toast.success("Disconnected X")
       } else {
         toast.error(result.error)
       }
     })
   }
 
-  const [testing, startTesting] = useTransition()
-  const [testResult, setTestResult] = useState<InstagramTestResult | null>(null)
-
   function handleTest() {
     startTesting(async () => {
-      const result = await testInstagramConnection()
+      const result = await testXConnection()
       setTestResult(result)
       if (result.ok) {
-        toast.success(
-          `Live: @${result.profile.username}${
-            result.profile.mediaCount != null
-              ? ` (${result.profile.mediaCount} posts)`
-              : ""
-          }`,
-        )
+        toast.success(`Live: @${result.profile.username}`)
       } else {
         toast.error(`Test failed: ${result.error}`)
       }
     })
   }
 
-  const hasBasic = connection?.scopes.includes(BASIC_SCOPE) ?? false
-  const hasPublish = connection?.scopes.includes(PUBLISH_SCOPE) ?? false
+  const hasUsers = connection?.scopes.includes(USERS_SCOPE) ?? false
+  const hasTweet = connection?.scopes.includes(TWEET_SCOPE) ?? false
+  const hasMedia = connection?.scopes.includes(MEDIA_SCOPE) ?? false
+  const hasOffline = connection?.scopes.includes(OFFLINE_SCOPE) ?? false
+  const canPublish = hasTweet && hasMedia
 
   return (
     <section className="border border-border/60 p-6">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h2 className="font-heading text-lg font-medium">Instagram</h2>
+          <h2 className="font-heading text-lg font-medium">X</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            One Business or Creator account, shared across the org. Tokens
-            refresh weekly via cron and stay valid for 60 days from each
-            refresh.
+            One org-wide account. Access tokens are refreshed with OAuth 2.0
+            offline access before publishing.
           </p>
         </div>
         {connection ? (
           <Badge
             variant="outline"
-            className="border-transparent bg-emerald-500/15 uppercase text-emerald-700 dark:text-emerald-300"
+            className="border-transparent bg-emerald-500/15 text-emerald-700 uppercase dark:text-emerald-300"
           >
             Connected
           </Badge>
@@ -145,13 +141,15 @@ export function InstagramIntegrationCard({
       {connection ? (
         <div className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
           <div>
-            <p className="text-xs uppercase text-muted-foreground">Account</p>
+            <p className="text-xs text-muted-foreground uppercase">Account</p>
             <p className="mt-1 truncate font-medium">
-              {connection.username ? `@${connection.username}` : connection.accountId}
+              {connection.username
+                ? `@${connection.username}`
+                : connection.accountId}
             </p>
           </div>
           <div>
-            <p className="text-xs uppercase text-muted-foreground">
+            <p className="text-xs text-muted-foreground uppercase">
               Token expires
             </p>
             <p className="mt-1 font-medium">
@@ -159,7 +157,7 @@ export function InstagramIntegrationCard({
             </p>
           </div>
           <div>
-            <p className="text-xs uppercase text-muted-foreground">
+            <p className="text-xs text-muted-foreground uppercase">
               Last refreshed
             </p>
             <p className="mt-1 font-medium">
@@ -169,19 +167,28 @@ export function InstagramIntegrationCard({
             </p>
           </div>
           <div>
-            <p className="text-xs uppercase text-muted-foreground">Connected</p>
+            <p className="text-xs text-muted-foreground uppercase">Connected</p>
             <p className="mt-1 font-medium">
               {fmtDate.format(new Date(connection.connectedAt))}
             </p>
           </div>
           <div className="sm:col-span-2">
-            <p className="text-xs uppercase text-muted-foreground">Scopes</p>
+            <p className="text-xs text-muted-foreground uppercase">Scopes</p>
             <div className="mt-2 flex flex-wrap gap-2">
-              <ScopePill enabled={hasBasic} icon={<ImageIcon aria-hidden />}>
-                Profile and media
+              <ScopePill enabled={hasUsers} icon={<CheckCircle2 aria-hidden />}>
+                Profile
               </ScopePill>
-              <ScopePill enabled={hasPublish} icon={<Send aria-hidden />}>
+              <ScopePill enabled={hasTweet} icon={<Send aria-hidden />}>
                 Publish posts
+              </ScopePill>
+              <ScopePill enabled={hasMedia} icon={<ImageIcon aria-hidden />}>
+                Upload media
+              </ScopePill>
+              <ScopePill
+                enabled={hasOffline}
+                icon={<CheckCircle2 aria-hidden />}
+              >
+                Refresh token
               </ScopePill>
             </div>
           </div>
@@ -197,17 +204,17 @@ export function InstagramIntegrationCard({
       <div className="mt-6 flex flex-wrap items-center gap-2">
         {connection ? (
           <>
-            {hasPublish ? (
+            {canPublish ? (
               <>
-                <a
-                  href="/admin/integrations/drafts"
+                <Link
+                  href="/admin/integrations/x/drafts"
                   className={cn(buttonVariants(), "gap-2")}
                 >
                   <Sparkles aria-hidden />
                   Drafts
-                </a>
-                <a
-                  href="/admin/integrations/post"
+                </Link>
+                <Link
+                  href="/admin/integrations/x/post"
                   className={cn(
                     buttonVariants({ variant: "outline" }),
                     "gap-2",
@@ -215,15 +222,16 @@ export function InstagramIntegrationCard({
                 >
                   <PenLine aria-hidden />
                   Compose
-                </a>
+                </Link>
               </>
             ) : null}
-            <a
-              href="/api/instagram/oauth/start"
+            <Link
+              href="/api/x/oauth/start"
               className={buttonVariants({ variant: "outline" })}
+              prefetch={false}
             >
               Reconnect
-            </a>
+            </Link>
             <Button
               variant="outline"
               className="gap-2"
@@ -244,70 +252,39 @@ export function InstagramIntegrationCard({
             </Button>
           </>
         ) : (
-          <a href="/api/instagram/oauth/start" className={buttonVariants()}>
-            Connect Instagram
-          </a>
+          <Link
+            href="/api/x/oauth/start"
+            className={buttonVariants()}
+            prefetch={false}
+          >
+            Connect X
+          </Link>
         )}
       </div>
 
       {testResult?.ok ? (
         <div className="mt-4 border border-border/60 p-4">
-          <p className="text-xs uppercase text-muted-foreground">
-            Live data from Instagram
+          <p className="text-xs text-muted-foreground uppercase">
+            Live data from X
           </p>
           <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
             <dt className="text-muted-foreground">Account ID</dt>
             <dd className="font-mono text-xs">{testResult.profile.id}</dd>
+            <dt className="text-muted-foreground">Name</dt>
+            <dd>{testResult.profile.name}</dd>
             <dt className="text-muted-foreground">Username</dt>
-            <dd>@{testResult.profile.username}</dd>
-            {testResult.profile.accountType ? (
-              <>
-                <dt className="text-muted-foreground">Account type</dt>
-                <dd>{testResult.profile.accountType}</dd>
-              </>
-            ) : null}
-            {testResult.profile.mediaCount != null ? (
-              <>
-                <dt className="text-muted-foreground">Media count</dt>
-                <dd>{testResult.profile.mediaCount}</dd>
-              </>
-            ) : null}
+            <dd>
+              <a
+                href={`https://x.com/${testResult.profile.username}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 hover:underline"
+              >
+                @{testResult.profile.username}
+                <ExternalLink className="size-3" aria-hidden />
+              </a>
+            </dd>
           </dl>
-
-          {testResult.recentMedia.length > 0 ? (
-            <>
-              <p className="mt-4 text-xs uppercase text-muted-foreground">
-                Recent posts
-              </p>
-              <ul className="mt-2 space-y-2 text-sm">
-                {testResult.recentMedia.map((m) => (
-                  <li
-                    key={m.id}
-                    className="flex items-start justify-between gap-3"
-                  >
-                    <span className="min-w-0 flex-1 truncate">
-                      <span className="text-muted-foreground">
-                        {m.mediaType}
-                      </span>
-                      {" — "}
-                      {m.caption?.slice(0, 80) ?? "(no caption)"}
-                    </span>
-                    {m.permalink ? (
-                      <a
-                        href={m.permalink}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex shrink-0 items-center gap-1 text-muted-foreground hover:text-foreground"
-                      >
-                        <ExternalLink className="size-3" aria-hidden />
-                        view
-                      </a>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : null}
         </div>
       ) : null}
     </section>
@@ -330,7 +307,7 @@ function ScopePill({
         "gap-1.5 border-transparent uppercase",
         enabled
           ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
-          : "bg-muted text-muted-foreground",
+          : "bg-muted text-muted-foreground"
       )}
     >
       {icon}

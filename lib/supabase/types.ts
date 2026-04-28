@@ -14,6 +14,106 @@ export type Database = {
   }
   public: {
     Tables: {
+      x_drafts: {
+        Row: {
+          created_at: string
+          generated_by: string | null
+          id: string
+          published_at: string | null
+          published_post_id: string | null
+          published_url: string | null
+          status: string
+          text: string
+          topic: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          generated_by?: string | null
+          id?: string
+          published_at?: string | null
+          published_post_id?: string | null
+          published_url?: string | null
+          status?: string
+          text?: string
+          topic?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          generated_by?: string | null
+          id?: string
+          published_at?: string | null
+          published_post_id?: string | null
+          published_url?: string | null
+          status?: string
+          text?: string
+          topic?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "x_drafts_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      instagram_drafts: {
+        Row: {
+          caption: string
+          created_at: string
+          generated_by: string | null
+          id: string
+          image_path: string | null
+          image_prompt: string | null
+          published_at: string | null
+          published_media_id: string | null
+          published_permalink: string | null
+          status: string
+          topic: string | null
+          updated_at: string
+        }
+        Insert: {
+          caption?: string
+          created_at?: string
+          generated_by?: string | null
+          id?: string
+          image_path?: string | null
+          image_prompt?: string | null
+          published_at?: string | null
+          published_media_id?: string | null
+          published_permalink?: string | null
+          status?: string
+          topic?: string | null
+          updated_at?: string
+        }
+        Update: {
+          caption?: string
+          created_at?: string
+          generated_by?: string | null
+          id?: string
+          image_path?: string | null
+          image_prompt?: string | null
+          published_at?: string | null
+          published_media_id?: string | null
+          published_permalink?: string | null
+          status?: string
+          topic?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instagram_drafts_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_integrations: {
         Row: {
           access_token: string
@@ -23,6 +123,7 @@ export type Database = {
           id: string
           last_refreshed_at: string | null
           provider: string
+          refresh_token: string | null
           scopes: string[]
           token_expires_at: string
           updated_at: string
@@ -36,6 +137,7 @@ export type Database = {
           id?: string
           last_refreshed_at?: string | null
           provider: string
+          refresh_token?: string | null
           scopes?: string[]
           token_expires_at: string
           updated_at?: string
@@ -49,6 +151,7 @@ export type Database = {
           id?: string
           last_refreshed_at?: string | null
           provider?: string
+          refresh_token?: string | null
           scopes?: string[]
           token_expires_at?: string
           updated_at?: string

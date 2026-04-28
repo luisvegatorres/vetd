@@ -54,3 +54,65 @@ export async function listMedia(
   )
   return data.data
 }
+
+async function graphPost<T>(
+  path: string,
+  accessToken: string,
+  params: Record<string, string>,
+): Promise<T> {
+  // Instagram's publish endpoints accept params as either form-urlencoded
+  // body or query string. Query string is simplest and what their docs
+  // examples use. access_token goes in the query alongside everything else.
+  const search = new URLSearchParams({ access_token: accessToken, ...params })
+  const res = await fetch(`${GRAPH_BASE}${path}?${search.toString()}`, {
+    method: "POST",
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Instagram Graph POST ${path} failed: ${res.status} ${text}`)
+  }
+  return (await res.json()) as T
+}
+
+export type ContainerCreateResult = { id: string }
+export type PublishResult = { id: string }
+
+export function createImageContainer(
+  accessToken: string,
+  input: { imageUrl: string; caption?: string },
+): Promise<ContainerCreateResult> {
+  // Instagram Graph API: creates an unpublished media container. The
+  // container has a 24h TTL but we publish within seconds so that's moot.
+  // Caption supports up to 2200 chars, 30 hashtags, 20 mentions.
+  const params: Record<string, string> = {
+    image_url: input.imageUrl,
+    media_type: "IMAGE",
+  }
+  if (input.caption) params.caption = input.caption
+  return graphPost<ContainerCreateResult>("/me/media", accessToken, params)
+}
+
+export function publishContainer(
+  accessToken: string,
+  creationId: string,
+): Promise<PublishResult> {
+  return graphPost<PublishResult>("/me/media_publish", accessToken, {
+    creation_id: creationId,
+  })
+}
+
+export type MediaDetails = {
+  id: string
+  permalink: string
+  media_type?: string
+  timestamp?: string
+}
+
+export function getMediaDetails(
+  accessToken: string,
+  mediaId: string,
+): Promise<MediaDetails> {
+  return graphGet<MediaDetails>(`/${mediaId}`, accessToken, {
+    fields: "id,permalink,media_type,timestamp",
+  })
+}

@@ -1,16 +1,18 @@
 import { redirect } from "next/navigation"
 
 import { InstagramIntegrationCard } from "@/components/admin/instagram-integration-card"
+import { XIntegrationCard } from "@/components/admin/x-integration-card"
 import {
   INSTAGRAM_PROVIDER,
   isInstagramConfigured,
 } from "@/lib/instagram/config"
 import { createClient } from "@/lib/supabase/server"
+import { X_PROVIDER, isXConfigured } from "@/lib/x/config"
 
 export default async function AdminIntegrationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ instagram?: string; reason?: string }>
+  searchParams: Promise<{ instagram?: string; x?: string; reason?: string }>
 }) {
   const params = await searchParams
 
@@ -27,8 +29,17 @@ export default async function AdminIntegrationsPage({
   if (profile?.role !== "admin") redirect("/dashboard")
 
   const configured = isInstagramConfigured()
+  const xConfigured = isXConfigured()
 
   let connection: {
+    username: string | null
+    accountId: string
+    scopes: string[]
+    tokenExpiresAt: string
+    lastRefreshedAt: string | null
+    connectedAt: string
+  } | null = null
+  let xConnection: {
     username: string | null
     accountId: string
     scopes: string[]
@@ -41,7 +52,7 @@ export default async function AdminIntegrationsPage({
     const { data } = await supabase
       .from("app_integrations")
       .select(
-        "account_id, username, scopes, token_expires_at, last_refreshed_at, connected_at",
+        "account_id, username, scopes, token_expires_at, last_refreshed_at, connected_at"
       )
       .eq("provider", INSTAGRAM_PROVIDER)
       .maybeSingle()
@@ -57,8 +68,30 @@ export default async function AdminIntegrationsPage({
     }
   }
 
+  if (xConfigured) {
+    const { data } = await supabase
+      .from("app_integrations")
+      .select(
+        "account_id, username, scopes, token_expires_at, last_refreshed_at, connected_at"
+      )
+      .eq("provider", X_PROVIDER)
+      .maybeSingle()
+    if (data) {
+      xConnection = {
+        accountId: data.account_id,
+        username: data.username,
+        scopes: data.scopes,
+        tokenExpiresAt: data.token_expires_at,
+        lastRefreshedAt: data.last_refreshed_at,
+        connectedAt: data.connected_at,
+      }
+    }
+  }
+
   const errorReason =
     params.instagram === "error" ? (params.reason ?? "unknown") : undefined
+  const xErrorReason =
+    params.x === "error" ? (params.reason ?? "unknown") : undefined
 
   return (
     <div className="space-y-6">
@@ -75,6 +108,11 @@ export default async function AdminIntegrationsPage({
           configured={configured}
           connection={connection}
           errorReason={errorReason}
+        />
+        <XIntegrationCard
+          configured={xConfigured}
+          connection={xConnection}
+          errorReason={xErrorReason}
         />
       </div>
     </div>
