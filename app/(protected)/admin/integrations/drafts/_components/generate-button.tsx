@@ -69,7 +69,7 @@ export function GenerateButton() {
       </div>
       {pending ? (
         <p className="text-xs text-muted-foreground">
-          Caption then image. Usually 10 to 20 seconds.
+          Drafting caption. A few seconds.
         </p>
       ) : null}
     </div>

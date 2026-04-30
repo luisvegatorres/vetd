@@ -1,43 +1,7 @@
 import "server-only"
 
-import { randomUUID } from "node:crypto"
-
-import { ThinkingLevel } from "@google/genai"
-
-import { getGemini, DEFAULT_GEMINI_MODEL } from "@/lib/gemini/client"
+import { DEFAULT_GEMINI_MODEL } from "@/lib/gemini/client"
 import { generateText } from "@/lib/gemini/generate"
-
-// "Nano-banana 2" — Gemini 3 multimodal image model. Returns an image as an
-// inlineData part on a regular generateContent call (no dedicated images
-// endpoint, unlike Imagen). aspectRatio + imageSize go in `imageConfig`.
-const IMAGE_MODEL = "gemini-3.1-flash-image-preview"
-const DRAFT_PREFIX = "drafts"
-
-// Image generation hits 503 UNAVAILABLE during demand spikes; retrying
-// usually succeeds within a few seconds.
-const IMAGE_RETRY_ATTEMPTS = 3
-const IMAGE_RETRY_BACKOFF_MS = [1500, 4000]
-
-function isOverloadedError(err: unknown): boolean {
-  const msg = err instanceof Error ? err.message : String(err)
-  return /\b503\b|UNAVAILABLE|high demand|overloaded/i.test(msg)
-}
-
-async function withImageRetry<T>(fn: () => Promise<T>): Promise<T> {
-  let lastErr: unknown
-  for (let attempt = 0; attempt < IMAGE_RETRY_ATTEMPTS; attempt++) {
-    try {
-      return await fn()
-    } catch (err) {
-      lastErr = err
-      const isLast = attempt === IMAGE_RETRY_ATTEMPTS - 1
-      if (isLast || !isOverloadedError(err)) throw err
-      const delay = IMAGE_RETRY_BACKOFF_MS[attempt] ?? 4000
-      await new Promise((resolve) => setTimeout(resolve, delay))
-    }
-  }
-  throw lastErr
-}
 
 const NO_EM_DASH_RULE =
   "Do not use em dashes. Use periods, commas, or parentheses instead."
@@ -50,6 +14,10 @@ const VOICE_RULE =
 // pain-led: name a gap their business has, name what it costs them, then
 // imply or state the fix. The X/Twitter channel (future) will carry the
 // dev-process and technical content. Keep that split in mind.
+//
+// The `image_prompt` field is now a brief for the human creator, not for
+// an image model. Gemini still produces it because the visual direction
+// (composition, mood, on-image headline) is the same advice either way.
 const POST_SYSTEM_INSTRUCTION = `You generate Instagram post drafts for Vetd, a digital agency that builds custom websites, mobile apps, web apps, and AI integrations for small businesses.
 
 CURRENT TARGET VERTICALS (each post must address exactly ONE):
@@ -60,7 +28,7 @@ CURRENT TARGET VERTICALS (each post must address exactly ONE):
 The audience is the OWNER or OPERATOR of one of these businesses, not a developer or marketer. Write for the buyer.
 
 Output ONLY a JSON object on a single line with this exact shape, no markdown fence, no commentary:
-{"topic": "<5 to 8 word summary>", "caption": "<caption text>", "image_prompt": "<image generation prompt>"}
+{"topic": "<5 to 8 word summary>", "caption": "<caption text>", "image_prompt": "<image brief for the human creator>"}
 
 CORE PATTERN — every caption follows this three-beat structure:
 1. ADDRESS them directly by vertical. Examples: "Airbnb hosts:", "Restaurant owners:", "Cafe owners:".
@@ -99,14 +67,14 @@ Caption rules:
   • Cafe: #cafeowner, #cafebusiness, #coffeeshopowner, #independentcafe, #specialtycoffee
 - BAD (never use): #coding, #javascript, #nextjs, #webdevelopment, #developer, #softwareengineering, #techstack, #digitalagency, #growthtips (too generic), #leadgen.
 
-Image prompt rules:
+Image brief rules (this guides a human creating the image, not an AI):
 - The image shows the SOLUTION (polished website / app / dashboard) so the scroller sees the upgrade visually, while the caption articulates the pain. Pain in words, gain in pixels.
-- Composition: square 1:1, clean light or dark gradient background, with a centered photorealistic product mockup tied to the vertical:
+- Composition: portrait 4:5, clean light or dark gradient background, with a centered photorealistic product mockup tied to the vertical:
   • For an Airbnb-host post: a modern direct-booking website mockup on a laptop or browser frame, with a hero photo of a tasteful interior. Or a guest-comms dashboard.
   • For a restaurant post: a restaurant website with online ordering, a phone showing a clean ordering flow, or a reservation widget.
   • For a cafe post: a phone showing a loyalty app, a mobile ordering screen, or a clean cafe website with hours/menu.
 - INCLUDE one short bold headline as actual text inside the image, 2 to 5 words max, sans-serif, large weight, high contrast, placed above or beside the mockup. The headline names the OUTCOME, not the pain. Examples by vertical: "Direct bookings", "Skip the platform fee", "Order online", "Reserve in seconds", "Loyalty that sticks", "Built in 10 days".
-- Specify the headline text VERBATIM in the image prompt using the format: text reads exactly: "<headline>".
+- State the headline text VERBATIM in the brief using the format: text reads exactly: "<headline>".
 - Mood: confident, premium, modern. Like a SaaS or design agency hero, not abstract gradient art.
 - Color palette: clean light gradient (sky blue to white, warm cream to white) OR dark mode (deep black to charcoal). Occasional accent of electric blue or coral.
 - AVOID: photorealistic people as the subject, busy compositions, abstract gradients without a product, hand-drawn / illustrated / cartoon / retro / grunge / stock-photo aesthetics.`
@@ -202,81 +170,4 @@ Output ONLY the new caption text. Follow the three-beat pattern: 1) address the 
   })
   if (!result.ok) return { ok: false, error: result.error }
   return { ok: true, caption: result.text.trim() }
-}
-
-export type GeneratedImage = {
-  imagePath: string
-  bytes: Buffer
-  mimeType: string
-}
-
-/**
- * Calls the Gemini multimodal image model (nano-banana 2) and returns the
- * raw image bytes plus a recommended storage path. The caller is
- * responsible for uploading to Supabase Storage so that storage concerns
- * stay isolated from generation.
- *
- * Unlike Imagen, this model returns the image as an `inlineData` part on
- * a regular `generateContent` call. We walk the candidates' parts and
- * pick the first one carrying base64 image bytes.
- */
-export async function generateImage(
-  imagePrompt: string,
-): Promise<{ ok: true; image: GeneratedImage } | { ok: false; error: string }> {
-  try {
-    const ai = getGemini()
-    const response = await withImageRetry(() =>
-      ai.models.generateContent({
-        model: IMAGE_MODEL,
-        contents: [{ role: "user", parts: [{ text: imagePrompt }] }],
-        // The preview model accepts `imageConfig` and `responseModalities`
-        // which the SDK's GenerateContentConfig type doesn't yet include.
-        // Cast to bypass strict typing; the runtime accepts both fields.
-        config: {
-          thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
-          responseModalities: ["IMAGE", "TEXT"],
-          imageConfig: {
-            aspectRatio: "1:1",
-            imageSize: "1K",
-          },
-        } as Parameters<typeof ai.models.generateContent>[0]["config"],
-      }),
-    )
-
-    const parts = response.candidates?.[0]?.content?.parts ?? []
-    for (const part of parts) {
-      const inlineData = part.inlineData
-      if (inlineData?.data) {
-        const mimeType = inlineData.mimeType ?? "image/png"
-        const ext =
-          mimeType === "image/jpeg"
-            ? "jpg"
-            : mimeType === "image/webp"
-              ? "webp"
-              : "png"
-        const buffer = Buffer.from(inlineData.data, "base64")
-        return {
-          ok: true,
-          image: {
-            imagePath: `${DRAFT_PREFIX}/${randomUUID()}.${ext}`,
-            bytes: buffer,
-            mimeType,
-          },
-        }
-      }
-    }
-    return { ok: false, error: "Model returned no image" }
-  } catch (err) {
-    if (isOverloadedError(err)) {
-      return {
-        ok: false,
-        error:
-          "Image model is overloaded right now (Google 503). Try again in a minute.",
-      }
-    }
-    return {
-      ok: false,
-      error: err instanceof Error ? err.message : String(err),
-    }
-  }
 }

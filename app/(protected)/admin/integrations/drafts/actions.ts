@@ -12,7 +12,6 @@ import {
   isInstagramConfigured,
 } from "@/lib/instagram/config"
 import {
-  generateImage,
   generatePostIdea,
   regenerateCaption as regenerateCaptionLib,
 } from "@/lib/instagram/draft-generator"
@@ -29,9 +28,9 @@ export type DraftActionResult =
 export type GenerateDraftInput = { hint?: string }
 
 /**
- * Generates a brand-new draft: caption + image_prompt via Gemini, image
- * via Imagen, image bytes uploaded to Supabase Storage, row inserted in
- * instagram_drafts. Returns the new draft ID.
+ * Generates a brand-new draft: caption + image_prompt via Gemini. The
+ * image is left null; the admin attaches their own via
+ * /api/instagram/drafts/[id]/image before publishing.
  */
 export async function generateDraft(
   input?: GenerateDraftInput,
@@ -46,33 +45,19 @@ export async function generateDraft(
   if (!ideaResult.ok) return { ok: false, error: ideaResult.error }
   const idea = ideaResult.post
 
-  const imageResult = await generateImage(idea.image_prompt)
-  if (!imageResult.ok) return { ok: false, error: imageResult.error }
-
   const admin = createAdminClient()
-  const { error: uploadError } = await admin.storage
-    .from(BUCKET)
-    .upload(imageResult.image.imagePath, imageResult.image.bytes, {
-      contentType: imageResult.image.mimeType,
-      upsert: false,
-    })
-  if (uploadError) {
-    return { ok: false, error: `Image upload failed: ${uploadError.message}` }
-  }
-
   const { data, error } = await admin
     .from("instagram_drafts")
     .insert({
       topic: idea.topic,
       caption: idea.caption,
       image_prompt: idea.image_prompt,
-      image_path: imageResult.image.imagePath,
+      image_path: null,
       generated_by: access.userId,
     })
     .select("id")
     .single()
   if (error || !data) {
-    void admin.storage.from(BUCKET).remove([imageResult.image.imagePath])
     return {
       ok: false,
       error: error?.message ?? "Failed to insert draft",
@@ -140,66 +125,6 @@ export async function regenerateDraftCaption(
     .update({ caption: result.caption })
     .eq("id", draftId)
   if (updateError) return { ok: false, error: updateError.message }
-
-  revalidatePath("/admin/integrations/drafts")
-  return { ok: true, draftId }
-}
-
-export async function regenerateDraftImage(
-  draftId: string,
-  newPrompt?: string,
-): Promise<DraftActionResult> {
-  const access = await requireInstagramAdminAccess()
-  if (!access.ok) return { ok: false, error: access.error }
-
-  const admin = createAdminClient()
-  const { data: draft, error: fetchError } = await admin
-    .from("instagram_drafts")
-    .select("image_path, image_prompt, status")
-    .eq("id", draftId)
-    .maybeSingle()
-  if (fetchError || !draft) {
-    return { ok: false, error: fetchError?.message ?? "Draft not found" }
-  }
-  if (draft.status !== "draft") {
-    return { ok: false, error: "Draft is not editable in its current status" }
-  }
-
-  const promptToUse = newPrompt?.trim() || draft.image_prompt
-  if (!promptToUse) {
-    return { ok: false, error: "No image prompt available" }
-  }
-
-  const imageResult = await generateImage(promptToUse)
-  if (!imageResult.ok) return { ok: false, error: imageResult.error }
-
-  const { error: uploadError } = await admin.storage
-    .from(BUCKET)
-    .upload(imageResult.image.imagePath, imageResult.image.bytes, {
-      contentType: imageResult.image.mimeType,
-      upsert: false,
-    })
-  if (uploadError) {
-    return { ok: false, error: `Image upload failed: ${uploadError.message}` }
-  }
-
-  const { error: updateError } = await admin
-    .from("instagram_drafts")
-    .update({
-      image_path: imageResult.image.imagePath,
-      image_prompt: promptToUse,
-    })
-    .eq("id", draftId)
-  if (updateError) {
-    void admin.storage.from(BUCKET).remove([imageResult.image.imagePath])
-    return { ok: false, error: updateError.message }
-  }
-
-  // Best-effort cleanup of the previous image. If the delete fails we
-  // accept the orphan; the bucket isn't space-constrained at this scale.
-  if (draft.image_path) {
-    void admin.storage.from(BUCKET).remove([draft.image_path])
-  }
 
   revalidatePath("/admin/integrations/drafts")
   return { ok: true, draftId }

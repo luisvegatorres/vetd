@@ -2,14 +2,14 @@
 
 import {
   ExternalLink,
-  Image as ImageIcon,
-  RefreshCw,
+  ImagePlus,
   Save,
   Send,
   Trash2,
   Wand2,
 } from "lucide-react"
-import { useState, useTransition } from "react"
+import { useRef, useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
@@ -28,11 +28,12 @@ import {
   discardDraft,
   publishDraft,
   regenerateDraftCaption,
-  regenerateDraftImage,
   updateDraftCaption,
 } from "../actions"
 
 const CAPTION_MAX = 2200
+const FILE_MAX_BYTES = 4 * 1024 * 1024
+const ACCEPT = "image/jpeg,image/png,image/webp"
 
 export type DraftRow = {
   id: string
@@ -60,23 +61,26 @@ export function DraftCard({
   draft: DraftRow
   canPublish: boolean
 }) {
+  const router = useRouter()
   const [caption, setCaption] = useState(draft.caption)
   const [savingCaption, startSavingCaption] = useTransition()
   const [regenCaption, startRegenCaption] = useTransition()
-  const [regenImage, startRegenImage] = useTransition()
   const [publishing, startPublishing] = useTransition()
   const [discarding, startDiscarding] = useTransition()
+  const [uploading, setUploading] = useState(false)
   const [publishOpen, setPublishOpen] = useState(false)
   const [discardOpen, setDiscardOpen] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const captionChanged = caption !== draft.caption
   const isPublished = draft.status === "published"
+  const hasImage = draft.imageUrl !== null
   const busy =
     savingCaption ||
     regenCaption ||
-    regenImage ||
     publishing ||
-    discarding
+    discarding ||
+    uploading
 
   function handleSaveCaption() {
     startSavingCaption(async () => {
@@ -94,12 +98,46 @@ export function DraftCard({
     })
   }
 
-  function handleRegenImage() {
-    startRegenImage(async () => {
-      const result = await regenerateDraftImage(draft.id)
-      if (result.ok) toast.success("Image regenerated")
-      else toast.error(result.error)
-    })
+  function openFilePicker() {
+    fileInputRef.current?.click()
+  }
+
+  async function handleFile(picked: File | null | undefined) {
+    if (!picked) return
+    if (picked.size > FILE_MAX_BYTES) {
+      toast.error(
+        `Image is ${(picked.size / 1024 / 1024).toFixed(1)}MB. Max is 4MB.`,
+      )
+      return
+    }
+    if (!ACCEPT.split(",").includes(picked.type)) {
+      toast.error("Use JPEG, PNG, or WebP.")
+      return
+    }
+
+    setUploading(true)
+    try {
+      const body = new FormData()
+      body.append("image", picked)
+      const res = await fetch(`/api/instagram/drafts/${draft.id}/image`, {
+        method: "POST",
+        body,
+      })
+      const json = (await res.json()) as
+        | { ok: true; imagePath: string; imageUrl: string }
+        | { ok: false; error: string }
+      if (!json.ok) {
+        toast.error(json.error)
+        return
+      }
+      toast.success("Image attached")
+      router.refresh()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed")
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ""
+    }
   }
 
   function confirmPublish() {
@@ -122,7 +160,7 @@ export function DraftCard({
 
   return (
     <article className="flex flex-col border border-border/60">
-      <div className="relative aspect-square w-full overflow-hidden bg-muted/30">
+      <div className="relative aspect-[4/5] w-full overflow-hidden bg-muted/30">
         {draft.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -131,9 +169,19 @@ export function DraftCard({
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-muted-foreground">
-            <ImageIcon aria-hidden />
-          </div>
+          <button
+            type="button"
+            onClick={openFilePicker}
+            disabled={isPublished || busy}
+            className={cn(
+              "flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 border border-dashed border-border bg-muted/20 text-sm text-muted-foreground transition-colors hover:bg-muted/40",
+              (isPublished || busy) && "pointer-events-none opacity-60",
+            )}
+          >
+            <ImagePlus aria-hidden />
+            <span>{uploading ? "Uploading..." : "Click to choose an image"}</span>
+            <span className="text-xs">JPEG, PNG, or WebP. Up to 4MB.</span>
+          </button>
         )}
         <div className="absolute right-2 top-2 flex items-center gap-1">
           {isPublished ? (
@@ -155,11 +203,31 @@ export function DraftCard({
         </div>
       </div>
 
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={ACCEPT}
+        onChange={(e) => handleFile(e.target.files?.[0])}
+        disabled={busy}
+        className="hidden"
+      />
+
       <div className="flex flex-1 flex-col gap-3 p-4">
         {draft.topic ? (
           <p className="text-xs uppercase tracking-wide text-muted-foreground">
             {draft.topic}
           </p>
+        ) : null}
+
+        {draft.imagePrompt && !isPublished ? (
+          <details className="text-xs text-muted-foreground">
+            <summary className="cursor-pointer uppercase tracking-wide hover:text-foreground">
+              Suggested image
+            </summary>
+            <p className="mt-2 whitespace-pre-wrap leading-relaxed">
+              {draft.imagePrompt}
+            </p>
+          </details>
         ) : null}
 
         {isPublished ? (
@@ -177,9 +245,7 @@ export function DraftCard({
 
         {!isPublished ? (
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>
-              {captionChanged ? "Unsaved changes" : "Saved"}
-            </span>
+            <span>{captionChanged ? "Unsaved changes" : "Saved"}</span>
             <span
               className={cn(
                 caption.length > CAPTION_MAX - 100 && "text-destructive",
@@ -215,7 +281,7 @@ export function DraftCard({
               <Button
                 size="sm"
                 onClick={() => setPublishOpen(true)}
-                disabled={!canPublish || busy}
+                disabled={!canPublish || !hasImage || busy}
                 className="gap-1"
               >
                 <Send aria-hidden />
@@ -243,16 +309,18 @@ export function DraftCard({
                 <Wand2 aria-hidden />
                 {regenCaption ? "..." : "New caption"}
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleRegenImage}
-                disabled={busy}
-                className="gap-1"
-              >
-                <RefreshCw aria-hidden />
-                {regenImage ? "..." : "New image"}
-              </Button>
+              {hasImage ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={openFilePicker}
+                  disabled={busy}
+                  className="gap-1"
+                >
+                  <ImagePlus aria-hidden />
+                  {uploading ? "..." : "Replace image"}
+                </Button>
+              ) : null}
               <Button
                 size="sm"
                 variant="outline"
@@ -297,7 +365,7 @@ export function DraftCard({
           <DialogHeader>
             <DialogTitle>Discard draft</DialogTitle>
             <DialogDescription>
-              The caption and the generated image will be deleted. This
+              The caption {hasImage ? "and image " : ""}will be deleted. This
               cannot be undone.
             </DialogDescription>
           </DialogHeader>

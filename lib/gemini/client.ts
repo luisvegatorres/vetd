@@ -14,4 +14,4 @@ export const getGemini = () => {
   return new GoogleGenAI({ apiKey })
 }
 
-export const DEFAULT_GEMINI_MODEL = "gemini-3.1-flash-lite-preview"
+export const DEFAULT_GEMINI_MODEL = "gemini-flash-latest"

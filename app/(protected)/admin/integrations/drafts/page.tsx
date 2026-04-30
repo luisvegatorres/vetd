@@ -116,8 +116,8 @@ export default async function InstagramDraftsPage() {
             </EmptyMedia>
             <EmptyTitle>No drafts yet</EmptyTitle>
             <EmptyDescription>
-              Click Generate draft above to have Gemini and Imagen produce a
-              caption plus a square image you can review here.
+              Click Generate draft above to have Gemini draft a caption and
+              an image brief. Attach your own image before publishing.
             </EmptyDescription>
           </EmptyHeader>
         </Empty>
